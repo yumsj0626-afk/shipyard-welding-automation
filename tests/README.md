@@ -1,6 +1,6 @@
 # 개발 검증 계획
 
-현재 테스트 코드와 실행 결과는 없다. 다음 구현에서 [M01~M10 완료 기준](../docs/next-steps.md)을 근거로 필요한 테스트를 작성한다.
+현재 테스트 코드와 실행 결과는 없다. 다음 구현에서 [M01–M10 완료 기준](../docs/next-steps.md)을 근거로 필요한 테스트를 작성한다.
 
 - 사건·상태 계약: 필수 정보 누락, 확인 불가 대상, 충돌, 중복, 오래된 버전, 잘못된 복구 대상.
 - 제약과 검사기: 보류·조합 제한·선행·로봇/구역 중복·이동/준비·진행 작업 고정 위반을 넣은 계획 거부. 검사기가 솔버의 자기 확인 결과를 그대로 신뢰하지 않는지 확인.
@@ -11,6 +11,6 @@
 
 ## 다음 구현의 검증 경계
 
-[아키텍처](../docs/architecture.md)와 [데이터 계약](../docs/data-contracts.md)을 기준으로 `tests/test_contracts.py`부터 단계별로 작성한다. 각 파일과 완료 확인은 [I01~I09](../docs/next-steps.md)에 연결되어 있다. 특히 검사와 적용 사이 상태 변경, phase 시작 전 실제 선행 완료, 현재 진행 phase 보존, 중복 지시, 제한별 복구를 오류 주입으로 확인한다.
+[아키텍처](../docs/architecture.md)와 [데이터 계약](../docs/data-contracts.md)을 기준으로 `tests/test_contracts.py`부터 단계별로 작성한다. 각 파일과 완료 확인은 [I01–I09](../docs/next-steps.md)에 연결되어 있다. 특히 검사와 적용 사이 상태 변경, phase 시작 전 실제 선행 완료, 현재 진행 phase 보존, 중복 지시, 제한별 복구를 오류 주입으로 확인한다.
 
-정보 경계는 미래/정답 sentinel, 공개 DTO의 extra-field 거부, 금지 import·로더 접근 검사로 확인한다. 독립 평가자는 `evaluation/score.py`에서 별도로 구현하며 pytest의 통과 자체가 연구 성과는 아니다. 이번 임시 API 프로브는 [결정 기록](../docs/decisions.md)에 있으며 앱 테스트나 M01~M10 통과로 세지 않는다.
+정보 경계는 미래/정답 sentinel, 공개 DTO의 extra-field 거부, 금지 import·로더 접근 검사로 확인한다. 독립 평가자는 `evaluation/score.py`에서 별도로 구현하며 pytest의 통과 자체가 연구 성과는 아니다. 이번 임시 API 프로브는 [결정 기록](../docs/decisions.md)에 있으며 앱 테스트나 M01–M10 통과로 세지 않는다.
