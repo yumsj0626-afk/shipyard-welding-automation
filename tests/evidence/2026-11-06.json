@@ -1,0 +1,1413 @@
+{
+  "recorded_at": "2026-11-06T14:04:34.808883+00:00",
+  "scope": "development acceptance only; not main experiment",
+  "source_sha256": "a1a50ca19e738fef4f35b4493f1c895173ac59f7dc7fb0f2a46d3be01fe52c0c",
+  "python": "3.13.18",
+  "uv": "0.13.7",
+  "pytest": "9.2.0",
+  "policy_version": "dev-v1",
+  "rule_version": "rules-v1",
+  "clean_environment": "fresh uv environment installed from uv.lock using cached distributions (--offline)",
+  "pytest_result": {
+    "tests": "117",
+    "failures": "0",
+    "errors": "0",
+    "skipped": "0",
+    "time": "1.414"
+  },
+  "test_cases": [
+    {
+      "module": "tests.test_application",
+      "name": "test_change_between_check_and_apply_replans_from_new_snapshot"
+    },
+    {
+      "module": "tests.test_application",
+      "name": "test_stale_retries_are_bounded_without_partial_activation"
+    },
+    {
+      "module": "tests.test_application",
+      "name": "test_fault_after_instruction_write_rolls_back_activation"
+    },
+    {
+      "module": "tests.test_application",
+      "name": "test_simultaneous_writers_only_one_can_commit"
+    },
+    {
+      "module": "tests.test_application",
+      "name": "test_duplicate_start_and_inactive_instruction_never_execute_twice"
+    },
+    {
+      "module": "tests.test_application",
+      "name": "test_failure_never_activates_new_plan_or_claims_normal_wait[INFEASIBLE]"
+    },
+    {
+      "module": "tests.test_application",
+      "name": "test_failure_never_activates_new_plan_or_claims_normal_wait[NO_SOLUTION_WITHIN_LIMIT]"
+    },
+    {
+      "module": "tests.test_application",
+      "name": "test_failure_never_activates_new_plan_or_claims_normal_wait[MODEL_INVALID]"
+    },
+    {
+      "module": "tests.test_application",
+      "name": "test_failure_never_activates_new_plan_or_claims_normal_wait[INTERNAL_ERROR]"
+    },
+    {
+      "module": "tests.test_application",
+      "name": "test_feasible_unproven_candidate_may_apply_but_keeps_status"
+    },
+    {
+      "module": "tests.test_checker",
+      "name": "test_independent_checker_rejects_corrupted_plans[weld-WELD_DURATION]"
+    },
+    {
+      "module": "tests.test_checker",
+      "name": "test_independent_checker_rejects_corrupted_plans[travel-TRAVEL_DURATION]"
+    },
+    {
+      "module": "tests.test_checker",
+      "name": "test_independent_checker_rejects_corrupted_plans[setup-SETUP_DURATION_OR_WELD_GAP]"
+    },
+    {
+      "module": "tests.test_checker",
+      "name": "test_independent_checker_rejects_corrupted_plans[capability-FORBIDDEN_ASSIGNMENT]"
+    },
+    {
+      "module": "tests.test_checker",
+      "name": "test_independent_checker_rejects_corrupted_plans[fixed-FIXED_EXECUTION_CHANGED]"
+    },
+    {
+      "module": "tests.test_checker",
+      "name": "test_independent_checker_rejects_corrupted_plans[precedence-PRECEDENCE]"
+    },
+    {
+      "module": "tests.test_checker",
+      "name": "test_independent_checker_rejects_corrupted_plans[overlap-ROBOT_OVERLAP]"
+    },
+    {
+      "module": "tests.test_checker",
+      "name": "test_independent_checker_rejects_corrupted_plans[missing-COMPLETION_PATH_SET]"
+    },
+    {
+      "module": "tests.test_checker",
+      "name": "test_independent_checker_rejects_corrupted_plans[idle-UNJUSTIFIED_IDLE]"
+    },
+    {
+      "module": "tests.test_checker",
+      "name": "test_new_hold_invalidates_previously_valid_plan_without_using_constraint_builder"
+    },
+    {
+      "module": "tests.test_checker",
+      "name": "test_plan_checked_before_state_change_is_stale"
+    },
+    {
+      "module": "tests.test_checker",
+      "name": "test_zone_overlap_is_rejected_even_when_robot_intervals_do_not_overlap"
+    },
+    {
+      "module": "tests.test_checker",
+      "name": "test_finished_setup_retains_zone_for_own_weld_only"
+    },
+    {
+      "module": "tests.test_checker",
+      "name": "test_runtime_gate_requires_actual_predecessor_completion"
+    },
+    {
+      "module": "tests.test_checker",
+      "name": "test_execution_checker_does_not_import_model_builder_or_solver"
+    },
+    {
+      "module": "tests.test_constraints",
+      "name": "test_fitup_is_global_and_predecessor_closure_preserves_unrelated_work"
+    },
+    {
+      "module": "tests.test_constraints",
+      "name": "test_pair_ban_does_not_ban_job_or_robot"
+    },
+    {
+      "module": "tests.test_constraints",
+      "name": "test_no_alternatives_keeps_running_weld_and_explains_each_deferral"
+    },
+    {
+      "module": "tests.test_constraints",
+      "name": "test_missing_travel_is_not_silently_zero"
+    },
+    {
+      "module": "tests.test_constraints",
+      "name": "test_cyclic_precedence_is_rejected"
+    },
+    {
+      "module": "tests.test_contracts",
+      "name": "test_json_rejects_ambiguous_values[{\"a\":1,\"a\":2}]"
+    },
+    {
+      "module": "tests.test_contracts",
+      "name": "test_json_rejects_ambiguous_values[{\"x\":NaN}]"
+    },
+    {
+      "module": "tests.test_contracts",
+      "name": "test_json_rejects_ambiguous_values[{\"x\":Infinity}]"
+    },
+    {
+      "module": "tests.test_contracts",
+      "name": "test_json_rejects_ambiguous_values[{\"x\":-Infinity}]"
+    },
+    {
+      "module": "tests.test_contracts",
+      "name": "test_strict_integer[4]"
+    },
+    {
+      "module": "tests.test_contracts",
+      "name": "test_strict_integer[True]"
+    },
+    {
+      "module": "tests.test_contracts",
+      "name": "test_strict_integer[-1]"
+    },
+    {
+      "module": "tests.test_contracts",
+      "name": "test_strict_integer[1.5]"
+    },
+    {
+      "module": "tests.test_contracts",
+      "name": "test_snapshot_forbids_private_fields[future_recovery_tick]"
+    },
+    {
+      "module": "tests.test_contracts",
+      "name": "test_snapshot_forbids_private_fields[oracle]"
+    },
+    {
+      "module": "tests.test_contracts",
+      "name": "test_snapshot_forbids_private_fields[truth]"
+    },
+    {
+      "module": "tests.test_contracts",
+      "name": "test_snapshot_forbids_private_fields[simulator]"
+    },
+    {
+      "module": "tests.test_contracts",
+      "name": "test_initial_references_and_graph[unknown_pred]"
+    },
+    {
+      "module": "tests.test_contracts",
+      "name": "test_initial_references_and_graph[cycle]"
+    },
+    {
+      "module": "tests.test_contracts",
+      "name": "test_initial_references_and_graph[missing_travel]"
+    },
+    {
+      "module": "tests.test_contracts",
+      "name": "test_initial_references_and_graph[unknown_robot]"
+    },
+    {
+      "module": "tests.test_contracts",
+      "name": "test_initial_references_and_graph[duplicate_id]"
+    },
+    {
+      "module": "tests.test_contracts",
+      "name": "test_initial_references_and_graph[unicode_id]"
+    },
+    {
+      "module": "tests.test_contracts",
+      "name": "test_target_does_not_silently_expand_scope"
+    },
+    {
+      "module": "tests.test_evaluation",
+      "name": "test_manual_feasible_examples_and_human_distinction[D01]"
+    },
+    {
+      "module": "tests.test_evaluation",
+      "name": "test_manual_feasible_examples_and_human_distinction[D02]"
+    },
+    {
+      "module": "tests.test_evaluation",
+      "name": "test_manual_feasible_examples_and_human_distinction[D03]"
+    },
+    {
+      "module": "tests.test_evaluation",
+      "name": "test_manual_feasible_examples_and_human_distinction[D04]"
+    },
+    {
+      "module": "tests.test_evaluation",
+      "name": "test_w17_repair_is_not_actual_predecessor_completion"
+    },
+    {
+      "module": "tests.test_evaluation",
+      "name": "test_checker_pass_does_not_hide_execution_violation"
+    },
+    {
+      "module": "tests.test_evaluation",
+      "name": "test_starts_without_end_are_not_hidden_by_end_only_export"
+    },
+    {
+      "module": "tests.test_evaluation",
+      "name": "test_repair_without_recheck_does_not_release_hold"
+    },
+    {
+      "module": "tests.test_evaluation",
+      "name": "test_fabricated_release_evidence_cannot_pass_two_id_count"
+    },
+    {
+      "module": "tests.test_evaluation",
+      "name": "test_fitup_hold_scope_must_cover_every_robot"
+    },
+    {
+      "module": "tests.test_evaluation",
+      "name": "test_d02_timeout_wait_does_not_count_as_justified_wait"
+    },
+    {
+      "module": "tests.test_evaluation",
+      "name": "test_candidate_violation_and_checker_block_are_separate_from_execution"
+    },
+    {
+      "module": "tests.test_evaluation",
+      "name": "test_missing_event_does_not_shrink_denominator"
+    },
+    {
+      "module": "tests.test_evaluation",
+      "name": "test_evaluator_reads_raw_exports_not_summary"
+    },
+    {
+      "module": "tests.test_evaluation",
+      "name": "test_fabricated_csv_completion_requires_actual_trace"
+    },
+    {
+      "module": "tests.test_evaluation",
+      "name": "test_evaluator_does_not_import_operational_modules"
+    },
+    {
+      "module": "tests.test_events",
+      "name": "test_fitup_hold_is_job_wide_without_mutating_input"
+    },
+    {
+      "module": "tests.test_events",
+      "name": "test_pair_ban_does_not_become_job_or_robot_ban"
+    },
+    {
+      "module": "tests.test_events",
+      "name": "test_repair_alone_cannot_release_and_linked_recheck_can"
+    },
+    {
+      "module": "tests.test_events",
+      "name": "test_recovery_releases_only_its_own_restriction"
+    },
+    {
+      "module": "tests.test_events",
+      "name": "test_wrong_incident_or_recheck_before_repair_cannot_release"
+    },
+    {
+      "module": "tests.test_events",
+      "name": "test_unknown_source_and_future_evidence_are_not_published"
+    },
+    {
+      "module": "tests.test_events",
+      "name": "test_conflicting_sources_do_not_depend_on_arrival_order"
+    },
+    {
+      "module": "tests.test_events",
+      "name": "test_missing_reference_is_filled_from_current_public_evidence"
+    },
+    {
+      "module": "tests.test_events",
+      "name": "test_invalid_evidence_identity_is_quarantined"
+    },
+    {
+      "module": "tests.test_events",
+      "name": "test_running_weld_is_not_stopped_by_out_of_scope_event"
+    },
+    {
+      "module": "tests.test_events",
+      "name": "test_superseded_repair_true_cannot_release_with_old_link"
+    },
+    {
+      "module": "tests.test_events",
+      "name": "test_supersedes_cannot_replace_another_source_fact"
+    },
+    {
+      "module": "tests.test_events",
+      "name": "test_pair_recovery_needs_newer_linked_evidence_for_matching_target"
+    },
+    {
+      "module": "tests.test_events",
+      "name": "test_current_evidence_resolves_only_matching_information_hold"
+    },
+    {
+      "module": "tests.test_events",
+      "name": "test_maximum_length_external_id_still_produces_a_valid_restriction"
+    },
+    {
+      "module": "tests.test_information_boundary",
+      "name": "test_dependency_boundaries_are_executable_rules"
+    },
+    {
+      "module": "tests.test_information_boundary",
+      "name": "test_public_loader_reads_only_the_two_public_files"
+    },
+    {
+      "module": "tests.test_information_boundary",
+      "name": "test_future_and_oracle_sentinels_cannot_reach_planning_before_arrival"
+    },
+    {
+      "module": "tests.test_integration",
+      "name": "test_end_to_end_and_independent_score[D01-done0-0]"
+    },
+    {
+      "module": "tests.test_integration",
+      "name": "test_end_to_end_and_independent_score[D02-done1-0]"
+    },
+    {
+      "module": "tests.test_integration",
+      "name": "test_end_to_end_and_independent_score[D03-done2-0]"
+    },
+    {
+      "module": "tests.test_integration",
+      "name": "test_end_to_end_and_independent_score[D04-done3-1]"
+    },
+    {
+      "module": "tests.test_integration",
+      "name": "test_never_overwrites_a_previous_run"
+    },
+    {
+      "module": "tests.test_repository",
+      "name": "test_snapshot_is_detached_and_audit_does_not_change_version"
+    },
+    {
+      "module": "tests.test_repository",
+      "name": "test_compare_and_swap_rejects_second_writer_without_partial_log"
+    },
+    {
+      "module": "tests.test_repository",
+      "name": "test_same_event_is_noop_and_conflicting_payload_is_not_applied"
+    },
+    {
+      "module": "tests.test_repository",
+      "name": "test_received_tick_does_not_change_event_identity"
+    },
+    {
+      "module": "tests.test_repository",
+      "name": "test_conflicting_same_batch_event_is_not_partly_applied"
+    },
+    {
+      "module": "tests.test_repository",
+      "name": "test_evidence_identity_failure_rolls_back_state_and_audit"
+    },
+    {
+      "module": "tests.test_repository",
+      "name": "test_plan_apply_is_atomic_and_rejects_check_then_state_change"
+    },
+    {
+      "module": "tests.test_repository",
+      "name": "test_plan_apply_sets_versions_and_does_not_change_running_job"
+    },
+    {
+      "module": "tests.test_repository",
+      "name": "test_tampered_plan_cannot_reuse_check"
+    },
+    {
+      "module": "tests.test_repository",
+      "name": "test_observation_duplicate_is_checked_before_any_proposed_state_change"
+    },
+    {
+      "module": "tests.test_repository",
+      "name": "test_event_trace_records_one_public_lookup_and_published_evidence"
+    },
+    {
+      "module": "tests.test_review_regressions",
+      "name": "test_initial_state_rejects_inconsistent_execution_history[truncated_running_weld]"
+    },
+    {
+      "module": "tests.test_review_regressions",
+      "name": "test_initial_state_rejects_inconsistent_execution_history[unknown_progress_robot]"
+    },
+    {
+      "module": "tests.test_review_regressions",
+      "name": "test_move_cancellation_preserves_arrival_location_and_w18"
+    },
+    {
+      "module": "tests.test_review_regressions",
+      "name": "test_solver_failure_does_not_authorize_newly_blocked_old_pending"
+    },
+    {
+      "module": "tests.test_review_regressions",
+      "name": "test_application_runs_without_optional_pytest_distribution"
+    },
+    {
+      "module": "tests.test_scheduler",
+      "name": "test_fitup_replanning_is_feasible_and_preserves_w18"
+    },
+    {
+      "module": "tests.test_scheduler",
+      "name": "test_all_eligible_jobs_are_required_even_when_every_job_is_late"
+    },
+    {
+      "module": "tests.test_scheduler",
+      "name": "test_no_eligible_work_is_not_infeasibility"
+    },
+    {
+      "module": "tests.test_scheduler",
+      "name": "test_continuation_does_not_repeat_prefix_or_overlap_itself[MOVE-0]"
+    },
+    {
+      "module": "tests.test_scheduler",
+      "name": "test_continuation_does_not_repeat_prefix_or_overlap_itself[SETUP-1]"
+    },
+    {
+      "module": "tests.test_scheduler",
+      "name": "test_continuation_does_not_repeat_prefix_or_overlap_itself[None-2]"
+    },
+    {
+      "module": "tests.test_scheduler",
+      "name": "test_real_infeasibility_and_invalid_model_are_distinct"
+    },
+    {
+      "module": "tests.test_scheduler",
+      "name": "test_unknown_preserves_an_incumbent_from_an_earlier_objective[False]"
+    },
+    {
+      "module": "tests.test_scheduler",
+      "name": "test_unknown_preserves_an_incumbent_from_an_earlier_objective[True]"
+    },
+    {
+      "module": "tests.test_simulator",
+      "name": "test_new_hold_preserves_current_phase_then_cancels_preparation[during_move]"
+    },
+    {
+      "module": "tests.test_simulator",
+      "name": "test_new_hold_preserves_current_phase_then_cancels_preparation[after_move]"
+    },
+    {
+      "module": "tests.test_simulator",
+      "name": "test_new_hold_preserves_current_phase_then_cancels_preparation[during_setup]"
+    },
+    {
+      "module": "tests.test_simulator",
+      "name": "test_future_queue_returns_only_arrived_deliveries"
+    }
+  ],
+  "junit_path": "outputs/verification-20261106-final/pytest.xml",
+  "junit_sha256": "3983ad0f1944f7b7d61c826ed99d3957d80bce36380890f35c7eefc7b967010c",
+  "commands": [
+    "uv sync --locked",
+    "uv run --locked pytest -q --junitxml=outputs/verification-20261106-final/pytest.xml",
+    "uv run --locked python -m shipyard run --case D01 --output outputs/verification-20261106-final/D01",
+    "uv run --locked python evaluation/score.py --run-dir outputs/verification-20261106-final/D01 --oracle evaluation/dev/D01/oracle.json --truth evaluation/dev/D01/truth.jsonl",
+    "uv run --locked python -m shipyard run --case D02 --output outputs/verification-20261106-final/D02",
+    "uv run --locked python evaluation/score.py --run-dir outputs/verification-20261106-final/D02 --oracle evaluation/dev/D02/oracle.json --truth evaluation/dev/D02/truth.jsonl",
+    "uv run --locked python -m shipyard run --case D03 --output outputs/verification-20261106-final/D03",
+    "uv run --locked python evaluation/score.py --run-dir outputs/verification-20261106-final/D03 --oracle evaluation/dev/D03/oracle.json --truth evaluation/dev/D03/truth.jsonl",
+    "uv run --locked python -m shipyard run --case D04 --output outputs/verification-20261106-final/D04",
+    "uv run --locked python evaluation/score.py --run-dir outputs/verification-20261106-final/D04 --oracle evaluation/dev/D04/oracle.json --truth evaluation/dev/D04/truth.jsonl"
+  ],
+  "runs": {
+    "D01": {
+      "output_directory": "outputs/verification-20261106-final/D01",
+      "run_id": "342030bf-5c22-4448-87e5-a0516b7962eb",
+      "source_sha256": "a1a50ca19e738fef4f35b4493f1c895173ac59f7dc7fb0f2a46d3be01fe52c0c",
+      "environment": {
+        "python": "3.13.18",
+        "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+        "cpu": "arm64",
+        "sqlite": "3.53.1",
+        "packages": {
+          "ortools": "9.15.6755",
+          "pydantic": "2.14.3"
+        }
+      },
+      "input_hashes": {
+        "config/dev-policy.json": "96c1a07b1bb39df8be79b145a43c3278c5baa74b422492eb00d0a0ccefd19fd6",
+        "data/dev/D01/initial.json": "0bfd7b2ff6b0639d2ffed2744641e757eccda086388d4b06722be3cc44fc9077",
+        "data/dev/D01/evidence.json": "d4203f91701e05520154a8aa343255124ad4285ad20d1bd561b360787cdf7887",
+        "simulation/dev/D01/events.jsonl": "925574e6e9f55a0224ce0bc70157ff8deccff438ea04593e11f0c72170e150b8"
+      },
+      "termination": "COMPLETED",
+      "final_tick": 15,
+      "completed_jobs": [
+        "W17",
+        "W18",
+        "W19",
+        "W20",
+        "W21"
+      ],
+      "unfinished_jobs": [],
+      "additional_human_requests": 0,
+      "failures": [],
+      "independent_evaluation": {
+        "acceptance_passed": true,
+        "completed_without_additional_human": true,
+        "evaluated_event_count": 3,
+        "autonomous_correct_count": 3,
+        "proposed_violation_count": 0,
+        "blocked_violation_count": 0,
+        "executed_violation_count": 0,
+        "issues": []
+      },
+      "evaluator_sha256": "8e24d718eb6b0d07a9a32d437df9e6a68e7d2754469f64ad1c50b42706c2e120",
+      "artifact_sha256": {
+        "run.sqlite3": "ec4f3d1105eeb1b7a78d634db496c4c16c1e974f471d68d28b478517812a2daf",
+        "manifest.json": "8c80a95de39390732852f6da6fee030debf6cf64fb6394f2cde684b2c5267144",
+        "trace.jsonl": "5b136042612fe226cd21daecab501c761228b5b9889d71a4566f2a59a4318d19",
+        "execution.csv": "15a3a71126ed341cd3f1e0a37af7e342d5c02094d6ed869597607a6e8e93856a",
+        "summary.json": "3c42194950608027fc1c41725511da89126d75c182f03329d201713e416ae6ae",
+        "evaluation.json": "56761852cf4301a9c1cbe3f0ed00deb4cbc28a698769f0d8430f6e74498b13ac",
+        "evaluation.csv": "d5366b6323267dd59bd5e4e6d98bdb8e768d2edf795df9c0ba229721d7abed64"
+      },
+      "phase_execution": [
+        {
+          "job_id": "W19",
+          "robot_id": "R1",
+          "phase": "MOVE",
+          "start_tick": "0",
+          "end_tick": "1"
+        },
+        {
+          "job_id": "W18",
+          "robot_id": "R2",
+          "phase": "WELD",
+          "start_tick": "-2",
+          "end_tick": "2"
+        },
+        {
+          "job_id": "W19",
+          "robot_id": "R1",
+          "phase": "SETUP",
+          "start_tick": "1",
+          "end_tick": "2"
+        },
+        {
+          "job_id": "W21",
+          "robot_id": "R2",
+          "phase": "MOVE",
+          "start_tick": "2",
+          "end_tick": "2"
+        },
+        {
+          "job_id": "W21",
+          "robot_id": "R2",
+          "phase": "SETUP",
+          "start_tick": "2",
+          "end_tick": "3"
+        },
+        {
+          "job_id": "W19",
+          "robot_id": "R1",
+          "phase": "WELD",
+          "start_tick": "2",
+          "end_tick": "5"
+        },
+        {
+          "job_id": "W21",
+          "robot_id": "R2",
+          "phase": "WELD",
+          "start_tick": "3",
+          "end_tick": "5"
+        },
+        {
+          "job_id": "W17",
+          "robot_id": "R1",
+          "phase": "MOVE",
+          "start_tick": "6",
+          "end_tick": "7"
+        },
+        {
+          "job_id": "W17",
+          "robot_id": "R1",
+          "phase": "SETUP",
+          "start_tick": "7",
+          "end_tick": "8"
+        },
+        {
+          "job_id": "W17",
+          "robot_id": "R1",
+          "phase": "WELD",
+          "start_tick": "8",
+          "end_tick": "12"
+        },
+        {
+          "job_id": "W20",
+          "robot_id": "R1",
+          "phase": "MOVE",
+          "start_tick": "12",
+          "end_tick": "12"
+        },
+        {
+          "job_id": "W20",
+          "robot_id": "R1",
+          "phase": "SETUP",
+          "start_tick": "12",
+          "end_tick": "13"
+        },
+        {
+          "job_id": "W20",
+          "robot_id": "R1",
+          "phase": "WELD",
+          "start_tick": "13",
+          "end_tick": "15"
+        }
+      ],
+      "event_trace_refs": [
+        {
+          "seq": 3,
+          "tick": 0,
+          "stage": "EVENT",
+          "outcome": "APPLIED",
+          "event_id": "E-fitup-W17",
+          "restriction_id": null
+        },
+        {
+          "seq": 4,
+          "tick": 0,
+          "stage": "RESTRICTION",
+          "outcome": "ACTIVE",
+          "event_id": null,
+          "restriction_id": "restriction:E-fitup-W17:FITUP_HOLD"
+        },
+        {
+          "seq": 41,
+          "tick": 5,
+          "stage": "WAIT",
+          "outcome": "NO_ELIGIBLE_WORK",
+          "event_id": null,
+          "restriction_id": null
+        },
+        {
+          "seq": 42,
+          "tick": 5,
+          "stage": "WAIT",
+          "outcome": "NO_ELIGIBLE_WORK",
+          "event_id": null,
+          "restriction_id": null
+        },
+        {
+          "seq": 45,
+          "tick": 6,
+          "stage": "EVENT",
+          "outcome": "REPAIR_RECORDED",
+          "event_id": "E-repair-W17",
+          "restriction_id": null
+        },
+        {
+          "seq": 47,
+          "tick": 6,
+          "stage": "EVENT",
+          "outcome": "APPLIED",
+          "event_id": "E-recheck-W17",
+          "restriction_id": null
+        },
+        {
+          "seq": 48,
+          "tick": 6,
+          "stage": "RESTRICTION",
+          "outcome": "RELEASED",
+          "event_id": null,
+          "restriction_id": "restriction:E-fitup-W17:FITUP_HOLD"
+        },
+        {
+          "seq": 52,
+          "tick": 6,
+          "stage": "WAIT",
+          "outcome": "WAIT_FOR_PLAN",
+          "event_id": null,
+          "restriction_id": null
+        },
+        {
+          "seq": 59,
+          "tick": 7,
+          "stage": "WAIT",
+          "outcome": "WAIT_FOR_PLAN",
+          "event_id": null,
+          "restriction_id": null
+        },
+        {
+          "seq": 66,
+          "tick": 8,
+          "stage": "WAIT",
+          "outcome": "WAIT_FOR_PLAN",
+          "event_id": null,
+          "restriction_id": null
+        },
+        {
+          "seq": 73,
+          "tick": 12,
+          "stage": "WAIT",
+          "outcome": "WAIT_FOR_PLAN",
+          "event_id": null,
+          "restriction_id": null
+        },
+        {
+          "seq": 80,
+          "tick": 12,
+          "stage": "WAIT",
+          "outcome": "WAIT_FOR_PLAN",
+          "event_id": null,
+          "restriction_id": null
+        },
+        {
+          "seq": 87,
+          "tick": 13,
+          "stage": "WAIT",
+          "outcome": "WAIT_FOR_PLAN",
+          "event_id": null,
+          "restriction_id": null
+        }
+      ]
+    },
+    "D02": {
+      "output_directory": "outputs/verification-20261106-final/D02",
+      "run_id": "69a30785-e022-4016-b836-9bb5c58f8587",
+      "source_sha256": "a1a50ca19e738fef4f35b4493f1c895173ac59f7dc7fb0f2a46d3be01fe52c0c",
+      "environment": {
+        "python": "3.13.18",
+        "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+        "cpu": "arm64",
+        "sqlite": "3.53.1",
+        "packages": {
+          "ortools": "9.15.6755",
+          "pydantic": "2.14.3"
+        }
+      },
+      "input_hashes": {
+        "config/dev-policy.json": "96c1a07b1bb39df8be79b145a43c3278c5baa74b422492eb00d0a0ccefd19fd6",
+        "data/dev/D02/initial.json": "82873969303e31bc73e737f35da5bf641725fba0b5202a7f58decf89ec729883",
+        "data/dev/D02/evidence.json": "a08b8829f082a00ae2a9d5529de7c51ebdff621aa5c837286d526dfd2cb723a7",
+        "simulation/dev/D02/events.jsonl": "925574e6e9f55a0224ce0bc70157ff8deccff438ea04593e11f0c72170e150b8"
+      },
+      "termination": "WAITING",
+      "final_tick": 14,
+      "completed_jobs": [
+        "W17",
+        "W18",
+        "W20"
+      ],
+      "unfinished_jobs": [
+        "W19",
+        "W21"
+      ],
+      "additional_human_requests": 0,
+      "failures": [],
+      "independent_evaluation": {
+        "acceptance_passed": true,
+        "completed_without_additional_human": true,
+        "evaluated_event_count": 3,
+        "autonomous_correct_count": 3,
+        "proposed_violation_count": 0,
+        "blocked_violation_count": 0,
+        "executed_violation_count": 0,
+        "issues": []
+      },
+      "evaluator_sha256": "8e24d718eb6b0d07a9a32d437df9e6a68e7d2754469f64ad1c50b42706c2e120",
+      "artifact_sha256": {
+        "run.sqlite3": "9268a08026d4725bd3029ea87d6954576d2dc4ca845e4a9214765934c8ad4c67",
+        "manifest.json": "cfe3b12cb53b2361622f2fc573e0577e0333e942b69ff862367d87464dfa617f",
+        "trace.jsonl": "c748c704e9fb097a9a7b006714e104271d1fc2eb8438f7615ffeba256c295208",
+        "execution.csv": "426480072fef18e20848dd5ef116d581429aa60bf2cc5e9acecbaaf1d72ae6c6",
+        "summary.json": "1e85b5895b7512eaad6db31858e247402b403f2051cdff2bdb58f4dbb2fa01e8",
+        "evaluation.json": "bc50f1739385cdebc43c6740e12944f6a22b4b62f1ddba2ffa4e2a5044909264",
+        "evaluation.csv": "d5366b6323267dd59bd5e4e6d98bdb8e768d2edf795df9c0ba229721d7abed64"
+      },
+      "phase_execution": [
+        {
+          "job_id": "W18",
+          "robot_id": "R2",
+          "phase": "WELD",
+          "start_tick": "-2",
+          "end_tick": "2"
+        },
+        {
+          "job_id": "W17",
+          "robot_id": "R1",
+          "phase": "MOVE",
+          "start_tick": "6",
+          "end_tick": "6"
+        },
+        {
+          "job_id": "W17",
+          "robot_id": "R1",
+          "phase": "SETUP",
+          "start_tick": "6",
+          "end_tick": "7"
+        },
+        {
+          "job_id": "W17",
+          "robot_id": "R1",
+          "phase": "WELD",
+          "start_tick": "7",
+          "end_tick": "11"
+        },
+        {
+          "job_id": "W20",
+          "robot_id": "R1",
+          "phase": "MOVE",
+          "start_tick": "11",
+          "end_tick": "11"
+        },
+        {
+          "job_id": "W20",
+          "robot_id": "R1",
+          "phase": "SETUP",
+          "start_tick": "11",
+          "end_tick": "12"
+        },
+        {
+          "job_id": "W20",
+          "robot_id": "R1",
+          "phase": "WELD",
+          "start_tick": "12",
+          "end_tick": "14"
+        }
+      ],
+      "event_trace_refs": [
+        {
+          "seq": 3,
+          "tick": 0,
+          "stage": "EVENT",
+          "outcome": "APPLIED",
+          "event_id": "E-fitup-W17",
+          "restriction_id": null
+        },
+        {
+          "seq": 4,
+          "tick": 0,
+          "stage": "RESTRICTION",
+          "outcome": "ACTIVE",
+          "event_id": null,
+          "restriction_id": "restriction:E-fitup-W17:FITUP_HOLD"
+        },
+        {
+          "seq": 8,
+          "tick": 0,
+          "stage": "WAIT",
+          "outcome": "NO_ELIGIBLE_WORK",
+          "event_id": null,
+          "restriction_id": null
+        },
+        {
+          "seq": 14,
+          "tick": 2,
+          "stage": "WAIT",
+          "outcome": "NO_ELIGIBLE_WORK",
+          "event_id": null,
+          "restriction_id": null
+        },
+        {
+          "seq": 15,
+          "tick": 2,
+          "stage": "WAIT",
+          "outcome": "NO_ELIGIBLE_WORK",
+          "event_id": null,
+          "restriction_id": null
+        },
+        {
+          "seq": 18,
+          "tick": 6,
+          "stage": "EVENT",
+          "outcome": "REPAIR_RECORDED",
+          "event_id": "E-repair-W17",
+          "restriction_id": null
+        },
+        {
+          "seq": 20,
+          "tick": 6,
+          "stage": "EVENT",
+          "outcome": "APPLIED",
+          "event_id": "E-recheck-W17",
+          "restriction_id": null
+        },
+        {
+          "seq": 21,
+          "tick": 6,
+          "stage": "RESTRICTION",
+          "outcome": "RELEASED",
+          "event_id": null,
+          "restriction_id": "restriction:E-fitup-W17:FITUP_HOLD"
+        },
+        {
+          "seq": 25,
+          "tick": 6,
+          "stage": "WAIT",
+          "outcome": "WAIT_FOR_PLAN",
+          "event_id": null,
+          "restriction_id": null
+        },
+        {
+          "seq": 32,
+          "tick": 6,
+          "stage": "WAIT",
+          "outcome": "WAIT_FOR_PLAN",
+          "event_id": null,
+          "restriction_id": null
+        },
+        {
+          "seq": 39,
+          "tick": 7,
+          "stage": "WAIT",
+          "outcome": "WAIT_FOR_PLAN",
+          "event_id": null,
+          "restriction_id": null
+        },
+        {
+          "seq": 46,
+          "tick": 11,
+          "stage": "WAIT",
+          "outcome": "WAIT_FOR_PLAN",
+          "event_id": null,
+          "restriction_id": null
+        },
+        {
+          "seq": 53,
+          "tick": 11,
+          "stage": "WAIT",
+          "outcome": "WAIT_FOR_PLAN",
+          "event_id": null,
+          "restriction_id": null
+        },
+        {
+          "seq": 60,
+          "tick": 12,
+          "stage": "WAIT",
+          "outcome": "WAIT_FOR_PLAN",
+          "event_id": null,
+          "restriction_id": null
+        },
+        {
+          "seq": 67,
+          "tick": 14,
+          "stage": "WAIT",
+          "outcome": "NO_ELIGIBLE_WORK",
+          "event_id": null,
+          "restriction_id": null
+        },
+        {
+          "seq": 68,
+          "tick": 14,
+          "stage": "WAIT",
+          "outcome": "NO_ELIGIBLE_WORK",
+          "event_id": null,
+          "restriction_id": null
+        }
+      ]
+    },
+    "D03": {
+      "output_directory": "outputs/verification-20261106-final/D03",
+      "run_id": "98f9041e-94a3-4243-b900-1590f4995742",
+      "source_sha256": "a1a50ca19e738fef4f35b4493f1c895173ac59f7dc7fb0f2a46d3be01fe52c0c",
+      "environment": {
+        "python": "3.13.18",
+        "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+        "cpu": "arm64",
+        "sqlite": "3.53.1",
+        "packages": {
+          "ortools": "9.15.6755",
+          "pydantic": "2.14.3"
+        }
+      },
+      "input_hashes": {
+        "config/dev-policy.json": "96c1a07b1bb39df8be79b145a43c3278c5baa74b422492eb00d0a0ccefd19fd6",
+        "data/dev/D03/initial.json": "05b765ecfec7301017f37181c2bf5e8ca990a38b01d1b996a4c630a6bb70d009",
+        "data/dev/D03/evidence.json": "ef4752195503687b9a8b16d09e65ab9e7ef18614457d5c8aceddb2df7ff75be7",
+        "simulation/dev/D03/events.jsonl": "54f5441a33afb3abaa02e11a60dbefe437ef3d619c0ef1ed9c529872ba99660c"
+      },
+      "termination": "COMPLETED",
+      "final_tick": 15,
+      "completed_jobs": [
+        "W17",
+        "W18",
+        "W19",
+        "W20",
+        "W21"
+      ],
+      "unfinished_jobs": [],
+      "additional_human_requests": 0,
+      "failures": [],
+      "independent_evaluation": {
+        "acceptance_passed": true,
+        "completed_without_additional_human": true,
+        "evaluated_event_count": 1,
+        "autonomous_correct_count": 1,
+        "proposed_violation_count": 0,
+        "blocked_violation_count": 0,
+        "executed_violation_count": 0,
+        "issues": []
+      },
+      "evaluator_sha256": "8e24d718eb6b0d07a9a32d437df9e6a68e7d2754469f64ad1c50b42706c2e120",
+      "artifact_sha256": {
+        "run.sqlite3": "1ade281ea0437ed4072a2e1122b5e78b6b4908d40f984dff741ea3a57ed8f593",
+        "manifest.json": "596dc4ae279c488ecfb3b74e7b169ae9bc0d878c64eae9d27786cedf566e1111",
+        "trace.jsonl": "fed3e85138aa87bd24655f6db8274a1a425f3adceefb051ad66eb8eef3b9f659",
+        "execution.csv": "0791d0288710a5f19360fe41164fb631f3307eb69261361f5092843c610813fe",
+        "summary.json": "9c0749353843e5397d4eac88acb67e49137d4609edc6c3d85065ac017fe5cd65",
+        "evaluation.json": "a4114b34a1a96d5f6143cb24fa775504c5c4b711cc53ac088a31d860f4876ae6",
+        "evaluation.csv": "4b0d606d3837b51122609db9a419d30b868ed4a38df983d5293a4746ecaad427"
+      },
+      "phase_execution": [
+        {
+          "job_id": "W19",
+          "robot_id": "R1",
+          "phase": "MOVE",
+          "start_tick": "0",
+          "end_tick": "1"
+        },
+        {
+          "job_id": "W18",
+          "robot_id": "R2",
+          "phase": "WELD",
+          "start_tick": "-2",
+          "end_tick": "2"
+        },
+        {
+          "job_id": "W19",
+          "robot_id": "R1",
+          "phase": "SETUP",
+          "start_tick": "1",
+          "end_tick": "2"
+        },
+        {
+          "job_id": "W21",
+          "robot_id": "R2",
+          "phase": "MOVE",
+          "start_tick": "2",
+          "end_tick": "2"
+        },
+        {
+          "job_id": "W21",
+          "robot_id": "R2",
+          "phase": "SETUP",
+          "start_tick": "2",
+          "end_tick": "3"
+        },
+        {
+          "job_id": "W19",
+          "robot_id": "R1",
+          "phase": "WELD",
+          "start_tick": "2",
+          "end_tick": "5"
+        },
+        {
+          "job_id": "W21",
+          "robot_id": "R2",
+          "phase": "WELD",
+          "start_tick": "3",
+          "end_tick": "5"
+        },
+        {
+          "job_id": "W17",
+          "robot_id": "R2",
+          "phase": "MOVE",
+          "start_tick": "5",
+          "end_tick": "6"
+        },
+        {
+          "job_id": "W17",
+          "robot_id": "R2",
+          "phase": "SETUP",
+          "start_tick": "6",
+          "end_tick": "7"
+        },
+        {
+          "job_id": "W17",
+          "robot_id": "R2",
+          "phase": "WELD",
+          "start_tick": "7",
+          "end_tick": "11"
+        },
+        {
+          "job_id": "W20",
+          "robot_id": "R1",
+          "phase": "MOVE",
+          "start_tick": "11",
+          "end_tick": "12"
+        },
+        {
+          "job_id": "W20",
+          "robot_id": "R1",
+          "phase": "SETUP",
+          "start_tick": "12",
+          "end_tick": "13"
+        },
+        {
+          "job_id": "W20",
+          "robot_id": "R1",
+          "phase": "WELD",
+          "start_tick": "13",
+          "end_tick": "15"
+        }
+      ],
+      "event_trace_refs": [
+        {
+          "seq": 3,
+          "tick": 0,
+          "stage": "EVENT",
+          "outcome": "APPLIED",
+          "event_id": "E-pair-W17",
+          "restriction_id": null
+        },
+        {
+          "seq": 4,
+          "tick": 0,
+          "stage": "RESTRICTION",
+          "outcome": "ACTIVE",
+          "event_id": null,
+          "restriction_id": "restriction:E-pair-W17:PAIR_BAN"
+        },
+        {
+          "seq": 41,
+          "tick": 5,
+          "stage": "WAIT",
+          "outcome": "WAIT_FOR_PLAN",
+          "event_id": null,
+          "restriction_id": null
+        },
+        {
+          "seq": 48,
+          "tick": 6,
+          "stage": "WAIT",
+          "outcome": "WAIT_FOR_PLAN",
+          "event_id": null,
+          "restriction_id": null
+        },
+        {
+          "seq": 55,
+          "tick": 7,
+          "stage": "WAIT",
+          "outcome": "WAIT_FOR_PLAN",
+          "event_id": null,
+          "restriction_id": null
+        },
+        {
+          "seq": 62,
+          "tick": 11,
+          "stage": "WAIT",
+          "outcome": "WAIT_FOR_PLAN",
+          "event_id": null,
+          "restriction_id": null
+        },
+        {
+          "seq": 69,
+          "tick": 12,
+          "stage": "WAIT",
+          "outcome": "WAIT_FOR_PLAN",
+          "event_id": null,
+          "restriction_id": null
+        },
+        {
+          "seq": 76,
+          "tick": 13,
+          "stage": "WAIT",
+          "outcome": "WAIT_FOR_PLAN",
+          "event_id": null,
+          "restriction_id": null
+        }
+      ]
+    },
+    "D04": {
+      "output_directory": "outputs/verification-20261106-final/D04",
+      "run_id": "4d889134-c851-4a19-991a-0bffcea99d1a",
+      "source_sha256": "a1a50ca19e738fef4f35b4493f1c895173ac59f7dc7fb0f2a46d3be01fe52c0c",
+      "environment": {
+        "python": "3.13.18",
+        "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+        "cpu": "arm64",
+        "sqlite": "3.53.1",
+        "packages": {
+          "ortools": "9.15.6755",
+          "pydantic": "2.14.3"
+        }
+      },
+      "input_hashes": {
+        "config/dev-policy.json": "96c1a07b1bb39df8be79b145a43c3278c5baa74b422492eb00d0a0ccefd19fd6",
+        "data/dev/D04/initial.json": "648129c54b6080965115ad2ed70f620aef241032bee2c313e96088afa901f5ee",
+        "data/dev/D04/evidence.json": "233296fdc6435c7104f6ab4c6397ada03462ef9ac9d560be2f905717d824d63b",
+        "simulation/dev/D04/events.jsonl": "684ecdd1355cb643a5d88c268aca296250006bf23edfa7e5c40367e56147b310"
+      },
+      "termination": "WAITING",
+      "final_tick": 6,
+      "completed_jobs": [
+        "W18",
+        "W19",
+        "W21"
+      ],
+      "unfinished_jobs": [
+        "W17",
+        "W20"
+      ],
+      "additional_human_requests": 1,
+      "failures": [],
+      "independent_evaluation": {
+        "acceptance_passed": true,
+        "completed_without_additional_human": false,
+        "evaluated_event_count": 2,
+        "autonomous_correct_count": 0,
+        "proposed_violation_count": 0,
+        "blocked_violation_count": 0,
+        "executed_violation_count": 0,
+        "issues": []
+      },
+      "evaluator_sha256": "8e24d718eb6b0d07a9a32d437df9e6a68e7d2754469f64ad1c50b42706c2e120",
+      "artifact_sha256": {
+        "run.sqlite3": "3a9e69bacaadd8e025a19ff5ae2c5f31feac956a98de72d960f4c9ea36cc7d2a",
+        "manifest.json": "5e14eab1fc5a3413179eb09bdb282b2395fc36e385948027c49d51bc76ac1410",
+        "trace.jsonl": "461406a31c6f67b9186e8407d02a702063199898e5288760db826f57e05c522d",
+        "execution.csv": "a8f316465f66b2c0da82a077fd27aba4d90b9cf3aa7fc4a6c79180fc50d9fb3a",
+        "summary.json": "e7f9ae724ea487c20bbb63de5712ef37282a0b19a624836bf3fdbe05550171cf",
+        "evaluation.json": "c823e6a29c9114cdce23dbdd68f6d407f785a6934ad5fa4563d60a629994fd6e",
+        "evaluation.csv": "bc7cffd15c05befac18ae5da1e26c38d8bc0649b519dc8e783c17f63e4bbfdf7"
+      },
+      "phase_execution": [
+        {
+          "job_id": "W19",
+          "robot_id": "R1",
+          "phase": "MOVE",
+          "start_tick": "0",
+          "end_tick": "1"
+        },
+        {
+          "job_id": "W18",
+          "robot_id": "R2",
+          "phase": "WELD",
+          "start_tick": "-2",
+          "end_tick": "2"
+        },
+        {
+          "job_id": "W19",
+          "robot_id": "R1",
+          "phase": "SETUP",
+          "start_tick": "1",
+          "end_tick": "2"
+        },
+        {
+          "job_id": "W21",
+          "robot_id": "R2",
+          "phase": "MOVE",
+          "start_tick": "2",
+          "end_tick": "2"
+        },
+        {
+          "job_id": "W21",
+          "robot_id": "R2",
+          "phase": "SETUP",
+          "start_tick": "2",
+          "end_tick": "3"
+        },
+        {
+          "job_id": "W19",
+          "robot_id": "R1",
+          "phase": "WELD",
+          "start_tick": "2",
+          "end_tick": "5"
+        },
+        {
+          "job_id": "W21",
+          "robot_id": "R2",
+          "phase": "WELD",
+          "start_tick": "3",
+          "end_tick": "5"
+        }
+      ],
+      "event_trace_refs": [
+        {
+          "seq": 3,
+          "tick": 0,
+          "stage": "EVENT",
+          "outcome": "APPLIED",
+          "event_id": "E-fitup-W17",
+          "restriction_id": null
+        },
+        {
+          "seq": 4,
+          "tick": 0,
+          "stage": "RESTRICTION",
+          "outcome": "ACTIVE",
+          "event_id": null,
+          "restriction_id": "restriction:E-fitup-W17:FITUP_HOLD"
+        },
+        {
+          "seq": 41,
+          "tick": 5,
+          "stage": "WAIT",
+          "outcome": "NO_ELIGIBLE_WORK",
+          "event_id": null,
+          "restriction_id": null
+        },
+        {
+          "seq": 42,
+          "tick": 5,
+          "stage": "WAIT",
+          "outcome": "NO_ELIGIBLE_WORK",
+          "event_id": null,
+          "restriction_id": null
+        },
+        {
+          "seq": 45,
+          "tick": 6,
+          "stage": "EVENT",
+          "outcome": "INSUFFICIENT_EVIDENCE",
+          "event_id": "E-repair-W17",
+          "restriction_id": null
+        },
+        {
+          "seq": 46,
+          "tick": 6,
+          "stage": "HUMAN_REQUEST",
+          "outcome": "REQUESTED",
+          "event_id": null,
+          "restriction_id": null
+        },
+        {
+          "seq": 50,
+          "tick": 6,
+          "stage": "WAIT",
+          "outcome": "NO_ELIGIBLE_WORK",
+          "event_id": null,
+          "restriction_id": null
+        },
+        {
+          "seq": 51,
+          "tick": 6,
+          "stage": "WAIT",
+          "outcome": "NO_ELIGIBLE_WORK",
+          "event_id": null,
+          "restriction_id": null
+        }
+      ]
+    }
+  },
+  "remaining_failures": [],
+  "limits": [
+    "macOS 26.6.2 ARM64 verified; Windows/Linux unverified",
+    "UNKNOWN and FEASIBLE_NOT_PROVEN branches tested with explicit injection, not timeout performance benchmark",
+    "human/team oracle review pending",
+    "single-process data flow boundary; not an OS sandbox",
+    "LLM, web UI, OCR, 3D, cloud, robot hardware, main comparison experiment excluded",
+    "At the original 2026-11-06 verification: GitHub push not performed because HTTPS CLI authentication was unavailable. Later publication status is recorded in docs/next-steps.md and Git history."
+  ],
+  "resolved_findings": [
+    "initial job/robot/progress/duration inconsistency rejected",
+    "completed SETUP zone reservation preserved",
+    "runtime manifest no longer requires optional pytest distribution",
+    "pytest console entry now resolves independent evaluation test imports through test-only pythonpath configuration"
+  ],
+  "runtime_without_dev_dependencies": {
+    "command": "uv run --locked --no-dev python -m shipyard run --case D01 --output outputs/verification-20261106-final/runtime-only-D01",
+    "fresh_environment": true,
+    "completed_jobs": [
+      "W17",
+      "W18",
+      "W19",
+      "W20",
+      "W21"
+    ],
+    "failures": []
+  },
+  "actual_execution_environment": {
+    "UV_CACHE_DIR": "/private/tmp/shipyard-uv-cache",
+    "UV_PYTHON_INSTALL_DIR": "/private/tmp/shipyard-python",
+    "UV_PROJECT_ENVIRONMENT": "/private/tmp/shipyard-clean-validation",
+    "uv_executable": "/private/tmp/shipyard-tech-probe/bin/uv",
+    "extra_flags": [
+      "--locked",
+      "--offline"
+    ],
+    "python_executable": "/private/tmp/shipyard-python/cpython-3.13.18-macos-aarch64-none/bin/python3.13"
+  },
+  "test_source_sha256": "d6ed2b4c8e7701fbeaa60dca2564cfa5f90c38e478eec1e2de140f83eb1f9887"
+}

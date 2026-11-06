@@ -1,0 +1,73 @@
+{
+  "schema_version": "1.0",
+  "case_id": "D01",
+  "data_revision": "dev-v1",
+  "oracle_kind": "independent_development_expectations",
+  "provenance": {
+    "basis": "DEV_ASSUMPTION",
+    "source_ref": "data/README.md; docs/data-contracts.md; references-local/project-baseline-v1.txt",
+    "section_or_record": "개발 시나리오; 상태 전이와 phase; B §2–5",
+    "rationale": "Written from documented scenario rules before any system run; no schedule or outcome used to derive expectations.",
+    "review_status": "INDEPENDENT_AGENT_DRAFT_HUMAN_TEAM_REVIEW_PENDING"
+  },
+  "evaluator_only_sentinel": "ORACLE_ONLY_D01_DO_NOT_PASS_TO_CONTROLLER",
+  "expected_events": [
+    {
+      "kind": "FITUP_FAILED",
+      "tick": 0,
+      "job_id": "W17",
+      "robot_id": null
+    },
+    {
+      "kind": "REPAIR_REPORTED",
+      "tick": 6,
+      "job_id": "W17",
+      "robot_id": null
+    },
+    {
+      "kind": "RECHECK_REPORTED",
+      "tick": 6,
+      "job_id": "W17",
+      "robot_id": null
+    }
+  ],
+  "expected_completed_job_ids": [
+    "W17",
+    "W18",
+    "W19",
+    "W20",
+    "W21"
+  ],
+  "expected_unstarted_job_ids": [],
+  "required_initial_execution": {
+    "execution_id": "initial-W18",
+    "job_id": "W18",
+    "robot_id": "R2",
+    "phase": "WELD",
+    "start_tick": -2,
+    "end_tick": 2
+  },
+  "required_hold": {
+    "kind": "FITUP_HOLD",
+    "job_id": "W17",
+    "opened_tick": 0,
+    "release_tick": 6,
+    "requires_repair_and_linked_recheck": true
+  },
+  "required_pair_ban": null,
+  "forbidden_job_wide_hold_ids": [],
+  "required_alternative": {
+    "job_ids": [
+      "W19",
+      "W21"
+    ],
+    "weld_start_before_tick": 6
+  },
+  "required_wait": null,
+  "required_human_request": null,
+  "additional_human_request_allowed": false,
+  "requires_reentry": true,
+  "all_starts_require_actual_predecessor_completion": true,
+  "no_unknown_solver_status_as_justified_wait": true,
+  "evaluation_scope": "development acceptance only; not main experiment performance"
+}

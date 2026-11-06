@@ -1,6 +1,6 @@
 # 최소 정형 사건 처리의 구현 아키텍처
 
-2026-11-06 설계. **단일 Python 실행 프로그램 안에서 모듈을 나눈다. 아래 코드·명령·데이터 경로는 구현 예정이며 현재 실행 가능한 애플리케이션은 없다.** 첫 구현은 로봇 2대·작업 5개의 정형 사건을 처리한다. 문장형 보고와 에이전트는 같은 처리 경로 앞에 나중에 연결한다.
+2026-11-06 구현 반영. **단일 Python 실행 프로그램에서 로봇 2대·작업 5개의 D01–D04 정형 사건을 처리한다.** 상태 저장·사건 검사·재계획·독립 실행 검사·시뮬레이션·추적 출력과 별도 개발 채점 명령을 구현했다. 문장형 보고, 단일/역할 분리 에이전트와 본 비교실험은 아직 구현·실행하지 않았다.
 
 기술 선택과 비교 근거는 [결정 기록](decisions.md), 필드·전이·시간·실패·정책의 규범은 [데이터 계약](data-contracts.md), 실제 구현 순서는 [다음 작업](next-steps.md)에 둔다. 이 문서는 모듈의 책임·권한·의존관계와 파일 배치를 설명한다. 계약이 바뀌면 이 문서와 구현 작업도 함께 갱신한다.
 
@@ -14,7 +14,7 @@ R은 원본 중간보고서, B는 프로젝트 기준 문서 v1.0이며 파일 �
 | R §4.2, B §4·6 → 하나의 기준 상태와 근거를 일관되게 관리 | Python 표준 `sqlite3`를 이용하는 SQLite, 단일 쓰기 담당 `repository` | 원본의 관계형 저장을 로컬 단일 프로세스에 구체화. 별도 DB 서버·ORM의 운영 비용을 먼저 추가할 이유가 없음 |
 | R §4.3, B §4 → JSON 사건과 고정 제약 규칙 | JSON·Pydantic 2 계약, `events`와 `constraints` 분리 | 원본 JSON을 유지하고 필수 필드·enum·버전·근거 연결을 실행 가능한 검사 대상으로 정의 |
 | R §4.4, B §6 → 배정·선행·구역·이동/준비·진행 고정 | `scheduler`의 OR-Tools CP-SAT 9.15.6755 어댑터 | CP-SAT 기본안을 유지. Gurobi와 비교한 선택 근거는 DEC-01에 기록 |
-| R §4.5, B §3·4 → 독립 검사 후 최신 상태에서 자동 적용 | `checker`와 `controller`의 원자적 적용을 분리 | 솔버의 제약 코드와 다른 검사 로직, 상태 변경 경쟁과 중복 지시를 다루는 경계를 명시 |
+| R §4.5, B §3·4 → 독립 검사 후 최신 상태에서 자동 적용 | `checker`의 검사, `controller`의 업무 조율, `repository.apply_plan`의 원자적 적용을 분리 | 솔버의 제약 코드와 다른 검사 로직, 상태 변경 경쟁과 중복 지시를 다루는 경계를 명시 |
 | R §4.6, B §3·6 → 경량 사건 시뮬레이션 | 표준 `heapq`의 사건 큐와 명시적인 phase 모델 | 원본 경량 시뮬레이터를 구체화. 물리 로봇 제어·용접 물리·3D 시뮬레이션은 범위 밖 |
 | R §4.7, B §4·5 → 독립 정답과 추적 가능한 결과 | 실행 전 `checker`, 사후 `evaluation/score.py`, DB 기반 출력 | 실행 허용 판단과 연구 채점을 분리. 시스템의 자체 통과 결과를 정답으로 재사용하지 않음 |
 
@@ -34,34 +34,34 @@ flowchart TD
     M --> I
 ```
 
-그림의 DB 쓰기 화살표는 직접 수정 권한을 뜻하지 않는다. `controller`가 검증된 변경을 `repository`의 제한된 쓰기 메서드에 전달한다. 솔버와 에이전트는 기준 상태를 직접 바꾸지 않는다. 시뮬레이터도 DB를 직접 갱신하지 않고 실제 phase 시작·완료 관측을 반환한다.
+그림의 DB 쓰기 화살표는 직접 수정 권한을 뜻하지 않는다. `controller`가 검증된 변경을 `repository`의 제한된 쓰기 메서드에 전달한다. 솔버는 기준 상태를 직접 바꾸지 않는다. phase 시작은 controller가 승인·저장하고, simulator는 승인된 시작 관측으로 완료 사건을 예약하여 해당 tick에 반환한다. simulator는 DB를 직접 갱신하지 않는다. 여기서 실제 시작·완료는 경량 시뮬레이션 안의 실행 사실이며 물리 로봇 관측이 아니다.
 
-1. CLI가 개발 정책과 공개 초기 상태를 검사하여 controller를 초기화한다. 실행 드라이버는 시뮬레이터 전용 외부 사건 파일을 따로 로드한다.
-2. 드라이버가 현재 tick까지 도착한 사건·실행 관측만 전달한다. `events`는 ID·근거·대상·현재성·중복·충돌을 검사한다.
+1. CLI의 `run_case`가 개발 정책과 공개 초기 상태를 검사하고 `Repository.initialize`와 `Controller`를 구성한다. CLI 실행 드라이버는 시뮬레이터 전용 외부 사건 파일을 따로 로드한다.
+2. 드라이버가 현재 tick까지 도착한 사건·실행 관측만 전달한다. repository가 사건 ID·fingerprint의 중복/충돌을 검사하고, `events.apply_deliveries`가 출처·근거·대상·현재성·상반된 관측을 검사한다.
 3. controller가 사건 처리 결과와 활성 제한 변경을 저장한다. 제한은 원인별로 유지하며, 복구는 자신이 가리키는 제한만 해제한다.
 4. 공개 `PlanningSnapshot`에서 필수 계획 대상과 사유가 있는 제외 대상을 결정하고, 고정 규칙으로 제약을 만든다. 솔버가 작업을 임의로 빠뜨려 목적값을 낮추지 못하게 한다.
 5. 솔버는 후보 계획과 해 상태를 반환한다. checker는 같은 기준 상태의 원자료로 제약·정책을 독립적으로 확인한다.
-6. controller는 적용 직전의 상태 버전·tick·활성 계획 버전을 다시 확인한다. 불일치하면 적용하지 않고 최신 상태로 재계산한다. 통과하면 계획·지시·감사 기록을 함께 저장한다.
-7. 드라이버가 적용된 지시만 시뮬레이터에 전달한다. 실제 다음 phase 시작 시에도 최신 전제조건을 확인하며, 시작·완료 관측은 다시 공통 처리로 들어온다.
+6. controller가 `Repository.apply_plan`을 호출하면 저장소가 적용 직전의 상태 버전·tick·활성 계획 버전과 검사 결과를 다시 확인한다. 불일치하면 적용하지 않고 controller가 최신 상태로 재계산한다. 통과하면 계획·지시·감사 기록을 함께 저장한다.
+7. CLI 드라이버가 적용된 pending 지시의 시작을 `Controller.authorize_phase_start`에 요청한다. 현재 전제조건 검사를 통과한 시작만 저장하며, 그 관측을 `Simulator.register_completion`에 전달한다. 완료 관측은 `handle_batch`로 돌아온다.
 8. 공개 복구 근거가 도착하면 W17의 해당 제한을 해제하고 재계획한다. W20의 실제 시작 허용은 W17의 실제 완료 기록으로 판단한다.
 
 ## 모듈 책임과 권한
 
-아래 함수 이름은 구현할 내부 인터페이스다. 별도 HTTP API를 뜻하지 않는다. DTO의 정확한 필드와 실패 코드는 데이터 계약을 따른다. 외부 근거는 ArrivalBatch의 published_evidence로 도착하며 완료된 phase는 execution_progress에 남긴다. 진행 fixed segment와 잔여 suffix를 중복 자원 구간으로 넣지 않는다.
+아래는 실제 구현된 내부 인터페이스다. 별도 HTTP API가 아니다. DTO 정의는 `contracts.py`, 필드의 의미와 실패 정책은 데이터 계약을 따른다. 외부 근거는 `ArrivalBatch.deliveries[].published_evidence`로 도착하며 완료된 phase는 `execution_progress`에 남는다. 진행 fixed segment와 잔여 suffix는 서로 겹치는 자원 구간으로 중복 등록하지 않는다.
 
 | 파일·내부 인터페이스 | 입력 → 출력 | 상태 변경 권한과 의존관계 |
 | --- | --- | --- |
 | `contracts.py` | JSON 값 → 타입이 검사된 작업·로봇·근거·사건·계획·관측 DTO | 순수 스키마·enum·구조 검사. DB·솔버·파일 I/O 없음. 의미가 맞는지의 업무 검사는 각 모듈에서 수행 |
-| `repository.py`: `initialize`, `read_snapshot`, `commit_event`, `apply_plan`, `commit_observation` | 검사된 초기값/변경 명령 → 저장 결과·새 버전·조회 DTO | **기준 DB의 유일한 쓰기 구현**. controller만 쓰기 메서드를 호출. 트랜잭션·고유 ID·버전 비교·로그 연결 담당 |
-| `events.py`: `validate_event`, `propose_restriction_changes` | 사건·현재 공개 상태·조회 근거 → 수락/중복/부족/충돌 결과와 제한 변경 제안 | 쓰기 없음. Pydantic을 통과한 입력도 출처·대상·유효 범위를 재검사. 근거 조회는 읽기 인터페이스로만 수행 |
+| `repository.py`: `Repository.initialize`, `read_snapshot`, `filter_deliveries`, `commit_event_batch`, `record_plan`, `apply_plan`, `commit_observation` | 검사된 초기값/변경 명령 → 저장 결과·새 버전·조회 DTO | **기준 DB의 유일한 쓰기 구현**. 최초 초기화는 CLI, 이후 업무 갱신은 controller가 호출. 트랜잭션·고유 ID·버전 비교·로그 연결 담당 |
+| `events.py`: `apply_deliveries(snapshot, deliveries)` | 공개 상태·현재 도착 근거/사건 → 갱신 제안 snapshot과 사건별 처리 결과 | DB 쓰기 없음. 공개 DTO의 사본에서 출처·대상·유효 범위를 재검사하고 제한·근거 변경을 제안. 저장과 중복 ID 처리는 repository 담당 |
 | `constraints.py`: `build_constraints` | 공개 상태·활성 제한·정책 → 필수/제외 작업과 정형 제약 집합 | 쓰기 없음. 제한·선행·능력·가용·구역·이동/준비·현재 phase를 고정 규칙으로 변환. 임의 코드/수식 입력 없음 |
-| `scheduler.py`: `solve` | 정형 제약 집합·공개 상태·솔버 설정 → 후보 계획·해 상태·목적값·계산 기록 | 쓰기·실행 권한 없음. CP-SAT 모델과 상태 변환 담당. 미래 외부 사건이나 평가 정답을 받지 않음 |
+| `scheduler.py`: `solve(snapshot, constraints, policy)` | 공개 상태·정형 제약 집합·정책 → 후보 계획·해 상태·목적값·단계별 bound·계산 기록 | 쓰기·실행 권한 없음. CP-SAT 모델, 인접 작업의 이동, 4단계 목적, 이전 incumbent 보존 담당. 미래 외부 사건이나 평가 정답을 받지 않음 |
 | `checker.py`: `check_plan`, `check_phase_start` | 후보/지시·현재 공개 상태·정책 → 허용/거부와 위반 목록 | 쓰기 없음. `constraints`·`scheduler`를 import하지 않으며 솔버의 self-check를 정답으로 사용하지 않음. 공통 DTO 정의는 공유 가능 |
-| `controller.py`: `initialize`, `handle_batch`, `plan_and_apply`, `authorize_phase_start` | 도착 사건/관측·공개 저장소 인터페이스·정책 → 처리 결과·적용 지시·대기/확인 요청 | 저장소 쓰기를 조율하는 유일한 업무 모듈. 제한된 순서로 events→constraints→scheduler→checker→repository를 호출. simulator의 private 큐나 evaluator를 참조하지 않음 |
-| `simulator.py`: `due_events`, `accept_instructions`, `advance`, `emit_observations` | 전용 외부 사건 큐·적용 지시 → 현재 도착 사건·phase 관측·실제 실행 기록 | **기준 DB 쓰기 없음**. 내부 물리/시간 상태와 미래 큐는 공개 DTO와 분리. 승인된 다음 phase만 시작. 실제 로봇 제어 없음 |
-| `reporting.py`: `export_run`, `inspect_run` | 완료/중단된 실행 DB → 공개 JSONL·CSV·CLI 요약 | 읽기 전용. DB를 기준으로 출력 생성. CSV나 JSONL을 다시 기준 상태처럼 수정·사용하지 않음 |
-| `cli.py`, `__main__.py` | 명령행 인자·설정 → 실행 드라이버/검사/출력 호출 | 의존성 연결과 입출력 경로 검증. 기준 상태 변경은 controller 경유. 공개 초기값·미래 큐·평가자료를 한 DTO로 합치지 않음 |
-| `evaluation/score.py` | 실행 출력·독립 정답·평가자 환경 사실 → 사건별 점수·오류 이유 | 애플리케이션 실행 후 별도 명령. `checker`·`constraints`·`scheduler`의 판정 함수를 사용하지 않고 독립 채점. 운영 지시·DB 수정 권한 없음 |
+| `controller.py`: `Controller.handle_batch`, `plan_and_apply`, `authorize_phase_start`, `complete_phase` | 도착 사건/관측·공개 저장소 인터페이스·정책 → 처리 결과·시작 관측·대기/확인 요청 | 저장 순서를 조율하는 업무 모듈. events→constraints→scheduler→checker→repository를 호출. simulator의 private 큐나 evaluator를 참조하지 않음 |
+| `simulator.py`: `Simulator.load`, `register_completion`, `due_events`, `next_tick` | 전용 외부 사건 파일·승인된 시작 관측 → 현재 도착 사건/완료 관측·드라이버용 다음 tick | **기준 DB 쓰기 없음**. 두 heapq에 미래 외부 입력과 완료 관측을 보관하며 CLI에만 다음 tick을 제공. 시간 진행과 지시 시작 호출은 CLI 담당 |
+| `reporting.py`: `export_run`, `inspect_run` | 읽기 전용 실행 DB → JSONL·CSV·JSON 요약; 저장된 summary → 조회 결과 | 기준 DB를 변경하지 않고 내보낸 파일을 작성. `inspect_run`은 `summary.json`을 읽으며 DB 전체 추적 탐색 UI는 없음 |
+| `cli.py`: `load_public_case`, `run_case`, `main`; `__main__.py` | 명령행 인자·설정 → 사례 로딩·시간 진행·현재 지시 시작 요청·출력 | **시뮬레이션 실행 드라이버**. 초기 DB 생성 이후 업무 변경은 controller 경유. 공개 초기값·미래 큐·평가자료를 한 DTO로 합치지 않음 |
+| `evaluation/score.py`: `score_records`, `score_run`, `main` | 실행 CSV/추적·독립 정답·평가자 환경 사실 → 개발 수락 채점·오류 이유 | 실행 후 별도 명령. 운영 검사 함수를 import하지 않고 독립 채점하여 `evaluation.json`/CSV 작성. 운영 지시·DB 수정 권한 없음. 본 비교실험 실행기는 아님 |
 
 ### 의존관계 규칙
 
@@ -73,7 +73,9 @@ flowchart TD
 
 ## 기준 상태와 계획 적용
 
-SQLite 한 파일을 실행별 기준 저장소로 사용한다. 초기값·근거·사건 수신 이력·활성 제한·후보 계획·검사 결과·지시·관측·감사 로그를 연결한다. 테이블과 필수 키는 데이터 계약을 따른다. `schema.sql`은 이 명세를 실제 DDL로 옮기는 다음 구현의 산출물이다.
+SQLite 한 파일을 실행별 기준 저장소로 사용한다. 현재 DDL은 `src/shipyard/schema.sql`이며 `PRAGMA user_version=1`이다. **`runs.snapshot_json`의 검증된 공개 snapshot을 현재 상태의 기준으로 저장**한다. 작업·로봇·구역·제한·진행 상태를 각각 별도 SQL 테이블로 완전히 정규화하지는 않았다.
+
+사건·수신 이력·근거·계획·검사·지시·관측·감사 로그는 `events`, `event_receipts`, `evidence`, `plans`, `checks`, `instructions`, `observations`, `audit_log` 관계형 테이블에 ID·상태·hash·참조 열과 JSON payload를 함께 저장한다. PK/FK와 명시적 ID 검사로 연결하며, 현재 snapshot과 관련 이력은 같은 업무 트랜잭션에서 갱신한다. 동일 정보를 가진 두 독립 상태 저장소가 아니라 현재 상태와 추적 이력을 위한 한 SQLite 저장소다.
 
 상태 버전은 업무 상태가 변했을 때 증가한다. 단순 조회나 감사 로그 추가를 상태 변화로 세어 계산 중인 계획을 불필요하게 무효화하지 않는다. 계획은 계산 기준의 상태 버전·tick·활성 계획 버전을 보존한다.
 
@@ -97,7 +99,7 @@ SQLite 한 파일을 실행별 기준 저장소로 사용한다. 초기값·근�
 | --- | --- | --- |
 | `IDLE` | 현재 위치만 유지 | 유효한 새 지시를 받을 수 있음 |
 | `MOVING` | 로봇. 이동 경로의 구역 충돌은 개발 모델에 포함하지 않음 | 시작한 이동 phase는 완료까지 고정. 완료 시 도착 위치를 보존 |
-| `WAITING_FOR_ZONE` | 로봇, 대상 작업 예약. 구역은 아직 점유하지 않음 | 이동 후 구역을 기다림. 재계획으로 취소할 수 있으나 도착 위치 유지 |
+| `WAITING_FOR_ZONE` | 로봇과 대상 작업 예약. 이동 완료 후에는 구역 미점유, 준비 완료 직후에는 구역 예약 유지 | `execution_progress.setup_valid`와 완료 prefix로 두 경우를 구별. 같은 attempt의 WELD만 자기 준비 예약을 이어받고 다른 로봇은 점유할 수 없음 |
 | `SETTING_UP` | 로봇과 대상 구역 | 시작한 준비 phase는 완료까지 고정. 완료 후 새 제한이 있으면 용접을 시작하지 않음 |
 | `WELDING` | 로봇과 대상 구역 | 용접을 완료까지 유지. W18의 기존 배정·시작·완료 시각을 재계획이 변경하지 못함 |
 
@@ -124,24 +126,24 @@ SQLite 한 파일을 실행별 기준 저장소로 사용한다. 초기값·근�
 | 평가자 환경 사실 `truth.jsonl` | 별도 평가 명령 | 사전 작성한 평가자 기준 사실. 공개 운영 근거나 프롬프트로 전달하지 않음 |
 | 실제 지시·시작·완료·개입 기록 | 실행 DB와 출력 | 시스템 추적과 사후 채점에 사용. 평가자 정답과는 별도 |
 
-폴더 분리는 배치 규칙일 뿐 정보 차단의 구현 증거가 아니다. 첫 구현에서 다음을 함께 검증한다.
+폴더 분리는 배치 규칙일 뿐 정보 차단의 구현 증거가 아니다. `tests/test_information_boundary.py`는 현재 정형 경로에 다음 검사를 수행한다.
 
 - 공개 초기값 로더가 정해진 파일·필드만 읽고 미래 사건·oracle·truth를 병합하지 않는다. 공개 DTO는 미정의 필드를 거부한다.
-- 솔버와 에이전트 입력을 allowlist로 새로 구성한다. 원본 scenario 객체나 simulator 참조를 통째로 전달하지 않는다.
-- 의존관계 검증으로 controller/solver/agent가 evaluation 로더나 simulator의 private 큐를 직접 참조하지 못하게 한다. checker와 evaluator의 금지 import도 확인한다.
-- 미래 큐와 평가 자료에 고유 sentinel 값을 넣은 검사에서 공개 snapshot·조회 응답·프롬프트·솔버 입력으로 그 값이 나오지 않는지 확인한다.
-- 평가 명령은 실행 종료 후 출력과 평가 전용 경로를 읽는다. 정답은 시스템 출력과 독립적으로 작성하고 교차 검토한다.
+- 솔버 입력은 공개 `PlanningSnapshot`과 `ConstraintSet`으로 제한한다. 원본 scenario 객체나 simulator 참조를 통째로 전달하지 않는다.
+- AST import 검사로 controller/solver/constraints/checker/repository의 금지 의존관계를 확인한다. evaluator가 운영 검사 함수를 import하지 않는지도 확인한다.
+- 미래 큐·oracle·truth에 고유 sentinel 값을 넣고 runtime의 평가 파일 읽기를 차단한 상태에서 실행한다. 미래 근거는 도착 전 solver 입력에 없어야 하고, oracle/truth 표식은 실행 내내 없어야 한다.
+- 평가 명령은 실행 종료 후 출력과 평가 전용 경로를 읽는다. 정답은 원문 규칙에서 별도로 작성했으며 팀원의 교차 검토 상태는 각 oracle의 `provenance.review_status`로 표시한다. 아직 없는 에이전트의 조회 응답·프롬프트 경계는 후속 구현에서 같은 원칙으로 검증해야 한다.
 
 이는 단일 프로세스의 의존성과 데이터 흐름을 검증하는 설계다. 악의적인 Python 코드에 대한 운영체제 수준 보안 격리를 구현했다고 주장하지 않는다. 실제 읽기 권한 분리가 필요한 배포 환경은 이후 별도 프로세스·계정·파일 권한 등으로 검토한다.
 
-## 구현할 파일 배치
+## 현재 파일 배치
 
-아래 트리는 **예정 경로**다. 이번 문서 작업에서 빈 모듈이나 실행 데이터를 생성하지 않는다. D02–D04는 D01과 같은 구조로 개발 사례를 확장한다.
+아래 코드·설정·데이터 파일은 실제 존재한다. D01을 대표로 표시했으며 D02–D04에도 공개 초기값/근거, 전용 사건 흐름과 독립 정답/환경 사실 파일이 있다. `outputs/` 아래 파일은 실행할 때 생성하며 Git에 포함하지 않는다.
 
 ```text
 .
-├── pyproject.toml                       # 다음 구현에서 의존성과 패키지 정의
-├── uv.lock                              # 다음 구현의 실제 해결 결과
+├── pyproject.toml                       # 패키지와 직접 의존성 정의
+├── uv.lock                              # 실제 해결된 전이 의존성까지 고정
 ├── .python-version                      # 검증한 Python 패치 버전
 ├── config/
 │   └── dev-policy.json                  # 개발 정책·솔버 설정·계약 버전
@@ -175,23 +177,28 @@ SQLite 한 파일을 실행별 기준 저장소로 사용한다. 초기값·근�
     ├── manifest.json                    # 실행 환경·버전·입력 해시
     ├── trace.jsonl                      # DB에서 내보낸 공개 추적 기록
     ├── execution.csv                    # 실제 phase 시작·완료 기록
-    └── summary.json                     # 운영 요약, 독립 채점과 구별
+    ├── summary.json                     # 운영 요약, 독립 채점과 구별
+    ├── evaluation.json                  # 별도 score 명령으로 생성
+    └── evaluation.csv                   # 개발 사례의 사건별 채점
 ```
 
-기존 `src/README.md`, `data/README.md`, `tests/README.md`, `evaluation/README.md`는 해당 위치의 설명으로 유지한다. 이번에 새로 만든 `docs/architecture.md`는 흩어진 모듈 설명을 연결하고 미래 실제 파일 배치를 정하기 위한 문서다. 기존 파일을 이동하거나 원본 자료를 바꾸지 않는다. 필드·실패 정책은 `docs/data-contracts.md`에 모아 중복 정의를 줄인다.
+기존 `src/README.md`, `data/README.md`, `tests/README.md`, `evaluation/README.md`는 해당 위치의 설명으로 유지한다. 이 아키텍처 문서는 구현된 모듈과 파일을 연결하고, 필드·실패 정책은 `docs/data-contracts.md`에 모아 중복 정의를 줄인다. 원본 자료는 변경하지 않았다.
 
-## 구현 후 제공할 명령
+## 설치와 실행 명령
 
-다음 명령은 아직 동작을 확인하지 않은 **구현 대상 인터페이스**다. `pyproject.toml`, lockfile, 데이터와 애플리케이션 구현 후 실행을 확인하고 README를 갱신한다. `uv run --locked`는 lockfile이 만들어진 후 사용한다.
+저장소 루트에서 실행한다. uv는 먼저 설치되어 있어야 한다. `uv sync --locked`는 저장소의 lockfile로 Python 환경과 의존성을 맞춘다. 현재 D01–D04의 로컬 실행을 확인했으며 팀원의 다른 OS에서 실행한 것으로 확대하지 않는다.
 
 ```bash
+uv sync --locked
 uv run --locked python -m shipyard run --case D01 --output outputs/D01
 uv run --locked python -m shipyard inspect --run-dir outputs/D01
 uv run --locked python evaluation/score.py --run-dir outputs/D01 --oracle evaluation/dev/D01/oracle.json --truth evaluation/dev/D01/truth.jsonl
 uv run --locked pytest
 ```
 
-`run`은 공개 데이터 경로와 드라이버 전용 사건 경로를 정해진 case 규칙으로 해석한다. `inspect`는 DB와 내보낸 기록에서 사건→근거→제한→계획→검사→지시→실제 실행을 보여준다. `score.py`는 명시적으로 전달된 독립 정답과 환경 사실로 채점한다. 같은 출력 경로가 이미 있으면 기본적으로 덮어쓰지 않고 새 경로를 요구한다. 실행·채점 결과가 나오기 전에는 통과나 성능 개선을 완료로 기록하지 않는다.
+`run`은 공개 데이터 경로와 드라이버 전용 사건 경로를 정해진 case 규칙으로 해석한다. `inspect`는 완료·미완료 작업, 활성 제한, 확인 요청과 실패를 담은 `summary.json`을 출력한다. 세부 사건→근거→제한→계획→검사→지시→실행 연결은 `trace.jsonl`, `execution.csv`와 실행 DB에서 확인한다. `score.py`는 지정한 독립 정답과 환경 사실로 개발 사례를 채점한다. 기존 실행 출력 디렉터리는 덮어쓰지 않으며 재실행에는 새 경로를 사용한다.
+
+현재 범위는 정형 D01–D04와 개발 수락 검증이다. crash 후 자동 재개, DB 자동 migration, 웹 탐색 화면, LLM/역할 분리 비교, 본 평가의 규모·반복·시간 기준은 구현 완료에 포함하지 않는다. 실제 실행·채점 증거와 검증 범위는 루트 README 및 [다음 작업](next-steps.md)에 기록한다.
 
 ## 후속 연결
 

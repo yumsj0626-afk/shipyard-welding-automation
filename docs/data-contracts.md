@@ -1,20 +1,20 @@
 # 최소 자동 처리 흐름의 데이터 계약
 
-2026-11-06, 계약 `schema_version="1.0"`, 개발 정책 `dev-v1`. **다음 구현의 규범이며 아직 스키마 코드·DB·데이터 파일·테스트는 없다.** 기술 결정은 [DEC-01–06](decisions.md), 모듈과 예정 파일은 [아키텍처](architecture.md)를 따른다. R §4.2 표7·§4.3·4.5와 B §2–6의 요구를 구현 필드·처리 조건으로 구체화했다.
+2026-11-06, 계약 `schema_version="1.0"`, 개발 정책 `dev-v1`. **정형 사건 최소 구현의 현재 계약이다.** DTO·저장·사건 처리·계획·검사·시뮬레이션 코드와 개발 데이터·테스트를 작성했다. 실제 실행 범위와 M01–M10의 최종 증거는 [구현 작업과 검증 기록](next-steps.md)에서 관리한다. 기술 결정은 [DEC-01–06](decisions.md), 모듈과 파일은 [아키텍처](architecture.md)를 따른다. R §4.2 표7·§4.3·4.5와 B §2–6의 요구를 구현 필드·처리 조건으로 구체화했다.
 
 ## 공통 표현과 ID
 
 - 교환 형식은 UTF-8 JSON, 여러 사건/추적은 JSONL이다. unknown은 누락이나 임의 0이 아니라 명시적 `null` 또는 `UNKNOWN` enum이다. 필수 필드는 null 허용 여부도 명시한다.
 - JSON 중복 key, NaN/Infinity, 미정의 필드는 거부한다. Pydantic strict 검사에서 문자열 숫자와 bool을 정수로 받지 않는다. 파싱 성공과 근거 확인 성공을 구별한다.
-- 파일의 최상위에는 `schema_version`, `case_id`, `data_revision`을 둔다. 실행 객체에는 `schema_version`, `run_id`와 객체별 ID를 둔다. ID는 비어 있지 않은 ASCII `[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}`이며 대소문자를 구별한다. W17/R1/A 같은 업무 ID는 실행 안에서 유일하다. 모든 FK는 같은 run 안의 존재하는 대상을 가리킨다.
+- 초기 데이터 `initial.json`·`evidence.json`의 최상위에는 `schema_version`, `case_id`, `data_revision`을 둔다. 공개 snapshot·사건·계획은 `schema_version`, `run_id`를 가지며 내부 작업·지시·관측 객체는 소속 snapshot/저장 행의 run 문맥과 객체 ID로 연결한다. ID는 비어 있지 않은 ASCII `[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}`이며 대소문자를 구별한다. W17/R1/A 같은 업무 ID는 실행 안에서 유일하다. 엔터티 관계는 스키마·도메인 검사에서, 저장 테이블의 run 및 plan 참조는 SQL FK로 검사한다.
 - `run_id`는 실행마다 새 UUID 문자열. 업무 ID와 외부 `event_id`는 입력이 정한다. `incident_id`는 같은 문제의 발생 회차, `restriction_id`는 원인별 제한, `plan_id`는 후보, `instruction_id`는 phase 지시, `execution_id`는 실제 착수 구간을 식별한다. 삭제 후 ID 재사용은 금지한다.
 - `tick`은 정수 추상 시간 단위다. 1 tick을 실제 초/분으로 해석하지 않는다. 구간은 `[start_tick,end_tick)`이며 종료와 다음 시작이 같은 tick이면 겹치지 않는다. 초기 W18의 이력 `start=-2`만 음수를 허용한다. 신규 수신/착수/복구 tick은 0 이상이다.
-- UTC ISO-8601 `received_at`과 단조 증가 벽시계 `elapsed_ms`는 감사/처리시간용이다. 일정 계산은 tick만 쓴다. 개발 시뮬레이션은 솔버 계산 동안 tick을 멈추며 실제 계산시간은 별도 기록한다. 본 평가의 계산시간 반영은 DEC-08에 남긴다.
+- UTC ISO-8601 `received_at`은 감사용이다. 솔버 결과의 `elapsed_ms`와 목적 단계별 `wall_time_ms`는 실제 계산시간이며 일정 계산에는 tick만 쓴다. 개발 시뮬레이션은 솔버 계산 동안 tick을 멈춘다. 모든 감사 행에 개별 처리시간을 측정한 것은 아니며, 본 평가의 전체 사건 처리시간 측정·계산시간 반영은 DEC-08에 남긴다.
 - `state_version`은 run마다 0부터 시작하는 정수이며 작업·자원·공개 근거·제한·지시·현재 tick 같은 업무 상태가 트랜잭션으로 바뀔 때 1 증가한다. 조회/감사 로그/후보 저장만으로 증가시키지 않는다. `active_plan_version`은 최초 0, 성공한 계획 적용마다 1 증가한다. 정책/규칙은 각각 `policy_version`, `rule_version`으로 고정한다.
 
 ## 공개 초기 상태와 엔터티
 
-`initial.json`은 `now_tick`, `jobs[]`, `robots[]`, `zones[]`, `travel_times[]`, `baseline_plan|null`, 메타데이터를 포함한다. `evidence.json`은 현재까지 공개된 근거와 출처 등록부만 포함한다. 앞으로의 사건·정답·복구 시각은 이 파일들에 없다.
+`initial.json`은 `now_tick`, `jobs[]`, `robots[]`, `zones[]`, `travel_times[]`, `baseline_plan|null`, `execution_progress[]`, `provenance`와 파일 메타데이터를 포함한다. `evidence.json`은 현재까지 공개된 근거와 출처 등록부만 포함한다. 앞으로의 사건·정답·복구 시각은 이 파일들에 없다.
 
 | 객체 | 필수 필드 | 의미·검사 |
 | --- | --- | --- |
@@ -31,9 +31,9 @@
 
 필수: `evidence_id`, `incident_id|null`, `target{scope,job_id|null,robot_id|null,zone_id|null}`, `observation_kind`, `value`, `source_id`, `observed_tick`, `available_tick`, `revision`, `supersedes_evidence_id|null`, `restriction_id|null`, `related_evidence_ids[]`, `provenance`.
 
-`observation_kind`는 `FITUP_RESULT`, `REPAIR_COMPLETED`, `RECHECK_RESULT`, `PAIR_REACHABILITY`, `MATERIAL_READY`, `ROBOT_AVAILABILITY`, `ZONE_AVAILABILITY`, `IDENTITY_MATCH`처럼 등록한 종류만 허용한다. 값은 종류별 PASS/FAIL/UNKNOWN 또는 TRUE/FALSE/UNKNOWN이다. 근거 본문·참조 파일은 자료이고 실행 지시가 아니다.
+`observation_kind`는 `FITUP_RESULT`, `REPAIR_COMPLETED`, `RECHECK_RESULT`, `PAIR_REACHABILITY`, `MATERIAL_READY`, `ROBOT_AVAILABILITY`, `ZONE_AVAILABILITY`, `IDENTITY_MATCH`처럼 등록한 종류만 허용한다. 값은 검사/도달/식별의 PASS/FAIL/UNKNOWN, 조치 완료/자재 준비의 TRUE/FALSE/UNKNOWN, 자원 가용성의 AVAILABLE/UNAVAILABLE/UNKNOWN으로 구별한다. 근거 본문·참조 파일은 자료이고 실행 지시가 아니다.
 
-현재 조회 가능한 근거는 `available_tick <= now_tick`, `observed_tick <= available_tick`이고 출처가 대상/종류에 권한을 가져야 한다. 물리 상태의 출처별 개정은 단조 증가해야 하며 이전 개정은 보존한다. 서로 다른 출처가 충돌하면 마지막 수신값으로 덮지 않고 CONFLICT로 남긴다. 신선도는 회차·개정·관측 순서·반증 근거로 확인하며 근거 없는 시간 만료 규칙을 만들지 않는다. 오래된 PASS가 새 FAIL을 자동 해제하지 않는다.
+현재 조회 가능한 근거는 `available_tick <= now_tick`, `observed_tick <= available_tick`이고 출처가 대상/종류에 권한을 가져야 한다. 같은 출처·대상·종류·발생 회차의 개정은 증가해야 하며 이전 개정은 보존한다. `supersedes_evidence_id`는 같은 출처·대상·종류·회차의 앞선 개정만 가리킬 수 있고 관측 시각도 역행하지 않는다. 서로 다른 출처의 최신 근거가 충돌하면 마지막 수신값으로 덮지 않고 EVIDENCE_CONFLICT로 남긴다. 신선도는 회차·개정·관측 순서·반증 근거로 확인하며 근거 없는 시간 만료 규칙을 만들지 않는다. 오래된 PASS가 새 FAIL을 자동 해제하지 않는다.
 
 ## 사건과 활성 제한
 
@@ -54,7 +54,7 @@ evidence_ids[], restriction_ids[], unknown_fields[],
 raw_report|null, supersedes_event_id|null
 ```
 
-`kind`의 최소 허용값은 `FITUP_FAILED`, `PAIR_UNREACHABLE`, `REPAIR_REPORTED`, `RECHECK_REPORTED`, `MATERIAL_READINESS_CHANGED`, `ROBOT_AVAILABILITY_CHANGED`, `ZONE_AVAILABILITY_CHANGED`, `IDENTITY_UNCERTAIN`이다. 구조화된 실행 관측은 아래 별도 계약을 쓰고 외부 source가 가짜 완료 관측을 만들지 못하게 한다. 정형 사건은 LLM 없이 이 계약으로 들어온다. 문장형 어댑터는 동일 필드의 제안을 만들지만 출처 권한과 도메인 검사를 우회하지 못한다.
+`kind`의 허용값은 `FITUP_FAILED`, `PAIR_UNREACHABLE`, `PAIR_REACHABILITY_CHANGED`, `REPAIR_REPORTED`, `RECHECK_REPORTED`, `MATERIAL_READINESS_CHANGED`, `ROBOT_AVAILABILITY_CHANGED`, `ZONE_AVAILABILITY_CHANGED`, `IDENTITY_UNCERTAIN`이다. `PAIR_UNREACHABLE`은 FAIL 보고이며, 구현 과정에서 추가한 `PAIR_REACHABILITY_CHANGED`는 같은 조합의 FAIL/PASS 상태 변화와 명시적 복구를 표현한다. 불가 보고에 PASS를 억지로 넣지 않고 R §2.3 표4와 B §3의 조합별 제한·복구 요구를 이어가기 위한 구체화다. 구조화된 실행 관측은 아래 별도 계약을 쓰고 외부 source가 가짜 완료 관측을 만들지 못하게 한다. 정형 사건은 LLM 없이 이 계약으로 들어온다. 문장형 어댑터는 후속 구현이며 동일 필드의 제안을 만들더라도 출처 권한과 도메인 검사를 우회할 수 없다.
 
 - `target.scope`는 JOB/JOB_ROBOT/ROBOT/ZONE/UNRESOLVED. FITUP은 JOB, PAIR는 JOB_ROBOT이며 필요한 ID가 반드시 있어야 한다. 범위가 미확정이면 자동으로 R1전체나 구역전체를 정지시키지 않는다.
 - 일치한 대상에서 실행 여부가 미확정이면 그 대상의 새로운 착수를 `EVIDENCE_PENDING` 제한으로 차단하고 조회/확인을 진행한다. 대상 자체를 특정할 수 없으면 사건을 격리하고 식별 질문을 남기며 알려진 무관한 작업은 유지한다.
@@ -65,7 +65,7 @@ raw_report|null, supersedes_event_id|null
 
 `(run_id,event_id)`를 UNIQUE로 둔다. canonical payload는 도메인 필드로 만든 UTF-8 JSON의 SHA-256이며 key 정렬·공백 제거·배열 중 set 의미 필드의 정렬을 고정한다. `received_tick`, `received_at`, 재전달 순번 등 수신 메타데이터는 fingerprint에서 제외한다. 같은 ID/같은 fingerprint는 기존 처리 결과와 처리 버전을 반환한다. 같은 ID/다른 fingerprint는 `ID_CONFLICT`; 새 제한·해제를 적용하지 않고 충돌 로그와 확인 대상을 남긴다. 기존 제한은 유지한다.
 
-사건 자체가 잘못된 경우와 알려진 대상의 근거 부족을 구별한다. 데이터 파싱 실패가 임의의 전역 보류가 되지 않는다. 같은 tick의 상반된 근거는 모두 접수한 뒤 충돌 판정을 먼저 하고 최종 상태에서 한 번 계획한다. arrival order로 PASS가 FAIL을 덮지 않는다.
+사건 자체가 잘못된 경우와 알려진 대상의 근거 부족을 구별한다. 데이터 파싱 실패가 임의의 전역 보류가 되지 않는다. 같은 tick의 상반된 근거는 모두 접수한 뒤 충돌 판정을 먼저 하고 최종 상태에서 한 번 계획한다. arrival order로 PASS가 FAIL을 덮지 않는다. 동일 batch에서 처음 보는 같은 사건 ID가 충돌해도 격리 결과를 저장하여 나중의 단독 재전달을 새 사건으로 승인하지 않는다. 중복 수신은 수신 이력과 EVENT에만 남기며 제한 생성/해제·추가 사람 요청을 다시 발생시키지 않는다.
 
 ### Restriction
 
@@ -80,7 +80,9 @@ raw_report|null, supersedes_event_id|null
 | `PREDECESSOR_INCOMPLETE` | W20의 W17 미완료로 계산하는 **파생 차단** | W17 실제 완료 기록으로만 착수 차단 해소. 저장된 FITUP_HOLD를 W20에 복제하지 않음 |
 | 자재 미준비/UNKNOWN | Job readiness의 현재 공개 값으로 계산 | 유효한 readiness TRUE 근거. 복구 신호가 자재 상태를 임의로 바꾸지 않음 |
 
-한 제한의 해제는 다른 제한을 지우지 않는다. 해제 근거는 `restriction_id`, `incident_id`, 대상이 모두 맞고 발생 회차보다 뒤여야 한다. 재확인은 `related_evidence_ids`에 조치 완료 근거를 명시하고 `recheck.observed_tick >= repair.observed_tick`이어야 한다. 같은 tick은 연결된 근거의 순서로 구별한다. 오래된 회차의 PASS, 대상이 다른 PASS, 재확인 없는 수리 보고는 해제 근거가 아니다. 이미 RELEASED인 제한의 중복 해제는 no-op이다. 해결되지 않은 추가 제한이 있으면 W17은 계속 제외된다.
+한 제한의 해제는 다른 제한을 지우지 않는다. 해제 근거는 `restriction_id`, `incident_id`, 대상이 모두 맞고 제한 활성화 이후 관측이어야 한다. 재확인은 `related_evidence_ids`에 같은 대상·회차·제한의 조치 완료 근거를 명시하고 `recheck.observed_tick >= repair.observed_tick`이어야 한다. 현재 조치 완료 근거가 FALSE/UNKNOWN으로 바뀌거나 출처 간 충돌한 경우에는 옛 TRUE를 연결해 해제할 수 없다. 같은 tick은 연결된 근거의 순서로 구별한다. 오래된 회차의 PASS, 대상이 다른 PASS, 재확인 없는 수리 보고는 해제 근거가 아니다. 동일 해제 사건의 재전달은 no-op이다. 다른 사건 ID로 비활성 제한을 지정하면 새로 해제하지 않고 확인 필요 사유를 남긴다. 해결되지 않은 추가 제한이 있으면 W17은 계속 제외된다.
+
+`EVIDENCE_PENDING`의 `rule_id`에는 확인해야 할 관측 종류를 포함한다. 같은 회차의 다른 종류 근거가 도착했다고 정보 보류를 일괄 해제하지 않는다. 해당 종류의 현재 근거가 확인되면 정보 보류를 해제하고, 물리 FAIL이면 별도 FITUP_HOLD/PAIR_BAN 등을 남긴다. 해제한 제한의 상세 객체는 RESTRICTION 로그에 보존하고 공개 snapshot의 `active_restrictions`에는 ACTIVE만 둔다.
 
 ## 상태 전이와 phase
 
@@ -100,7 +102,9 @@ raw_report|null, supersedes_event_id|null
 
 ## 제약과 계획
 
-`PlanningSnapshot`은 `run_id`, `state_version`, `active_plan_version`, `now_tick`, `jobs`, `robots`, `zones`, `travel_times`, `active_restrictions`, `visible_evidence_refs`, `policy_version`, `rule_version`, `current_instructions`, `execution_progress`만 allowlist로 새로 구성한다. DB 경로·scenario 원본·private future queue·oracle·truth를 포함하지 않는다.
+`PlanningSnapshot`은 `schema_version`, `run_id`, `state_version`, `active_plan_version`, `now_tick`, `jobs`, `robots`, `zones`, `travel_times`, `active_restrictions`, `visible_evidence_refs`, `evidence`, `sources`, `baseline_plan`, `policy_version`, `rule_version`, `current_instructions`, `execution_progress`만 allowlist로 새로 구성한다. `evidence`와 `sources`는 현재 공개 근거의 내용·출처 권한을 검사하기 위해, `baseline_plan`은 일정 변경량 비교를 위해 포함한다. 모두 공개 초기값과 실제 도착한 자료에서 구성하며 DB 경로·scenario 원본·private future queue·oracle·truth를 포함하지 않는다.
+
+최소 구현의 `current_instructions`에는 완료·취소된 지시도 실행 ID 연결을 위해 보존한다. 목록에 존재한다는 것만으로 활성 지시가 되지 않으며 상태·적용 계획 버전·최신 전제조건으로 착수 가능성을 판단한다.
 
 `execution_progress[]`는 `{job_id,attempt_id,robot_id,completed_phases:[{phase,execution_id,start_tick,end_tick,from_zone_id,to_zone_id}],current_phase|null,next_phase|null,setup_valid}`다. 관측에서만 갱신한다. SETUP 종료와 WELD 시작 사이에도 setup_valid와 완료 prefix를 보존하여 중복 준비를 막는다. 용접 전 취소 시 setup_valid=false, 새 attempt에서 준비를 다시 한다. 현재 지시 목록만으로 과거 phase 완료를 추측하지 않는다.
 
@@ -128,11 +132,13 @@ Plan 필수: `plan_id`, `based_on_state_version`, `based_on_tick`, `based_on_act
 
 COMMITTED 작업을 유지하면 현재 로봇/attempt와 prefix를 보존한다. 취소가 결정되면 현재 phase만 fixed로 남기고 이후 suffix를 제거한다. 현재 phase 종료·상태 반영 뒤 새 attempt에서 재배정할 수 있으며 곧바로 같은 작업을 다른 로봇에 중복 배정하지 않는다. 모든 required 작업은 새/잔여 assignment 또는 fixed WELD로 정확히 한 번 완료 경로를 갖는다. 취소 중 현재 phase만 남은 작업은 deferred 이유를 기록한다.
 
-솔버 결과에는 `raw_status`, `normalized_status`, 각 목적 단계 `status/objective/best_bound/wall_time_ms`, `seed`, `num_workers`, `time_budget_seconds`, `solver_version`, `termination_reason`을 기록한다. 목적과 자동 적용 규칙은 DEC-04·05를 따른다.
+`solver_result`의 실제 필드는 `raw_status`, 정규화한 `status`, `objective_values[]`, `proven_stages`, `elapsed_ms`, `reason_codes[]`, `random_seed`, `num_search_workers`, `time_limit_seconds`, `solver_version`, `termination_reason`, `stages[]`다. 각 stage에는 `name`, `status`, `objective|null`, `best_bound`, `wall_time_ms`를 기록한다. 목적과 자동 적용 규칙은 DEC-04·05를 따른다.
 
 ### 독립 검사와 원자적 적용
 
-CheckResult 필수: `check_id`, `plan_id`, `plan_payload_hash`, `checked_state_version`, `checked_tick`, `checked_active_plan_version`, `policy_version`, `checker_version`, `passed`, `violations[{code,target,expected,observed,evidence_ids}]`.
+CheckResult 필수: `check_id`, `plan_id`, `plan_payload_hash`, `checked_state_version`, `checked_tick`, `checked_active_plan_version`, `policy_version`, `checker_version`, `passed`, `violations[]`.
+
+최소 구현의 `violations`는 `"위반코드"` 또는 `"위반코드:대상/상세"` 문자열 목록이다. 대상·기대값·관측값을 별도 중첩 객체로 중복 저장하기보다 계획·snapshot·근거 ID가 연결된 추적 기록에서 확인하도록 단순화했다. 위반 코드와 원인 추적을 생략한 것은 아니며, 후속 UI나 분석에서 필드별 질의가 필요하면 구조화 객체로 확장한다.
 
 검사기는 원 공개 상태에서 배정·제외·선행·시간·능력·점유·이동/준비·현재 실행 고정·정책을 다시 검사한다. `constraints.py`의 모델 생성 함수나 솔버의 PASS를 호출하여 검사를 대신하지 않는다. 단순 동일 코드 두 번 실행은 독립 검사로 보지 않는다.
 
@@ -146,15 +152,17 @@ CheckResult 필수: `check_id`, `plan_id`, `plan_payload_hash`, `checked_state_v
 
 최종 plan 적용 자체도 state_version을 올린다. 지시 실행 때는 ‘후보 계산 버전 그대로인가’만 비교하지 않고 **현재 활성 지시/실행 ID와 최신 전제조건**을 확인한다. 완료 관측 때문에 버전이 올랐다는 이유만으로 이미 진행 중인 실행을 폐기하지 않는다.
 
-사전식 solve는 단계마다 마지막 유효 incumbent와 `proven_optimal_prefix`를 보존한다. 하위 목적 단계에서 UNKNOWN/예산 소진이어도 이전 incumbent를 `FEASIBLE_NOT_PROVEN`으로 반환할 수 있다. 네 목적 모두 증명한 경우에만 전체 OPTIMAL이다. 앞 단계의 해와 정확히 고정한 목적값이 있는데 다음 단계가 INFEASIBLE이면 모델 구현 오류로 진단하며 정상 운영의 해 없음으로 숨기지 않는다.
+사전식 solve는 단계마다 마지막 유효 incumbent와 증명한 상위 목적 수 `proven_stages`를 보존한다. 하위 목적 단계에서 UNKNOWN/예산 소진이어도 이전 incumbent를 `FEASIBLE_NOT_PROVEN`으로 반환할 수 있다. 네 목적 모두 증명한 경우에만 전체 OPTIMAL이다. 앞 단계의 해와 정확히 고정한 목적값이 있는데 다음 단계가 INFEASIBLE이면 모델 구현 오류로 진단하며 정상 운영의 해 없음으로 숨기지 않는다.
 
 ## 지시와 실행 관측
 
-Instruction 필수: `instruction_id`, `plan_id`, `accepted_plan_version`, `job_id|null`, `robot_id|null`, `action: MOVE/SETUP/WELD/WAIT`, `not_before_tick`, `expected_end_tick|null`, `precondition_refs`, `status: PENDING/RUNNING/COMPLETED/CANCELLED`, `superseded_by|null`, `reason_codes[]`, `recheck_triggers[]`, `execution_id|null`.
+Instruction 필드: `instruction_id`, `plan_id`, `accepted_state_version`, `accepted_plan_version`, `job_id|null`, `robot_id`, `action: MOVE/SETUP/WELD/WAIT`, `not_before_tick`, `expected_end_tick|null`, `precondition_refs[]`, `status: PENDING/RUNNING/COMPLETED/CANCELLED`, `superseded_by|null`, `reason_codes[]`, `recheck_triggers[]`, `execution_id|null`, `attempt_id|null`, `from_zone_id|null`, `to_zone_id|null`.
+
+`accepted_state_version`은 해당 지시가 저장된 상태 버전이고 `accepted_plan_version`은 적용된 계획 순번이다. repository가 성공한 적용 시 둘을 부여한다. 작업 지시의 `attempt_id`는 이미 수행한 phase의 연속성을, from/to는 실제 이동·위치 검사를 연결한다. WAIT의 작업·attempt·위치·종료 시각은 null일 수 있으나 대상 robot ID는 필수다. 초기 진행 W18의 지시는 버전 0으로 등록하고 기존 실행 ID를 보존한다.
 
 WAIT는 이유와 재검토 trigger가 필수이며 물리 실행 구간을 만들지 않는다. trigger는 새 유효 근거·자원/phase 완료·외부 사건 도착이지 비공개 복구시각이 아니다. WELD 지시가 끝났다는 사실은 실제 WELD_END 관측으로 저장한다. 로그상 승인만으로 실행했다고 채점하지 않는다.
 
-ExecutionObservation 필수: `observation_id`, `execution_id`, `instruction_id`, `job_id`, `robot_id`, `phase`, `kind: PHASE_STARTED/PHASE_ENDED`, `tick`, `source_id`, `from_zone_id`, `to_zone_id`, `expected_state_version|null`.
+실행 관측 DTO `Observation`의 필수 필드: `observation_id`, `execution_id`, `instruction_id`, `job_id`, `robot_id`, `phase`, `kind: PHASE_STARTED/PHASE_ENDED`, `tick`, `source_id`, `from_zone_id`, `to_zone_id`, `expected_state_version|null`.
 
 controller는 현재 활성 지시·대상·예정 phase·실제 자원과 대조한 후 저장한다. `PHASE_STARTED`는 시작 허용 검사와 예약을 같은 업무 트랜잭션으로 수행한 결과만 수용한다. 동일 observation ID의 재전송은 no-op, 같은 ID 내용 충돌은 오류다. 지시 취소 후라도 이미 시작한 execution의 종료는 받아 위치·점유를 갱신한다.
 
@@ -177,11 +185,26 @@ controller는 현재 활성 지시·대상·예정 phase·실제 자원과 대�
 
 ## 저장·로그·독립 평가 경계
 
-예정 SQL 테이블은 `runs`, `jobs`, `robots`, `zones`, `precedence_edges`, `travel_times`, `sources`, `evidence`, `events`, `event_receipts`, `restrictions`, `plans`, `plan_assignments`, `checks`, `instructions`, `observations`, `audit_log`다. 작은 표/객체는 JSON payload와 참조 열을 조합해 저장할 수 있으나 버전·대상·유일성·FK는 명시적으로 검사한다. 동적 테이블 생성·임의 SQL 도구는 없다. `schema.sql`과 `PRAGMA user_version`으로 DDL 버전을 관리한다. 초기에는 기존 실행 DB 자동 migration 대신 버전 불일치를 거부하고 새 run을 만든다.
+실제 SQL 테이블은 `runs`, `events`, `event_receipts`, `evidence`, `plans`, `checks`, `instructions`, `observations`, `audit_log`다. `runs.snapshot_json`의 공개 snapshot을 기준 상태로 저장하고 상태 버전·tick·활성 계획 버전을 별도 열에 둔다. 사건·근거·계획·검사·지시·관측은 run과 객체 ID를 키로 하는 JSON payload 행에도 저장하여 중복 검사와 추적에 사용한다. SQL PK/UNIQUE·run FK·check→plan FK와 업무 객체의 도메인 검사를 함께 적용한다.
 
-AuditLog 필수: `log_seq`, `run_id`, `tick`, `received_at`, `stage`, `actor`, `event_ids[]`, `evidence_ids[]`, `restriction_ids[]`, `plan_id|null`, `check_id|null`, `instruction_id|null`, `execution_id|null`, `before_state_version`, `after_state_version`, `outcome`, `reason_codes[]`, `elapsed_ms`, `intervention_kind: NONE/PREDEFINED_EXTERNAL/ADDITIONAL_HUMAN_REQUEST`.
+초기 설계의 엔터티별 다수 테이블을 snapshot JSON과 조회용 키 테이블로 줄였다. 작은 사례에서 같은 값을 여러 표에 나누어 동기화하는 코드를 줄이되, 기준 상태·새 근거·사건 결과·지시·감사 기록은 여전히 한 트랜잭션으로 갱신한다. 해제한 제한은 RESTRICTION 로그에 남긴다. 동적 테이블 생성·임의 SQL 도구는 없다. 실제 DDL은 `src/shipyard/schema.sql`, `PRAGMA user_version=1`이며 버전이 다른 실행 DB는 거부한다. 자동 migration·프로세스 장애 후 재개는 이번 범위 밖이다.
 
-조회 이력은 반환한 evidence ID와 공개 snapshot 버전을 기록한다. 로그는 append-only API로 작성하고 업데이트/삭제하지 않는다. 암호학적 변조 방지 저장소를 구현한 것은 아니다. `manifest.json`에는 코드 commit 또는 소스 hash, Python/OS/CPU/SQLite/패키지 버전, 정책·규칙·데이터 hash, seed, 실행 명령, 시작/종료 시각을 기록한다.
+공개 감사 레코드는 `{seq, run_id, tick, received_at, stage, actor, outcome, state_version_before, state_version_after, data}`다. DB의 자동 증가 `log_seq`를 export에서 `seq`로 표시한다. 단계마다 필요 없는 최상위 필드를 null로 반복하지 않고 관련 원문과 참조를 `data`에 둔다.
+
+| stage | `data`의 핵심 내용 |
+| --- | --- |
+| `EVENT` | `event` 원문, `published_evidence[]` 수신 근거, `result` 처리 결과. result에 근거/제한/해제 ID·reason_codes·intervention_kind 포함 |
+| `QUERY` | `event_id`, `query_kind=PUBLIC_SNAPSHOT`, `lookup_passes`, 반환한 `evidence_ids` |
+| `RESTRICTION` | 생성 또는 해제된 `restriction` 상세 객체와 원인·해제 근거 |
+| `PLAN`, `CHECK` | 각각 `plan`, `check` 전체 객체 |
+| `APPLY` | `plan_id`, 적용한 `instructions[]`; 오래된 후보 거부는 같은 stage의 STALE_PLAN outcome |
+| `WAIT`, `HUMAN_REQUEST` | 대기 지시의 robot·reason_codes·recheck_triggers, 또는 `event_id`와 확인 사유 |
+| `PHASE_START`, `PHASE_END` | 실제 시작/종료 `observation`과 instruction/execution ID |
+| `CLOCK`, `CANCEL`, `FAILURE` 등 | 시간 진행·준비 취소·오류의 사유와 관련 ID |
+
+EVENT의 `published_evidence`는 수신 원문이며 공개 근거로 승인됐다는 뜻은 아니다. `result`의 결과와 연결해 판단한다. QUERY는 현재 공개 snapshot에 이미 로드된 근거를 한 번 조회한 기록이다. 별도 외부 검색이나 추가 DB 왕복을 수행했다고 표시하지 않는다. 동일 사건 재전달에는 QUERY/RESTRICTION/HUMAN_REQUEST를 재발생시키지 않는다. `intervention_kind`는 사건 result의 PREDEFINED_EXTERNAL/ADDITIONAL_HUMAN_REQUEST로 외부 신호와 추가 확인 요청을 구별한다.
+
+로그는 append-only API로 작성하고 업데이트/삭제하지 않는다. 암호학적 변조 방지 저장소를 구현한 것은 아니다. `manifest.json`에는 코드·빌드 설정·lockfile의 합성 source hash, Python/OS/CPU/SQLite/패키지 버전, 정책·입력 hash, seed, 실행 명령, 시작/종료 시각을 기록한다.
 
 실행 출력은 `run.sqlite3`가 기준, `trace.jsonl`, `execution.csv`, `summary.json`이 재생성 가능한 export다. 독립 채점 출력은 `evaluation.json`/`evaluation.csv`로 구분하고 operational summary와 섞지 않는다. 출력 디렉터리를 덮어쓰지 않는다.
 

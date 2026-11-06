@@ -1,0 +1,1 @@
+{"schema_version":"1.0","policy_version":"dev-v1","rule_version":"rules-v1","solver_seconds":5.0,"num_search_workers":1,"random_seed":0,"stale_retries":2,"evidence_lookup_passes":1,"db_busy_ms":1000,"work_conserving":true}

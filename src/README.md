@@ -1,12 +1,16 @@
 # 구현 코드 위치와 경계
 
-**실행 가능한 앱 코드는 아직 없다.** 다음 구현은 Python 패키지 `src/shipyard/`를 사용한다. CP-SAT·Pydantic을 런타임 의존성으로, pytest를 개발 의존성으로 관리하고 SQLite·heapq·argparse는 표준 라이브러리를 쓴다. uv의 실제 의존성 파일과 lockfile은 I01에서 만든다.
+**정형 사건 기반 최소 애플리케이션이 `src/shipyard/`에 구현되어 있다.** Python 3.13.18에서 CP-SAT·Pydantic을 런타임 의존성으로, pytest를 개발 의존성으로 사용한다. SQLite·heapq·argparse는 표준 라이브러리다. `pyproject.toml`, `uv.lock`, `.python-version`으로 실행 환경을 고정한다.
 
-모듈별 입출력·권한과 전체 예정 트리는 [아키텍처](../docs/architecture.md)에, 필드·상태 전이·실패 처리는 [데이터 계약](../docs/data-contracts.md)에 모았다. 이 파일에서 같은 명세를 중복 정의하지 않는다.
+실제 모듈 API·입출력·권한과 파일 배치는 [아키텍처](../docs/architecture.md)에, 필드·상태 전이·실패 처리는 [데이터 계약](../docs/data-contracts.md)에 모았다. 이 파일에서 같은 명세를 중복 정의하지 않는다.
 
-- `contracts`, `events`, `constraints`: 입력 계약, 근거 검사, 고정 제약 변환.
+- `contracts`, `events.apply_deliveries`, `constraints.build_constraints`: 엄격한 공개 DTO, 근거 검사와 제한 변경 제안, 필수/보류 작업의 고정 제약 변환.
 - `scheduler`, `checker`: CP-SAT 후보 계산과 별도 실행 검사. 검사기는 솔버 모델 생성 로직을 재사용하지 않는다.
-- `repository`, `controller`: 유일한 기준 상태 쓰기 구현과 업무 흐름 조율. 최신 버전 확인·지시 교체·로그를 원자적으로 저장한다.
-- `simulator`, `reporting`, `cli`: 가상 시간·실제 phase 관측·추적 내보내기·명령줄 실행.
+- `Repository`, `Controller`: repository가 SQLite 쓰기·최신 버전 확인·지시 교체·로그의 원자적 저장을 구현하고 controller가 업무 호출 순서를 조율한다. 현재 상태는 `runs.snapshot_json`, 사건·근거·계획·검사·지시·관측·감사는 ID와 JSON payload를 가진 관계형 이력 테이블에 저장한다.
+- `Simulator`, `reporting`, `cli`: simulator는 미래 외부 사건과 승인된 phase의 완료 큐를 소유한다. **시간 진행과 지시 시작 요청을 조율하는 드라이버는 `cli.run_case`**다. reporting은 DB에서 추적·실행 CSV·요약을 내보내며 `inspect`는 저장된 요약을 표시한다.
 
-정형 사건은 LLM 없이 처리한다. 미래 외부 큐는 드라이버/시뮬레이터에만 있고 controller에는 현재 도착 사건만 전달한다. 후속 에이전트는 읽기 전용 조회와 사건 제안만 수행한다. 구현 순서는 [I01–I09](../docs/next-steps.md)를 따른다. 이번에는 빈 모듈을 생성하지 않았다.
+저장소 루트에서 `uv sync --locked` 후 `uv run --locked python -m shipyard run --case D01 --output outputs/D01`로 실행하고, `uv run --locked python -m shipyard inspect --run-dir outputs/D01`로 요약을 확인한다. D02–D04도 같은 CLI를 사용한다. 기존 출력 디렉터리는 덮어쓰지 않는다. 독립 개발 채점은 `evaluation/score.py`의 별도 명령이다.
+
+정형 사건은 LLM 없이 처리한다. 미래 외부 큐는 드라이버/시뮬레이터에만 있고 controller에는 현재 도착 사건만 전달한다. 공개 로더·금지 의존관계·sentinel 누출 검증을 테스트하며 단일 프로세스가 OS 보안 격리를 제공한다고 주장하지 않는다. 진행 단계·실제 증거는 [I01–I09와 M01–M10](../docs/next-steps.md)에서 확인한다.
+
+문장형 보고, 단일/역할 분리 에이전트, API 서버·웹 UI·OCR·3D·클라우드·실제 로봇 제어와 본 비교실험은 구현하지 않았다. 후속 에이전트는 공개 읽기 전용 조회와 사건 제안만 맡으며 현재의 공통 처리 경로를 사용해야 한다.

@@ -1,0 +1,328 @@
+{
+  "schema_version": "1.0",
+  "case_id": "D02",
+  "data_revision": "dev-1",
+  "now_tick": 0,
+  "jobs": [
+    {
+      "job_id": "W17",
+      "zone_id": "A",
+      "duration_ticks": 4,
+      "setup_ticks": 1,
+      "due_tick": 14,
+      "weight": 2,
+      "predecessor_ids": [],
+      "material_ready": "TRUE",
+      "lifecycle": "NOT_STARTED",
+      "assigned_robot_id": null,
+      "actual_weld_start": null,
+      "actual_weld_end": null,
+      "active_execution_id": null,
+      "fact_refs": {}
+    },
+    {
+      "job_id": "W18",
+      "zone_id": "B",
+      "duration_ticks": 4,
+      "setup_ticks": 1,
+      "due_tick": 4,
+      "weight": 1,
+      "predecessor_ids": [],
+      "material_ready": "TRUE",
+      "lifecycle": "RUNNING",
+      "assigned_robot_id": "R2",
+      "actual_weld_start": -2,
+      "actual_weld_end": null,
+      "active_execution_id": "exec:initial-W18",
+      "fact_refs": {}
+    },
+    {
+      "job_id": "W19",
+      "zone_id": "C",
+      "duration_ticks": 3,
+      "setup_ticks": 1,
+      "due_tick": 6,
+      "weight": 3,
+      "predecessor_ids": [],
+      "material_ready": "FALSE",
+      "lifecycle": "NOT_STARTED",
+      "assigned_robot_id": null,
+      "actual_weld_start": null,
+      "actual_weld_end": null,
+      "active_execution_id": null,
+      "fact_refs": {}
+    },
+    {
+      "job_id": "W20",
+      "zone_id": "A",
+      "duration_ticks": 2,
+      "setup_ticks": 1,
+      "due_tick": 18,
+      "weight": 2,
+      "predecessor_ids": [
+        "W17"
+      ],
+      "material_ready": "TRUE",
+      "lifecycle": "NOT_STARTED",
+      "assigned_robot_id": null,
+      "actual_weld_start": null,
+      "actual_weld_end": null,
+      "active_execution_id": null,
+      "fact_refs": {}
+    },
+    {
+      "job_id": "W21",
+      "zone_id": "B",
+      "duration_ticks": 2,
+      "setup_ticks": 1,
+      "due_tick": 10,
+      "weight": 1,
+      "predecessor_ids": [],
+      "material_ready": "FALSE",
+      "lifecycle": "NOT_STARTED",
+      "assigned_robot_id": null,
+      "actual_weld_start": null,
+      "actual_weld_end": null,
+      "active_execution_id": null,
+      "fact_refs": {}
+    }
+  ],
+  "robots": [
+    {
+      "robot_id": "R1",
+      "capable_job_ids": [
+        "W17",
+        "W19",
+        "W20",
+        "W21"
+      ],
+      "allowed_zone_ids": [
+        "A",
+        "B",
+        "C"
+      ],
+      "availability": "AVAILABLE",
+      "location_zone_id": "A",
+      "phase": "IDLE",
+      "phase_job_id": null,
+      "phase_execution_id": null,
+      "phase_start_tick": null,
+      "phase_end_tick": null,
+      "destination_zone_id": null,
+      "fact_refs": {}
+    },
+    {
+      "robot_id": "R2",
+      "capable_job_ids": [
+        "W17",
+        "W18",
+        "W19",
+        "W21"
+      ],
+      "allowed_zone_ids": [
+        "A",
+        "B",
+        "C"
+      ],
+      "availability": "AVAILABLE",
+      "location_zone_id": "B",
+      "phase": "WELDING",
+      "phase_job_id": "W18",
+      "phase_execution_id": "exec:initial-W18",
+      "phase_start_tick": -2,
+      "phase_end_tick": 2,
+      "destination_zone_id": "B",
+      "fact_refs": {}
+    }
+  ],
+  "zones": [
+    {
+      "zone_id": "A",
+      "capacity": 1,
+      "availability": "AVAILABLE",
+      "active_execution_ids": [],
+      "fact_refs": {}
+    },
+    {
+      "zone_id": "B",
+      "capacity": 1,
+      "availability": "AVAILABLE",
+      "active_execution_ids": [
+        "exec:initial-W18"
+      ],
+      "fact_refs": {}
+    },
+    {
+      "zone_id": "C",
+      "capacity": 1,
+      "availability": "AVAILABLE",
+      "active_execution_ids": [],
+      "fact_refs": {}
+    }
+  ],
+  "travel_times": [
+    {
+      "from_zone_id": "A",
+      "to_zone_id": "A",
+      "duration_ticks": 0,
+      "provenance": {
+        "basis": "DEV_ASSUMPTION",
+        "source_ref": "data/README.md",
+        "section_or_record": "개발용 초기 환경",
+        "rationale": "합성 개발 사례; 현장 실측 아님",
+        "review_status": "INDEPENDENT_AGENT_REVIEW_TEAM_REVIEW_PENDING"
+      }
+    },
+    {
+      "from_zone_id": "A",
+      "to_zone_id": "B",
+      "duration_ticks": 1,
+      "provenance": {
+        "basis": "DEV_ASSUMPTION",
+        "source_ref": "data/README.md",
+        "section_or_record": "개발용 초기 환경",
+        "rationale": "합성 개발 사례; 현장 실측 아님",
+        "review_status": "INDEPENDENT_AGENT_REVIEW_TEAM_REVIEW_PENDING"
+      }
+    },
+    {
+      "from_zone_id": "A",
+      "to_zone_id": "C",
+      "duration_ticks": 1,
+      "provenance": {
+        "basis": "DEV_ASSUMPTION",
+        "source_ref": "data/README.md",
+        "section_or_record": "개발용 초기 환경",
+        "rationale": "합성 개발 사례; 현장 실측 아님",
+        "review_status": "INDEPENDENT_AGENT_REVIEW_TEAM_REVIEW_PENDING"
+      }
+    },
+    {
+      "from_zone_id": "B",
+      "to_zone_id": "A",
+      "duration_ticks": 1,
+      "provenance": {
+        "basis": "DEV_ASSUMPTION",
+        "source_ref": "data/README.md",
+        "section_or_record": "개발용 초기 환경",
+        "rationale": "합성 개발 사례; 현장 실측 아님",
+        "review_status": "INDEPENDENT_AGENT_REVIEW_TEAM_REVIEW_PENDING"
+      }
+    },
+    {
+      "from_zone_id": "B",
+      "to_zone_id": "B",
+      "duration_ticks": 0,
+      "provenance": {
+        "basis": "DEV_ASSUMPTION",
+        "source_ref": "data/README.md",
+        "section_or_record": "개발용 초기 환경",
+        "rationale": "합성 개발 사례; 현장 실측 아님",
+        "review_status": "INDEPENDENT_AGENT_REVIEW_TEAM_REVIEW_PENDING"
+      }
+    },
+    {
+      "from_zone_id": "B",
+      "to_zone_id": "C",
+      "duration_ticks": 1,
+      "provenance": {
+        "basis": "DEV_ASSUMPTION",
+        "source_ref": "data/README.md",
+        "section_or_record": "개발용 초기 환경",
+        "rationale": "합성 개발 사례; 현장 실측 아님",
+        "review_status": "INDEPENDENT_AGENT_REVIEW_TEAM_REVIEW_PENDING"
+      }
+    },
+    {
+      "from_zone_id": "C",
+      "to_zone_id": "A",
+      "duration_ticks": 1,
+      "provenance": {
+        "basis": "DEV_ASSUMPTION",
+        "source_ref": "data/README.md",
+        "section_or_record": "개발용 초기 환경",
+        "rationale": "합성 개발 사례; 현장 실측 아님",
+        "review_status": "INDEPENDENT_AGENT_REVIEW_TEAM_REVIEW_PENDING"
+      }
+    },
+    {
+      "from_zone_id": "C",
+      "to_zone_id": "B",
+      "duration_ticks": 1,
+      "provenance": {
+        "basis": "DEV_ASSUMPTION",
+        "source_ref": "data/README.md",
+        "section_or_record": "개발용 초기 환경",
+        "rationale": "합성 개발 사례; 현장 실측 아님",
+        "review_status": "INDEPENDENT_AGENT_REVIEW_TEAM_REVIEW_PENDING"
+      }
+    },
+    {
+      "from_zone_id": "C",
+      "to_zone_id": "C",
+      "duration_ticks": 0,
+      "provenance": {
+        "basis": "DEV_ASSUMPTION",
+        "source_ref": "data/README.md",
+        "section_or_record": "개발용 초기 환경",
+        "rationale": "합성 개발 사례; 현장 실측 아님",
+        "review_status": "INDEPENDENT_AGENT_REVIEW_TEAM_REVIEW_PENDING"
+      }
+    }
+  ],
+  "baseline_plan": {
+    "plan_id": "baseline-v1",
+    "assignments": [
+      {
+        "job_id": "W17",
+        "robot_id": "R1",
+        "weld_start": null
+      },
+      {
+        "job_id": "W20",
+        "robot_id": "R1",
+        "weld_start": null
+      },
+      {
+        "job_id": "W18",
+        "robot_id": "R2",
+        "weld_start": null
+      },
+      {
+        "job_id": "W19",
+        "robot_id": "R2",
+        "weld_start": null
+      },
+      {
+        "job_id": "W21",
+        "robot_id": "R2",
+        "weld_start": null
+      }
+    ]
+  },
+  "execution_progress": [
+    {
+      "job_id": "W18",
+      "attempt_id": "attempt:initial-W18",
+      "robot_id": "R2",
+      "completed_phases": [],
+      "current_phase": {
+        "phase": "WELD",
+        "execution_id": "exec:initial-W18",
+        "start_tick": -2,
+        "end_tick": 2,
+        "from_zone_id": "B",
+        "to_zone_id": "B"
+      },
+      "next_phase": null,
+      "setup_valid": false
+    }
+  ],
+  "provenance": {
+    "basis": "DEV_ASSUMPTION",
+    "source_ref": "data/README.md",
+    "section_or_record": "개발용 초기 환경",
+    "rationale": "합성 개발 사례; 현장 실측 아님",
+    "review_status": "INDEPENDENT_AGENT_REVIEW_TEAM_REVIEW_PENDING"
+  }
+}

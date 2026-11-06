@@ -1,6 +1,6 @@
 # 최소 구현을 위한 기술 결정
 
-2026-11-06 갱신. 최신 사용자 요청 → 프로젝트 기준 문서 B v1.0 → 원본 보고서 R 순으로 적용한다. **DEC-01–06은 개발용 기본안으로 채택했다. 기능 구현이나 본 평가 조건의 확정을 뜻하지 않는다.** 사용자가 결정을 위임한 범위에서 작성한 설계이며 팀의 별도 승인·실행 검토를 받은 것으로 기록하지 않는다. 기존 DEC ID를 유지한다.
+2026-11-06 갱신. 최신 사용자 요청 → 프로젝트 기준 문서 B v1.0 → 원본 보고서 R 순으로 적용한다. **DEC-01–06의 개발용 기본안을 정형 사건 최소 구현에 적용했다. 본 평가 조건의 확정을 뜻하지 않는다.** 실제 구현 범위·실행 결과는 [다음 단계와 검증 기록](next-steps.md)에 연결한다. 사용자가 결정을 위임한 범위의 선택이며 팀의 별도 승인·실행 검토를 받은 것으로 기록하지 않는다. 기존 DEC ID를 유지한다.
 
 원문 식별: R=`references-local/midterm-report.docx`, B=`references-local/project-baseline-v1.txt`. 두 파일에 실제 접근해 다시 읽었고 SHA-256은 [출처 기록](sources.md)과 같다. 원본의 기술명을 무조건 유지하지 않고 아래 요구사항과 연결해 판단했다.
 
@@ -42,7 +42,7 @@ Gurobi 13.0.3 공식 지원 표는 Python 3.10–3.14 및 운영체제별 조건
 | 항목 | 현실적 후보와 부담 | 채택 이유와 역할 |
 | --- | --- | --- |
 | 언어/런타임 | Python: 솔버·검증 연결이 직접적, 타입/예외 학습 필요. TypeScript: 웹에는 편리하지만 Python 솔버와 경계 추가. Julia: 최적화에 적합하지만 별도 생태계 학습 | **CPython 3.13.18**. 한 언어로 상태·제약·시뮬레이션·평가를 구현. GPU 불필요 |
-| 패키지 | pip+venv: 친숙하지만 Python/전이 의존성 고정 절차가 나뉨. Poetry: 프로젝트 관리 가능. uv: 새 명령을 배우지만 Python·lock·실행 관리 통합 | **uv 0.13.7**. `.python-version`, `pyproject.toml`, `uv.lock`을 다음 구현에서 생성·커밋하고 `uv sync --locked` 사용 |
+| 패키지 | pip+venv: 친숙하지만 Python/전이 의존성 고정 절차가 나뉨. Poetry: 프로젝트 관리 가능. uv: 새 명령을 배우지만 Python·lock·실행 관리 통합 | **uv 0.13.7**. `.python-version`, `pyproject.toml`, `uv.lock`으로 Python·의존성을 고정하고 `uv sync --locked` 사용 |
 | 저장 | JSON만: 읽기 쉽지만 여러 상태/로그의 원자적 갱신을 직접 구현. PostgreSQL: 동시 접속에 유리하나 서버 운영 추가 | **SQLite + 표준 `sqlite3`**. 실행별 DB 하나, 한 writer, 트랜잭션/PK/FK/UNIQUE. ORM·WAL은 처음에는 불필요 |
 | 시뮬레이션 | SimPy 4.1.2: process/resource에 유리, generator 학습과 자원 배정 중복 가능. 직접 큐: 업무 순서를 직접 써야 하지만 작음 | **표준 `heapq`**. `(tick, phase_priority, sequence)` 큐와 명시적 취소·재검사. 물리·용접 열모델 없음 |
 | 테스트 | unittest: 표준이나 사례 표/fixture가 장황. pytest: fixture·parametrize·임시 DB에 적합 | **pytest 9.2.0 개발 의존성**. M01–M10 고정 사례부터. Hypothesis는 후속 순서조합 검증 후보 |
@@ -50,9 +50,11 @@ Gurobi 13.0.3 공식 지원 표는 Python 3.10–3.14 및 운영체제별 조건
 
 SQLite만 상태·근거·지시·추적의 기준 저장소다. JSONL/CSV는 내보낸 읽기 자료이며 수정해 기준 상태에 역반영하지 않는다. `PRAGMA foreign_keys=ON`, 명시적 `BEGIN IMMEDIATE/COMMIT/ROLLBACK`, 버전 조건부 갱신을 사용한다. 계산 중에는 쓰기 트랜잭션을 열어 두지 않는다. [SQLite 트랜잭션](https://www.sqlite.org/lang_transaction.html), [격리](https://www.sqlite.org/isolation.html), [Python sqlite3](https://docs.python.org/3.13/library/sqlite3.html).
 
+최소 구현에서는 `runs.snapshot_json`에 공개 상태를 보관하고 사건·근거·계획·검사·지시·관측·로그를 ID로 조회하는 키 테이블을 함께 둔다. 작업·로봇·구역마다 별도 테이블과 동기화 코드를 먼저 만들지 않았다. R §4.2의 일관된 기준 상태와 R §4.5의 원자적 적용 요구를 유지하면서 저장 구현을 줄인 선택이다. 객체 관계는 도메인 검사, 저장 행의 유일성과 run/plan 관계는 SQL 제약, 상태 최신성은 트랜잭션 안의 버전 비교로 검사한다. 정확한 테이블·로그 형식은 [데이터 계약](data-contracts.md)에 기록한다.
+
 ### 버전과 실행 조건
 
-아래는 2026-11-06 공식 문서/배포 정보에서 확인한 기준이다. 최신 버전이라는 일반 주장은 하지 않는다. 런타임·직접 의존성은 다음 구현에서 아래 버전으로 고정하고 전이 의존성까지 lock한다. 보안 패치나 호환성 때문에 변경하면 이유와 작은 재검증 결과를 기록한다.
+아래는 2026-11-06 공식 문서/배포 정보에서 확인한 기준이다. 최신 버전이라는 일반 주장은 하지 않는다. 런타임·직접 의존성은 아래 버전을 기준으로 고정했고 전이 의존성은 `uv.lock`에 기록한다. 보안 패치나 호환성 때문에 변경하면 이유와 작은 재검증 결과를 기록한다.
 
 | 구성 | 채택 버전/조건 | 환경·비용·공식 근거 |
 | --- | --- | --- |
@@ -72,6 +74,13 @@ SQLite만 상태·근거·지시·추적의 기준 저장소다. JSONL/CSV는 �
 `strict=True`, `extra='forbid'`, 정수 tick, 명시적 nullable/UNKNOWN, enum을 사용한다. JSON 로더는 중복 key와 NaN/Infinity를 거부한다. 타입 검증이 대상 존재·권한·근거 유효성까지 보증하지 않으므로 도메인 검사를 추가한다. [strict mode](https://docs.pydantic.dev/latest/concepts/strict_mode/), [JSON Schema](https://docs.pydantic.dev/latest/concepts/json_schema/), [Python JSON](https://docs.python.org/3.13/library/json.html).
 
 필수 필드·상태 전이·중복·복구·검사와 적용 사이 충돌은 [데이터 계약](data-contracts.md)이 기준이다. SQL이나 수식을 받아 실행하는 입력은 없다. 같은 사건은 한 번만 적용하고, 사건 기록·제한·상태 변경·로그를 한 트랜잭션에 기록한다. 임의 TTL로 핏업 제한을 해제하지 않는다.
+
+구현 과정에서 다음 계약을 구체화했다. 새 기술이나 연구 범위를 추가한 변경은 아니다.
+
+- R §2.3 표4·B §3의 조합별 제한/복구를 위해 `PAIR_REACHABILITY_CHANGED`를 추가했다. FAIL 전용 `PAIR_UNREACHABLE`과 구별하며 같은 조합의 최신 PASS와 제한 ID·회차가 맞을 때만 해제한다.
+- R §4.2의 출처 확인과 R §4.4의 변경량 목적을 위해 공개 snapshot에 현재 `evidence`, `sources`, `baseline_plan`을 포함했다. 미래 사건·평가자 정보는 포함하지 않는다.
+- 지시에 `accepted_state_version`, `accepted_plan_version`, `attempt_id`, 이동 from/to를 기록한다. 계획 교체와 실제 실행 회차·위치를 연결하고 진행 phase를 보존하기 위한 필드다.
+- 검사 위반은 코드/대상 문자열 목록, 감사 로그는 공통 envelope와 단계별 `data` 객체로 구현했다. 모든 단계에 쓰이지 않는 중첩 필드를 반복하지 않고 원문 사건·근거·계획·검사·관측을 ID로 연결한다. 후속 분석에 필드별 질의가 필요하면 구조를 확장한다.
 
 ## DEC-04 목적함수와 자동 적용
 
@@ -117,9 +126,9 @@ SQLite만 상태·근거·지시·추적의 기준 저장소다. JSONL/CSV는 �
 
 OCR는 보고 입력의 근거가 실제로 필요할 때, UI는 추적 결과의 열람 문제가 생길 때, 3D는 로그로 보여주기 어려운 시연 요구가 있을 때 검토한다. 클라우드는 로컬 재현 후 공유 실행 요구가 생길 때 검토한다. 현재 기능의 필수 의존성이 아니다.
 
-## 이번에 확인한 것과 확인하지 않은 것
+## 기술 선택 단계의 확인 기록
 
-공식 자료로 지원 기능·배포·사용 조건을 조사했다. 원본 두 파일·현재 원격 저장소의 기준 커밋 `4de3ce9`를 확인했다. 선택 검증은 임시 가상환경의 작은 API 예제로 제한했다. 다음 결과를 실제로 관측했다.
+기술 선택 작업 당시 공식 자료로 지원 기능·배포·사용 조건을 조사하고 원본 두 파일·당시 원격 저장소의 기준 커밋 `4de3ce9`를 확인했다. 아래는 **애플리케이션 구현 이전의 선택 확인용 프로브 이력**이다. 당시 검증은 임시 가상환경의 작은 API 예제로 제한했으며 다음 결과를 실제로 관측했다.
 
 | 확인 | 실제 결과 | 한계 |
 | --- | --- | --- |
@@ -129,11 +138,13 @@ OCR는 보고 입력의 근거가 실제로 필요할 때, UI는 추적 결과�
 | strict 입력 | 문자열 tick, bool tick, 미정의 미래시각 필드 3종 거부 | 전체 업무 스키마 구현 아님 |
 | SQLite 버전 비교 | version=3 조건의 갱신 두 번에서 rowcount [1,0] | 순차 재현한 오래된 요청 검사. 병렬 경쟁·앱 원자적 적용 검증 아님 |
 
-검증 스크립트와 출력은 로컬 Git 제외 경로 `artifacts/selection-probe.py`, `artifacts/selection-probe-result.json`에 보존했다. 실행 명령은 `/private/tmp/shipyard-probe313/bin/python artifacts/selection-probe.py`였고 임시 환경은 프로젝트 설치 환경이 아니다. 스크립트 SHA-256: `40ff399f3e6b5836048730d443f825409362d4c55e9d151fadbc2065941c8580`. 프로브용 설치는 PyPI와 uv 관리 Python을 사용했으며 저장소에 앱 의존성/lockfile을 생성하지 않았다. 전체 앱, 전체 이동/준비 제약, M01–M10 통합 테스트, 성능 비교, 연구 실험은 아직 실행하지 않았다. Gurobi 라이선스 파일·API 키는 읽지 않았다.
+검증 스크립트와 출력은 로컬 Git 제외 경로 `artifacts/selection-probe.py`, `artifacts/selection-probe-result.json`에 보존했다. 실행 명령은 `/private/tmp/shipyard-probe313/bin/python artifacts/selection-probe.py`였고 임시 환경은 프로젝트 설치 환경이 아니다. 스크립트 SHA-256: `40ff399f3e6b5836048730d443f825409362d4c55e9d151fadbc2065941c8580`. 프로브용 설치는 PyPI와 uv 관리 Python을 사용했다. **그 기술 선택 작업에서는** 앱 의존성/lockfile을 생성하거나 전체 앱·전체 이동/준비/복구 흐름·M01–M10을 실행하지 않았다. 이 한계는 당시 프로브의 범위이며 현재 구현 상태와 구별한다.
+
+이후 정형 사건 구현 작업에서 프로젝트 환경·lockfile·코드·개발 사례·검증 코드를 작성했다. 현재의 실제 명령·환경·사례 결과·M01–M10 증거는 [검증 기록](next-steps.md)을 따른다. 기술 선택 프로브의 결과를 통합 검증이나 성능 비교 결과로 확대하지 않는다. Gurobi 라이선스 파일·API 키는 읽지 않았으며 LLM 연결·본 비교실험·현장 성능 평가는 후속 범위다.
 
 ## 먼저 공부할 내용
 
-각 연습은 다음 구현의 해당 모듈로 연결된다. 이미 익숙한 항목은 건너뛸 수 있다.
+각 연습은 현재 최소 구현의 해당 모듈을 이해하고 수정하는 학습으로 연결된다. 이미 익숙한 항목은 건너뛸 수 있다.
 
 | 기술과 하는 일 | 먼저 배울 개념 3개 | 공식 학습 자료와 작은 연습 |
 | --- | --- | --- |
@@ -147,4 +158,4 @@ OCR는 보고 입력의 근거가 실제로 필요할 때, UI는 추적 결과�
 | argparse/JSONL/CSV: 재현과 결과 확인 | subcommand, exit code, 직렬화 | [argparse](https://docs.python.org/3.13/library/argparse.html). inspect로 미완료 이유를 출력하고 추적을 파일로 내보내기 |
 | 후속 LLM SDK: 보고 해석 | structured output, tool call, 예산/오류 처리 | [공식 가이드](https://developers.openai.com/api/docs/guides/function-calling). 먼저 가짜 응답 어댑터로 읽기 전용 조회→사건 제안 계약을 시험. 유료 실제 호출은 후속 단계 |
 
-현재 문서만 존재하며 위 연습·구현을 완료한 것으로 표시하지 않는다. SimPy·Hypothesis·LangGraph는 채택 의존성이 아니다.
+위 학습 연습을 사용자가 완료했다고 기록하지 않는다. 코드의 실제 검증과 학습 이수는 별개다. SimPy·Hypothesis·LangGraph는 채택 의존성이 아니다.

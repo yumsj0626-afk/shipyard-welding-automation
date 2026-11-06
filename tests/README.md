@@ -1,16 +1,26 @@
-# 개발 검증 계획
+# 개발 검증
 
-현재 테스트 코드와 실행 결과는 없다. 다음 구현에서 [M01–M10 완료 기준](../docs/next-steps.md)을 근거로 필요한 테스트를 작성한다.
+정형 사건 처리의 단위·통합·오류 주입 검사를 구현했다. 2026-11-06 새 uv 환경에서 **117 passed, 실패 0, 오류 0, skip 0**을 확인했다. 실제 실행 기록과 환경/코드 해시는 [검증 증거 JSON](evidence/2026-11-06.json), M01–M10 연결은 [다음 작업](../docs/next-steps.md)에 있다.
 
-- 사건·상태 계약: 필수 정보 누락, 확인 불가 대상, 충돌, 중복, 오래된 버전, 잘못된 복구 대상.
-- 제약과 검사기: 보류·조합 제한·선행·로봇/구역 중복·이동/준비·진행 작업 고정 위반을 넣은 계획 거부. 검사기가 솔버의 자기 확인 결과를 그대로 신뢰하지 않는지 확인.
-- 통합 흐름: 대체 후보 있음/없음, 조치 완료만 도착/재확인까지 도착, 복구 후 재편입, 검사와 적용 사이 상태 변경, 남아 있는 다른 제한.
-- 실패와 정보 분리: 해 없음·시간 내 미발견 구별, 불필요한 사람 요청, 정답/미래 사건의 시스템 입력 유입 차단.
+```sh
+uv sync --locked
+uv run --locked pytest -q
+```
 
-제약 생성 코드와 똑같은 로직으로 기대값을 자동 산출하는 테스트만으로 정확성을 입증하지 않는다. 독립 정답과 실제 시뮬레이션 실행을 함께 비교한다. 개발 도구는 pytest 9.2.0으로 선정했다. fixture·parametrize·tmp_path로 고정 사례와 임시 DB를 검증하고, Hypothesis는 후속 후보로 남긴다. `uv run --locked pytest`는 코드와 lockfile 작성 후 검증할 명령이며 현재 실행 가능한 테스트가 아니다. 임의의 커버리지 수치 목표는 두지 않는다. 구현 후 실제 명령·결과를 기록한다.
+| 파일 | 검증 대상 |
+| --- | --- |
+| `test_contracts.py` | strict 타입·ID·추가 필드·중복 JSON key·NaN·선행 DAG·이동 시간 행렬 |
+| `test_repository.py`, `test_events.py` | 중복/충돌, immutable 근거, 현재 근거 조회, 제한별 복구, 과거/잘못된 회차·반증 근거 거부 |
+| `test_constraints.py`, `test_scheduler.py` | 필수/제외, 진행 고정, continuation, CP-SAT 해, 단계별 incumbent·해 상태 |
+| `test_checker.py` | 솔버 함수와 독립된 검사. 보류/능력/선행/로봇·구역 중복/이동·준비/진행 변경/구역 예약 위반 주입 |
+| `test_application.py` | 검사–적용 사이 갱신, 실제 두 연결 동시 CAS, 저장 중 실패 rollback, 제한된 재시도, 중복 착수·실패 정책 |
+| `test_simulator.py`, `test_review_regressions.py` | 완료→외부 사건→착수 순서, 이동/준비 중 취소, 위치·진행 W18 보존, 초기 실제 상태 일관성 |
+| `test_information_boundary.py` | 공개 로더의 실제 파일 접근, 금지 의존관계, extra-field 거부와 미래/oracle/truth sentinel이 솔버 입력에 없는지 검사 |
+| `test_integration.py` | D01–D04 전체 실행·별도 평가·CLI 조회·출력 덮어쓰기 거부 |
+| `test_evaluation.py` | 수작업 허용 실행과 잘못된 실행·복구·검사기 판정 등을 주입하여 독립 채점·추적·해시 검사 |
 
-## 다음 구현의 검증 경계
+`pytest` console entry와 `python -m pytest`의 경로 차이를 해결하기 위해 pytest 설정에서 프로젝트 루트를 추가했다. 평가 모듈을 테스트가 import하기 위한 설정이며 운영 패키지가 평가 자료를 읽도록 만든 것이 아니다.
 
-[아키텍처](../docs/architecture.md)와 [데이터 계약](../docs/data-contracts.md)을 기준으로 `tests/test_contracts.py`부터 단계별로 작성한다. 각 파일과 완료 확인은 [I01–I09](../docs/next-steps.md)에 연결되어 있다. 특히 검사와 적용 사이 상태 변경, phase 시작 전 실제 선행 완료, 현재 진행 phase 보존, 중복 지시, 제한별 복구를 오류 주입으로 확인한다.
+실제 CP-SAT의 정상 해와 작은 모순 모델의 INFEASIBLE을 실행했다. UNKNOWN 및 이전 유효해를 보존한 FEASIBLE_NOT_PROVEN 분기는 명시적으로 오류를 주입했다. 실제 시간 초과나 성능 한계를 측정했다고 해석하지 않는다.
 
-정보 경계는 미래/정답 sentinel, 공개 DTO의 extra-field 거부, 금지 import·로더 접근 검사로 확인한다. 독립 평가자는 `evaluation/score.py`에서 별도로 구현하며 pytest의 통과 자체가 연구 성과는 아니다. 이번 임시 API 프로브는 [결정 기록](../docs/decisions.md)에 있으며 앱 테스트나 M01–M10 통과로 세지 않는다.
+`outputs/verification-20261106-final/pytest.xml` 및 D01–D04 DB/CSV/JSONL은 로컬 생성물이며 Git에서 제외한다. 저장소에 남는 `evidence/2026-11-06.json`에는 테스트별 이름, 실제 결과, 실행 요약, 모든 생성물 해시와 재현 명령이 있다. 다른 OS·실물 로봇·본 비교실험은 검증하지 않았다. 사람 팀의 개발 정답표 교차 검토도 남아 있다.

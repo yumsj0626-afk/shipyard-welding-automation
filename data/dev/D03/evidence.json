@@ -1,0 +1,54 @@
+{
+  "schema_version": "1.0",
+  "case_id": "D03",
+  "data_revision": "dev-1",
+  "sources": [
+    {
+      "source_id": "sim-inspection",
+      "source_kind": "SIMULATED_EXTERNAL",
+      "allowed_observation_kinds": [
+        "FITUP_RESULT",
+        "REPAIR_COMPLETED",
+        "RECHECK_RESULT",
+        "PAIR_REACHABILITY",
+        "MATERIAL_READY",
+        "ROBOT_AVAILABILITY",
+        "ZONE_AVAILABILITY",
+        "IDENTITY_MATCH"
+      ],
+      "allowed_target_scopes": [
+        "JOB",
+        "JOB_ROBOT",
+        "ROBOT",
+        "ZONE",
+        "UNRESOLVED"
+      ],
+      "provenance": {
+        "basis": "DEV_ASSUMPTION",
+        "source_ref": "data/README.md",
+        "section_or_record": "개발용 초기 환경",
+        "rationale": "합성 개발 사례; 현장 실측 아님",
+        "review_status": "INDEPENDENT_AGENT_REVIEW_TEAM_REVIEW_PENDING"
+      }
+    },
+    {
+      "source_id": "execution-observer",
+      "source_kind": "EXECUTION_OBSERVER",
+      "allowed_observation_kinds": [
+        "PHASE_STARTED",
+        "PHASE_ENDED"
+      ],
+      "allowed_target_scopes": [
+        "JOB_ROBOT"
+      ],
+      "provenance": {
+        "basis": "DEV_ASSUMPTION",
+        "source_ref": "data/README.md",
+        "section_or_record": "개발용 초기 환경",
+        "rationale": "합성 개발 사례; 현장 실측 아님",
+        "review_status": "INDEPENDENT_AGENT_REVIEW_TEAM_REVIEW_PENDING"
+      }
+    }
+  ],
+  "evidence": []
+}
