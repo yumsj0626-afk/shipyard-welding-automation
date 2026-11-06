@@ -1,6 +1,6 @@
 # 최소 구현을 위한 기술 결정
 
-2026-11-06 갱신. 최신 사용자 요청 → 프로젝트 기준 문서 B v1.0 → 원본 보고서 R 순으로 적용한다. **DEC-01~06은 개발용 기본안으로 채택했다. 기능 구현이나 본 평가 조건의 확정을 뜻하지 않는다.** 사용자가 결정을 위임한 범위에서 작성한 설계이며 팀의 별도 승인·실행 검토를 받은 것으로 기록하지 않는다. 기존 DEC ID를 유지한다.
+2026-11-06 갱신. 최신 사용자 요청 → 프로젝트 기준 문서 B v1.0 → 원본 보고서 R 순으로 적용한다. **DEC-01–06은 개발용 기본안으로 채택했다. 기능 구현이나 본 평가 조건의 확정을 뜻하지 않는다.** 사용자가 결정을 위임한 범위에서 작성한 설계이며 팀의 별도 승인·실행 검토를 받은 것으로 기록하지 않는다. 기존 DEC ID를 유지한다.
 
 원문 식별: R=`references-local/midterm-report.docx`, B=`references-local/project-baseline-v1.txt`. 두 파일에 실제 접근해 다시 읽었고 SHA-256은 [출처 기록](sources.md)과 같다. 원본의 기술명을 무조건 유지하지 않고 아래 요구사항과 연결해 판단했다.
 
@@ -33,7 +33,7 @@
 
 공식 근거: [CP-SAT와 해 상태](https://developers.google.com/optimization/cp/cp_solver), [job shop 예제](https://developers.google.com/optimization/scheduling/job_shop), [Python API](https://or-tools.github.io/docs/pdoc/ortools/sat/python/cp_model.html), [전환시간 예제](https://github.com/google/or-tools/blob/stable/examples/contrib/scheduling_with_transitions_sat.py), [Gurobi indicator](https://docs.gurobi.com/projects/optimizer/en/current/reference/python/model.html#Model.addGenConstrIndicator), [Gurobi 다목적](https://docs.gurobi.com/projects/optimizer/en/current/features/multiobjective.html).
 
-Gurobi 13.0.3 공식 지원 표는 Python 3.10~3.14 및 운영체제별 조건을 명시한다. 사용자의 **실제 라이선스 종류는 확인하지 않았다.** Named-User와 WLS의 사용 조건은 다르다. WLS는 인터넷·갱신·동시 세션 조건이 있고, 구체 제한 문서는 등록자 사용과 키 공유 제한을 명시한다. 일반 안내표의 여러 사용자 표시만으로 한 학생의 키를 팀/CI/클라우드에서 공유할 수 있다고 해석하지 않는다. 팀원 각자의 적격 라이선스 또는 기관/명시 허용 조건을 확인해야 한다. [지원 플랫폼](https://docs.gurobi.com/projects/optimizer/en/current/reference/releasenotes/platforms.html), [학술 라이선스 종류](https://support.gurobi.com/hc/en-us/articles/360040541251-How-do-I-obtain-a-free-academic-license), [WLS 조건](https://support.gurobi.com/hc/en-us/articles/13210193318033-What-is-an-Academic-WLS-license), [WLS 공유 제한](https://support.gurobi.com/hc/en-us/articles/34672988479633-What-are-the-restrictions-on-using-an-academic-WLS-license), [클라우드 조건](https://support.gurobi.com/hc/en-us/articles/360037221732-What-are-the-options-for-using-an-academic-license-on-the-cloud).
+Gurobi 13.0.3 공식 지원 표는 Python 3.10–3.14 및 운영체제별 조건을 명시한다. 사용자의 **실제 라이선스 종류는 확인하지 않았다.** Named-User와 WLS의 사용 조건은 다르다. WLS는 인터넷·갱신·동시 세션 조건이 있고, 구체 제한 문서는 등록자 사용과 키 공유 제한을 명시한다. 일반 안내표의 여러 사용자 표시만으로 한 학생의 키를 팀/CI/클라우드에서 공유할 수 있다고 해석하지 않는다. 팀원 각자의 적격 라이선스 또는 기관/명시 허용 조건을 확인해야 한다. [지원 플랫폼](https://docs.gurobi.com/projects/optimizer/en/current/reference/releasenotes/platforms.html), [학술 라이선스 종류](https://support.gurobi.com/hc/en-us/articles/360040541251-How-do-I-obtain-a-free-academic-license), [WLS 조건](https://support.gurobi.com/hc/en-us/articles/13210193318033-What-is-an-Academic-WLS-license), [WLS 공유 제한](https://support.gurobi.com/hc/en-us/articles/34672988479633-What-are-the-restrictions-on-using-an-academic-WLS-license), [클라우드 조건](https://support.gurobi.com/hc/en-us/articles/360037221732-What-are-the-options-for-using-an-academic-license-on-the-cloud).
 
 ## DEC-02 언어와 실행 기반
 
@@ -45,7 +45,7 @@ Gurobi 13.0.3 공식 지원 표는 Python 3.10~3.14 및 운영체제별 조건�
 | 패키지 | pip+venv: 친숙하지만 Python/전이 의존성 고정 절차가 나뉨. Poetry: 프로젝트 관리 가능. uv: 새 명령을 배우지만 Python·lock·실행 관리 통합 | **uv 0.13.7**. `.python-version`, `pyproject.toml`, `uv.lock`을 다음 구현에서 생성·커밋하고 `uv sync --locked` 사용 |
 | 저장 | JSON만: 읽기 쉽지만 여러 상태/로그의 원자적 갱신을 직접 구현. PostgreSQL: 동시 접속에 유리하나 서버 운영 추가 | **SQLite + 표준 `sqlite3`**. 실행별 DB 하나, 한 writer, 트랜잭션/PK/FK/UNIQUE. ORM·WAL은 처음에는 불필요 |
 | 시뮬레이션 | SimPy 4.1.2: process/resource에 유리, generator 학습과 자원 배정 중복 가능. 직접 큐: 업무 순서를 직접 써야 하지만 작음 | **표준 `heapq`**. `(tick, phase_priority, sequence)` 큐와 명시적 취소·재검사. 물리·용접 열모델 없음 |
-| 테스트 | unittest: 표준이나 사례 표/fixture가 장황. pytest: fixture·parametrize·임시 DB에 적합 | **pytest 9.2.0 개발 의존성**. M01~M10 고정 사례부터. Hypothesis는 후속 순서조합 검증 후보 |
+| 테스트 | unittest: 표준이나 사례 표/fixture가 장황. pytest: fixture·parametrize·임시 DB에 적합 | **pytest 9.2.0 개발 의존성**. M01–M10 고정 사례부터. Hypothesis는 후속 순서조합 검증 후보 |
 | 실행/출력 | notebook: 탐색에 편리하지만 숨은 상태 위험. Typer: 편의 기능과 의존성 추가. FastAPI/웹 UI: 서버·UI 상태까지 관리 | **argparse CLI**의 `run`, `inspect`. DB에서 JSONL 추적과 CSV 요약을 내보냄. 평가자는 별도 오프라인 명령 |
 
 SQLite만 상태·근거·지시·추적의 기준 저장소다. JSONL/CSV는 내보낸 읽기 자료이며 수정해 기준 상태에 역반영하지 않는다. `PRAGMA foreign_keys=ON`, 명시적 `BEGIN IMMEDIATE/COMMIT/ROLLBACK`, 버전 조건부 갱신을 사용한다. 계산 중에는 쓰기 트랜잭션을 열어 두지 않는다. [SQLite 트랜잭션](https://www.sqlite.org/lang_transaction.html), [격리](https://www.sqlite.org/isolation.html), [Python sqlite3](https://docs.python.org/3.13/library/sqlite3.html).
@@ -113,7 +113,7 @@ SQLite만 상태·근거·지시·추적의 기준 저장소다. JSONL/CSV는 �
 
 ## DEC-08 평가와 DEC-09 확장
 
-본 평가의 사례 수·유형 비중·반복·제한시간·시드·수치 통과 기준과 모델 비용 예산은 예비실험 후 동결한다. D01~D04와 M01~M10은 개발 수락 기준이다. `pytest`는 코드 검증, `evaluation/score.py`는 독립 정답 및 환경 사실을 이용하는 오프라인 채점 역할이며 서로 대체하지 않는다. [평가 원칙](../evaluation/README.md).
+본 평가의 사례 수·유형 비중·반복·제한시간·시드·수치 통과 기준과 모델 비용 예산은 예비실험 후 동결한다. D01–D04와 M01–M10은 개발 수락 기준이다. `pytest`는 코드 검증, `evaluation/score.py`는 독립 정답 및 환경 사실을 이용하는 오프라인 채점 역할이며 서로 대체하지 않는다. [평가 원칙](../evaluation/README.md).
 
 OCR는 보고 입력의 근거가 실제로 필요할 때, UI는 추적 결과의 열람 문제가 생길 때, 3D는 로그로 보여주기 어려운 시연 요구가 있을 때 검토한다. 클라우드는 로컬 재현 후 공유 실행 요구가 생길 때 검토한다. 현재 기능의 필수 의존성이 아니다.
 
@@ -129,7 +129,7 @@ OCR는 보고 입력의 근거가 실제로 필요할 때, UI는 추적 결과�
 | strict 입력 | 문자열 tick, bool tick, 미정의 미래시각 필드 3종 거부 | 전체 업무 스키마 구현 아님 |
 | SQLite 버전 비교 | version=3 조건의 갱신 두 번에서 rowcount [1,0] | 순차 재현한 오래된 요청 검사. 병렬 경쟁·앱 원자적 적용 검증 아님 |
 
-검증 스크립트와 출력은 로컬 Git 제외 경로 `artifacts/selection-probe.py`, `artifacts/selection-probe-result.json`에 보존했다. 실행 명령은 `/private/tmp/shipyard-probe313/bin/python artifacts/selection-probe.py`였고 임시 환경은 프로젝트 설치 환경이 아니다. 스크립트 SHA-256: `40ff399f3e6b5836048730d443f825409362d4c55e9d151fadbc2065941c8580`. 프로브용 설치는 PyPI와 uv 관리 Python을 사용했으며 저장소에 앱 의존성/lockfile을 생성하지 않았다. 전체 앱, 전체 이동/준비 제약, M01~M10 통합 테스트, 성능 비교, 연구 실험은 아직 실행하지 않았다. Gurobi 라이선스 파일·API 키는 읽지 않았다.
+검증 스크립트와 출력은 로컬 Git 제외 경로 `artifacts/selection-probe.py`, `artifacts/selection-probe-result.json`에 보존했다. 실행 명령은 `/private/tmp/shipyard-probe313/bin/python artifacts/selection-probe.py`였고 임시 환경은 프로젝트 설치 환경이 아니다. 스크립트 SHA-256: `40ff399f3e6b5836048730d443f825409362d4c55e9d151fadbc2065941c8580`. 프로브용 설치는 PyPI와 uv 관리 Python을 사용했으며 저장소에 앱 의존성/lockfile을 생성하지 않았다. 전체 앱, 전체 이동/준비 제약, M01–M10 통합 테스트, 성능 비교, 연구 실험은 아직 실행하지 않았다. Gurobi 라이선스 파일·API 키는 읽지 않았다.
 
 ## 먼저 공부할 내용
 
