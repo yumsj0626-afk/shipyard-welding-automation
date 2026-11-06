@@ -23,17 +23,14 @@ R은 원본 중간보고서, B는 프로젝트 기준 문서 v1.0이며 파일 �
 ## 핵심 처리 흐름
 
 ```mermaid
-flowchart LR
-    I["도착한 정형 사건·실행 관측"] --> C["controller"]
+flowchart TD
+    I["도착한 정형 사건과 실행 관측"] --> E["사건 검사와 근거 확인"]
     L["후속 문장형 보고 어댑터"] -.-> I
-    C --> E["events: 근거·대상·중복 검사"]
-    E --> R["repository: 상태·활성 제한"]
-    R --> K["constraints: 고정 규칙 변환"]
-    K --> S["scheduler: CP-SAT"]
-    S --> V["checker: 독립 실행 검사"]
-    R --> V
-    V --> A["controller + repository: 최신성 확인·원자적 적용"]
-    A --> M["simulator: 지시 실행·관측"]
+    E --> R["기준 상태와 활성 제한 갱신"]
+    R --> S["고정 제약 변환과 CP-SAT 재계획"]
+    S --> V["독립 실행 검사"]
+    V --> A["최신성 확인과 원자적 지시 적용"]
+    A --> M["경량 시뮬레이션"]
     M --> I
 ```
 
