@@ -1,6 +1,6 @@
 # 최소 자동 처리 흐름의 데이터 계약
 
-2026-11-06, 계약 `schema_version="1.0"`, 개발 정책 `dev-v1`. **정형 사건 최소 구현의 현재 계약이다.** DTO·저장·사건 처리·계획·검사·시뮬레이션 코드와 개발 데이터·테스트를 작성했다. 실제 실행 범위와 M01–M10의 최종 증거는 [구현 작업과 검증 기록](next-steps.md)에서 관리한다. 기술 결정은 [DEC-01–06](decisions.md), 모듈과 파일은 [아키텍처](architecture.md)를 따른다. R §4.2 표7·§4.3·4.5와 B §2–6의 요구를 구현 필드·처리 조건으로 구체화했다.
+2026-11-07, 계약 `schema_version="1.0"`, 개발 정책 `dev-v1`. **정형 사건과 가짜 모델 문장형 보고 어댑터의 현재 계약이다.** DTO·저장·사건 처리·계획·검사·시뮬레이션 코드와 개발 데이터·테스트를 작성했다. 실제 실행 범위와 M01–M10의 최종 증거는 [구현 작업과 검증 기록](next-steps.md)에서 관리한다. 기술 결정은 [DEC-01–06](decisions.md), 모듈과 파일은 [아키텍처](architecture.md)를 따른다. R §4.2 표7·§4.3·4.5와 B §2–6의 요구를 구현 필드·처리 조건으로 구체화했다.
 
 ## 공통 표현과 ID
 
@@ -35,6 +35,43 @@
 
 현재 조회 가능한 근거는 `available_tick <= now_tick`, `observed_tick <= available_tick`이고 출처가 대상/종류에 권한을 가져야 한다. 같은 출처·대상·종류·발생 회차의 개정은 증가해야 하며 이전 개정은 보존한다. `supersedes_evidence_id`는 같은 출처·대상·종류·회차의 앞선 개정만 가리킬 수 있고 관측 시각도 역행하지 않는다. 서로 다른 출처의 최신 근거가 충돌하면 마지막 수신값으로 덮지 않고 EVIDENCE_CONFLICT로 남긴다. 신선도는 회차·개정·관측 순서·반증 근거로 확인하며 근거 없는 시간 만료 규칙을 만들지 않는다. 오래된 PASS가 새 FAIL을 자동 해제하지 않는다.
 
+## 문장형 보고 어댑터 (가짜 모델 구현)
+
+정형 `ArrivalBatch`는 변경하지 않는다. `Controller.handle_report_batch(tick, observations, reports, model)`가 같은 tick의 실제 완료 관측을 먼저 반영하고, 도착한 보고들을 해석한 뒤 기존 `events.apply_deliveries`에 한 batch로 전달한다. 수리·재확인을 따로 적용해 중간 재계획하지 않는다. `READY`는 **사건 제안을 만들었다는 뜻**이며 근거 승인·제한 해제·실제 실행 성공과 다르다.
+
+| 객체 | 필드와 소유자 |
+| --- | --- |
+| `ReportInput` | `schema_version=1.0`, `run_id`, `report_id`, `incident_id`, `source_id`, `observed_tick`, `received_tick`, `text`, `target_hint|null`. ID·출처·시각·회차·선택된 대상은 접수 프로그램이 부여하고 모델이 덮어쓸 수 없다. UTF-8 본문 1–4,000자, 공백만 있는 본문 거부, 관측≤수신≤현재 tick |
+| `ReportDelivery` | `report`, `published_evidence[]`. 근거는 현재 도착한 외부 관측의 별도 입력이다. 모델 응답 필드가 아니며 보고 문장을 검사 사실로 승격하지 않는다 |
+| 조회 요청 | `action=lookup_evidence`, `target`, `observation_kind`. 허용된 한 종류의 현재 근거와 같은 회차·대상의 활성 제한만 반환. 일반 파일·SQL·shell·코드 실행 도구 없음 |
+| 사건 제안 | `action=propose`, `kind`, `target`, `evidence_ids[]`, `restriction_ids[]`. 모델이 사건 ID·출처·시각·버전·새 근거·수식·실행 관측을 생성하는 필드는 없음 |
+| 확인/거절 | `action=clarify`와 `reason` enum 또는 `action=refuse`. 임의 도구명·추가 필드·잘린 JSON·중복 key·잘못된 enum/타입은 거부 |
+| `AdapterResult` | `status`, `reason_codes`, `report_id`, `report_fingerprint`, `based_on_state_version`, `received_report`, `model_calls`, `lookup_count`, `delivery|null`, `trace[]`, `prompt_version=report-v1`. received_report는 접수 입력을 보존하며 모델 응답이 아니다. trace의 MODEL은 요청/응답·응답 hash, LOOKUP은 조회와 반환 ID를 보존 |
+
+조회는 `visible_evidence_refs`에 있고 현재까지 공개된 근거와 이 보고와 함께 **현재 도착한** 근거만 대상으로 한다. 전자는 `PUBLIC_STATE`, 후자는 `ARRIVED_UNCOMMITTED`로 구별한다. 새 근거는 출처·관측 종류·대상·시각을 검사한 뒤에도 미승인 상태이며 기존 사건 처리기가 개정·반증·제한 연결 등을 다시 검사한다. 서로 다른 출처/개정은 함께 반환해 모델이 임의로 진실을 선택하지 못하게 한다. `provenance` 자유 서술은 모델 조회 결과에서 제외한다. 제안에 인용할 수 있는 ID는 이 보고에서 실제 반환된 목록뿐이다. 빈 인용도 사실을 보증하지 않으며 기존 사건 처리기가 현재 근거를 직접 재조회한다.
+
+`target_hint`는 본문에서 모델이 추측한 값이 아니라 접수자가 선택한 업무 대상이다. 있으면 모델의 대상은 정확히 같아야 한다. 없으면 제안 ID가 실제 엔터티이면서 본문에 명시돼 있어야 한다(현재 별칭 해석은 미구현). 실패 시 본문에서 임의로 대상을 추출하여 보류 범위를 정하지 않는다. 보고 source는 등록된 비실행 관측 source이며 `IDENTITY_MATCH` 권한이 필요하다. 실제 계정 인증은 외부 접수기의 후속 책임이며 이 개발 시뮬레이터는 등록부와 입력 계약을 검증한다.
+
+### 오류, 중복, 적용 경계
+
+| 결과 | 다음 행동 |
+| --- | --- |
+| `READY` | 기존 사건 검증으로 제출. 그 검증의 `APPLIED`, `INSUFFICIENT_EVIDENCE`, `EVIDENCE_CONFLICT`, `INVALID_INPUT` 등을 따로 기록 |
+| `NEEDS_CLARIFICATION`, `MODEL_REFUSAL`, `MODEL_TIMEOUT`, `MODEL_ERROR` | 신뢰할 수 있는 접수 대상이 있으면 `IDENTITY_UNCERTAIN` + `REPORT_INTERPRETATION` unknown 필드로 공통 처리해 그 대상에 `EVIDENCE_PENDING`. 대상이 없으면 `UNRESOLVED`로 식별 요청. 기존 제한은 해제하지 않음 |
+| `INVALID_MODEL_RESPONSE`, `INVALID_PROPOSAL`, `INVALID_EVIDENCE`, `RESPONSE_LIMIT`, `CONTEXT_LIMIT`, `TOOL_LIMIT`, `MODEL_CALL_LIMIT` | 같은 확인 필요 경로. 모델 출력/잘못된 도착 근거로 기준 사실을 쓰지 않음 |
+| `INVALID_REPORT` | host run/시각/출처/대상 권한 오류. 모델을 호출하지 않고 사건도 만들지 않으며 기록과 추가 확인 요청만 남김 |
+| `STALE_CONTEXT` | 해석 중 상태 버전이 바뀌면 제안을 버리고 현재 상태에서 위 확인 필요 경로로 전환. 모델 자동 재호출 없음. 이후 사건 검사와 계획 CAS도 별도로 수행 |
+| 같은 보고 ID·같은 내용 | 기존 `REPORT_RESULT` 확인, 수신 기록만 추가. 모델·사건·계획을 중복 실행하지 않음. 같은 batch의 같은 보고도 한 번 해석 |
+| 같은 보고 ID·다른 내용 | `ID_CONFLICT`, 추가 확인 요청, 새 제안 적용 안 함. 같은 batch에서 최초 충돌한 ID도 격리 결과를 저장해 이후 단독 재전달로 승인되지 않음 |
+
+보고 fingerprint는 접수 보고(재수신 tick 제외)와 도착 근거의 불변 내용을 정규화한 SHA-256이다. `report_id`를 사건 ID로 사용하므로 같은 실행의 정형 사건 ID와도 충돌하지 않게 접수 프로그램이 관리한다. DB의 `REPORT_RESULT`와 변환 사건·근거·상태 변경은 `commit_event_batch(..., report_results=...)`의 **한 트랜잭션**으로 저장한다. 조회·모델 실행은 트랜잭션 밖에서 한다. 중복 수신은 `REPORT_RECEIPT`, 원래 해석은 `REPORT_RESULT`에서 확인한다. 해석 실패도 같은 ID로 자동 재시도하지 않으며 정정/새 관측은 새 보고 ID로 제출한다. 기록 저장 이전의 프로세스 crash 자동 재개는 구현하지 않았다.
+
+해석 실패가 만든 `EVIDENCE_PENDING:IDENTITY_MATCH`는 정상 FITUP/수리 보고만으로 해제되지 않는다. 같은 대상·회차의 명시적 `IDENTITY_MATCH=PASS` 확인 근거와 새 `IDENTITY_UNCERTAIN` 보고가 필요하며, 해당 정보 보류만 해제한다. 기존 FITUP_HOLD 등 물리적 시작 제한은 각각의 복구 근거를 계속 요구한다. 새 보고의 제안은 조회에서 받은 해당 제한 ID를 인용한다. 이는 보수적으로 확인을 요청하는 개발 정책이며 본문 자동 재해석으로 보류를 해제하는 기능은 없다.
+
+보고당 모델 2회·읽기 전용 조회 1회, 응답 16,384 UTF-8 bytes·요청 문맥 32,768 bytes를 개발 상한으로 둔다. 자동 재시도는 없다. 가짜 모델의 `TimeoutError` 주입은 오류 분기 검사이며 벽시계 deadline이나 실제 API 취소가 구현됐다는 뜻이 아니다. 과금 토큰·실제 금액·SDK timeout·전체 deadline은 유료 연결 전에 별도로 정한다([DEC-07](decisions.md)).
+
+`simulation/reports/D01–D04.jsonl`은 보고 본문·접수 대상·가짜 응답 대본을 가진 드라이버 전용 replay fixture다. 미래 대본을 모델 문맥으로 넘기지 않고 현재 도착한 보고의 대본만 `FakeReportModel`에 준다. 가짜 모델은 대본을 반환할 뿐 문장을 이해하거나 정답을 추론하지 않는다. 모델에 전달된 요청을 관측하는 sentinel 테스트로 미래 보고·복구 근거·oracle·truth 누출을 확인한다. 이 경계는 단일 프로세스 데이터 흐름이며 OS 격리가 아니다.
+
 ## 사건과 활성 제한
 
 ### 외부 근거의 도착과 공개
@@ -54,7 +91,7 @@ evidence_ids[], restriction_ids[], unknown_fields[],
 raw_report|null, supersedes_event_id|null
 ```
 
-`kind`의 허용값은 `FITUP_FAILED`, `PAIR_UNREACHABLE`, `PAIR_REACHABILITY_CHANGED`, `REPAIR_REPORTED`, `RECHECK_REPORTED`, `MATERIAL_READINESS_CHANGED`, `ROBOT_AVAILABILITY_CHANGED`, `ZONE_AVAILABILITY_CHANGED`, `IDENTITY_UNCERTAIN`이다. `PAIR_UNREACHABLE`은 FAIL 보고이며, 구현 과정에서 추가한 `PAIR_REACHABILITY_CHANGED`는 같은 조합의 FAIL/PASS 상태 변화와 명시적 복구를 표현한다. 불가 보고에 PASS를 억지로 넣지 않고 R §2.3 표4와 B §3의 조합별 제한·복구 요구를 이어가기 위한 구체화다. 구조화된 실행 관측은 아래 별도 계약을 쓰고 외부 source가 가짜 완료 관측을 만들지 못하게 한다. 정형 사건은 LLM 없이 이 계약으로 들어온다. 문장형 어댑터는 후속 구현이며 동일 필드의 제안을 만들더라도 출처 권한과 도메인 검사를 우회할 수 없다.
+`kind`의 허용값은 `FITUP_FAILED`, `PAIR_UNREACHABLE`, `PAIR_REACHABILITY_CHANGED`, `REPAIR_REPORTED`, `RECHECK_REPORTED`, `MATERIAL_READINESS_CHANGED`, `ROBOT_AVAILABILITY_CHANGED`, `ZONE_AVAILABILITY_CHANGED`, `IDENTITY_UNCERTAIN`이다. `PAIR_UNREACHABLE`은 FAIL 보고이며, 구현 과정에서 추가한 `PAIR_REACHABILITY_CHANGED`는 같은 조합의 FAIL/PASS 상태 변화와 명시적 복구를 표현한다. 불가 보고에 PASS를 억지로 넣지 않고 R §2.3 표4와 B §3의 조합별 제한·복구 요구를 이어가기 위한 구체화다. 구조화된 실행 관측은 아래 별도 계약을 쓰고 외부 source가 가짜 완료 관측을 만들지 못하게 한다. 정형 사건은 LLM 없이 이 계약으로 들어온다. 문장형 어댑터는 동일 필드의 제안을 만들지만 출처 권한과 도메인 검사를 우회할 수 없다.
 
 - `target.scope`는 JOB/JOB_ROBOT/ROBOT/ZONE/UNRESOLVED. FITUP은 JOB, PAIR는 JOB_ROBOT이며 필요한 ID가 반드시 있어야 한다. 범위가 미확정이면 자동으로 R1전체나 구역전체를 정지시키지 않는다.
 - 일치한 대상에서 실행 여부가 미확정이면 그 대상의 새로운 착수를 `EVIDENCE_PENDING` 제한으로 차단하고 조회/확인을 진행한다. 대상 자체를 특정할 수 없으면 사건을 격리하고 식별 질문을 남기며 알려진 무관한 작업은 유지한다.

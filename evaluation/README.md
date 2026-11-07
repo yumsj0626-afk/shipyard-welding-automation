@@ -20,3 +20,5 @@ uv run --locked python evaluation/score.py --run-dir outputs/D01 --oracle evalua
 D01–D04 실제 결과는 [검증 기록](../docs/next-steps.md), 평가 오류 주입은 [test_evaluation.py](../tests/test_evaluation.py), 입력 경계 검증은 [test_information_boundary.py](../tests/test_information_boundary.py)에 있다. 미래 사건은 driver/simulator만 읽고 도착한 근거만 controller에 전달한다. 폴더 분리만으로 정보 차단을 주장하지 않으며 악성 Python에 대한 OS 격리는 없다.
 
 후속 주 비교는 단일 에이전트+솔버와 역할 분리 에이전트+동일 솔버다. 같은 모델·자료·규칙·검사·호출/토큰 상한을 쓰고 역할 분리의 우수성을 전제하지 않는다. 사례 수·반복·시드·제한시간·수치 통과 기준·계산시간 반영은 예비실험 이후 고정한다. 생산 지연과 유효 WELD_START까지의 재개시간은 보조 지표다. LLM과 본 비교실험은 이번에 실행하지 않았다.
+
+`--report-mode fake` 실행도 같은 독립 평가자를 사용한다. 보고 어댑터의 `READY`나 모델의 자기 평가는 정답이 아니다. D01–D04 정형/fake의 실제 phase 기록과 독립 채점을 대조하되, 가짜 응답 대본 통과를 실제 모델의 한국어 이해 정확도로 해석하지 않는다.

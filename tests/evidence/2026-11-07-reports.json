@@ -1,0 +1,2859 @@
+{
+  "date": "2026-11-07",
+  "stage": "fake report adapter; no paid LLM calls",
+  "base_commit": "2e2742fa48c96dbfff14a796c06b7bf0829e9a51",
+  "source_sha256": "0b4b89d593d0c991088bb93321d33c025249b0d2a0b51d116a52ee4d15866c7a",
+  "evaluator_sha256": "8e24d718eb6b0d07a9a32d437df9e6a68e7d2754469f64ad1c50b42706c2e120",
+  "pytest": {
+    "command": ".venv/bin/python -m pytest -q --junitxml=outputs/reports-verification-20261107/pytest.xml",
+    "tests": 186,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "baseline_tests": 117,
+    "added_tests": 69,
+    "baseline_test_files_unchanged": true,
+    "junit_sha256": "99733848281403e90141a378d97679cbf899c0edc0b8c67a2a0cce135f83fd38"
+  },
+  "test_cases": [
+    {
+      "class": "tests.test_application",
+      "name": "test_change_between_check_and_apply_replans_from_new_snapshot"
+    },
+    {
+      "class": "tests.test_application",
+      "name": "test_stale_retries_are_bounded_without_partial_activation"
+    },
+    {
+      "class": "tests.test_application",
+      "name": "test_fault_after_instruction_write_rolls_back_activation"
+    },
+    {
+      "class": "tests.test_application",
+      "name": "test_simultaneous_writers_only_one_can_commit"
+    },
+    {
+      "class": "tests.test_application",
+      "name": "test_duplicate_start_and_inactive_instruction_never_execute_twice"
+    },
+    {
+      "class": "tests.test_application",
+      "name": "test_failure_never_activates_new_plan_or_claims_normal_wait[INFEASIBLE]"
+    },
+    {
+      "class": "tests.test_application",
+      "name": "test_failure_never_activates_new_plan_or_claims_normal_wait[NO_SOLUTION_WITHIN_LIMIT]"
+    },
+    {
+      "class": "tests.test_application",
+      "name": "test_failure_never_activates_new_plan_or_claims_normal_wait[MODEL_INVALID]"
+    },
+    {
+      "class": "tests.test_application",
+      "name": "test_failure_never_activates_new_plan_or_claims_normal_wait[INTERNAL_ERROR]"
+    },
+    {
+      "class": "tests.test_application",
+      "name": "test_feasible_unproven_candidate_may_apply_but_keeps_status"
+    },
+    {
+      "class": "tests.test_checker",
+      "name": "test_independent_checker_rejects_corrupted_plans[weld-WELD_DURATION]"
+    },
+    {
+      "class": "tests.test_checker",
+      "name": "test_independent_checker_rejects_corrupted_plans[travel-TRAVEL_DURATION]"
+    },
+    {
+      "class": "tests.test_checker",
+      "name": "test_independent_checker_rejects_corrupted_plans[setup-SETUP_DURATION_OR_WELD_GAP]"
+    },
+    {
+      "class": "tests.test_checker",
+      "name": "test_independent_checker_rejects_corrupted_plans[capability-FORBIDDEN_ASSIGNMENT]"
+    },
+    {
+      "class": "tests.test_checker",
+      "name": "test_independent_checker_rejects_corrupted_plans[fixed-FIXED_EXECUTION_CHANGED]"
+    },
+    {
+      "class": "tests.test_checker",
+      "name": "test_independent_checker_rejects_corrupted_plans[precedence-PRECEDENCE]"
+    },
+    {
+      "class": "tests.test_checker",
+      "name": "test_independent_checker_rejects_corrupted_plans[overlap-ROBOT_OVERLAP]"
+    },
+    {
+      "class": "tests.test_checker",
+      "name": "test_independent_checker_rejects_corrupted_plans[missing-COMPLETION_PATH_SET]"
+    },
+    {
+      "class": "tests.test_checker",
+      "name": "test_independent_checker_rejects_corrupted_plans[idle-UNJUSTIFIED_IDLE]"
+    },
+    {
+      "class": "tests.test_checker",
+      "name": "test_new_hold_invalidates_previously_valid_plan_without_using_constraint_builder"
+    },
+    {
+      "class": "tests.test_checker",
+      "name": "test_plan_checked_before_state_change_is_stale"
+    },
+    {
+      "class": "tests.test_checker",
+      "name": "test_zone_overlap_is_rejected_even_when_robot_intervals_do_not_overlap"
+    },
+    {
+      "class": "tests.test_checker",
+      "name": "test_finished_setup_retains_zone_for_own_weld_only"
+    },
+    {
+      "class": "tests.test_checker",
+      "name": "test_runtime_gate_requires_actual_predecessor_completion"
+    },
+    {
+      "class": "tests.test_checker",
+      "name": "test_execution_checker_does_not_import_model_builder_or_solver"
+    },
+    {
+      "class": "tests.test_constraints",
+      "name": "test_fitup_is_global_and_predecessor_closure_preserves_unrelated_work"
+    },
+    {
+      "class": "tests.test_constraints",
+      "name": "test_pair_ban_does_not_ban_job_or_robot"
+    },
+    {
+      "class": "tests.test_constraints",
+      "name": "test_no_alternatives_keeps_running_weld_and_explains_each_deferral"
+    },
+    {
+      "class": "tests.test_constraints",
+      "name": "test_missing_travel_is_not_silently_zero"
+    },
+    {
+      "class": "tests.test_constraints",
+      "name": "test_cyclic_precedence_is_rejected"
+    },
+    {
+      "class": "tests.test_contracts",
+      "name": "test_json_rejects_ambiguous_values[{\"a\":1,\"a\":2}]"
+    },
+    {
+      "class": "tests.test_contracts",
+      "name": "test_json_rejects_ambiguous_values[{\"x\":NaN}]"
+    },
+    {
+      "class": "tests.test_contracts",
+      "name": "test_json_rejects_ambiguous_values[{\"x\":Infinity}]"
+    },
+    {
+      "class": "tests.test_contracts",
+      "name": "test_json_rejects_ambiguous_values[{\"x\":-Infinity}]"
+    },
+    {
+      "class": "tests.test_contracts",
+      "name": "test_strict_integer[4]"
+    },
+    {
+      "class": "tests.test_contracts",
+      "name": "test_strict_integer[True]"
+    },
+    {
+      "class": "tests.test_contracts",
+      "name": "test_strict_integer[-1]"
+    },
+    {
+      "class": "tests.test_contracts",
+      "name": "test_strict_integer[1.5]"
+    },
+    {
+      "class": "tests.test_contracts",
+      "name": "test_snapshot_forbids_private_fields[future_recovery_tick]"
+    },
+    {
+      "class": "tests.test_contracts",
+      "name": "test_snapshot_forbids_private_fields[oracle]"
+    },
+    {
+      "class": "tests.test_contracts",
+      "name": "test_snapshot_forbids_private_fields[truth]"
+    },
+    {
+      "class": "tests.test_contracts",
+      "name": "test_snapshot_forbids_private_fields[simulator]"
+    },
+    {
+      "class": "tests.test_contracts",
+      "name": "test_initial_references_and_graph[unknown_pred]"
+    },
+    {
+      "class": "tests.test_contracts",
+      "name": "test_initial_references_and_graph[cycle]"
+    },
+    {
+      "class": "tests.test_contracts",
+      "name": "test_initial_references_and_graph[missing_travel]"
+    },
+    {
+      "class": "tests.test_contracts",
+      "name": "test_initial_references_and_graph[unknown_robot]"
+    },
+    {
+      "class": "tests.test_contracts",
+      "name": "test_initial_references_and_graph[duplicate_id]"
+    },
+    {
+      "class": "tests.test_contracts",
+      "name": "test_initial_references_and_graph[unicode_id]"
+    },
+    {
+      "class": "tests.test_contracts",
+      "name": "test_target_does_not_silently_expand_scope"
+    },
+    {
+      "class": "tests.test_evaluation",
+      "name": "test_manual_feasible_examples_and_human_distinction[D01]"
+    },
+    {
+      "class": "tests.test_evaluation",
+      "name": "test_manual_feasible_examples_and_human_distinction[D02]"
+    },
+    {
+      "class": "tests.test_evaluation",
+      "name": "test_manual_feasible_examples_and_human_distinction[D03]"
+    },
+    {
+      "class": "tests.test_evaluation",
+      "name": "test_manual_feasible_examples_and_human_distinction[D04]"
+    },
+    {
+      "class": "tests.test_evaluation",
+      "name": "test_w17_repair_is_not_actual_predecessor_completion"
+    },
+    {
+      "class": "tests.test_evaluation",
+      "name": "test_checker_pass_does_not_hide_execution_violation"
+    },
+    {
+      "class": "tests.test_evaluation",
+      "name": "test_starts_without_end_are_not_hidden_by_end_only_export"
+    },
+    {
+      "class": "tests.test_evaluation",
+      "name": "test_repair_without_recheck_does_not_release_hold"
+    },
+    {
+      "class": "tests.test_evaluation",
+      "name": "test_fabricated_release_evidence_cannot_pass_two_id_count"
+    },
+    {
+      "class": "tests.test_evaluation",
+      "name": "test_fitup_hold_scope_must_cover_every_robot"
+    },
+    {
+      "class": "tests.test_evaluation",
+      "name": "test_d02_timeout_wait_does_not_count_as_justified_wait"
+    },
+    {
+      "class": "tests.test_evaluation",
+      "name": "test_candidate_violation_and_checker_block_are_separate_from_execution"
+    },
+    {
+      "class": "tests.test_evaluation",
+      "name": "test_missing_event_does_not_shrink_denominator"
+    },
+    {
+      "class": "tests.test_evaluation",
+      "name": "test_evaluator_reads_raw_exports_not_summary"
+    },
+    {
+      "class": "tests.test_evaluation",
+      "name": "test_fabricated_csv_completion_requires_actual_trace"
+    },
+    {
+      "class": "tests.test_evaluation",
+      "name": "test_evaluator_does_not_import_operational_modules"
+    },
+    {
+      "class": "tests.test_events",
+      "name": "test_fitup_hold_is_job_wide_without_mutating_input"
+    },
+    {
+      "class": "tests.test_events",
+      "name": "test_pair_ban_does_not_become_job_or_robot_ban"
+    },
+    {
+      "class": "tests.test_events",
+      "name": "test_repair_alone_cannot_release_and_linked_recheck_can"
+    },
+    {
+      "class": "tests.test_events",
+      "name": "test_recovery_releases_only_its_own_restriction"
+    },
+    {
+      "class": "tests.test_events",
+      "name": "test_wrong_incident_or_recheck_before_repair_cannot_release"
+    },
+    {
+      "class": "tests.test_events",
+      "name": "test_unknown_source_and_future_evidence_are_not_published"
+    },
+    {
+      "class": "tests.test_events",
+      "name": "test_conflicting_sources_do_not_depend_on_arrival_order"
+    },
+    {
+      "class": "tests.test_events",
+      "name": "test_missing_reference_is_filled_from_current_public_evidence"
+    },
+    {
+      "class": "tests.test_events",
+      "name": "test_invalid_evidence_identity_is_quarantined"
+    },
+    {
+      "class": "tests.test_events",
+      "name": "test_running_weld_is_not_stopped_by_out_of_scope_event"
+    },
+    {
+      "class": "tests.test_events",
+      "name": "test_superseded_repair_true_cannot_release_with_old_link"
+    },
+    {
+      "class": "tests.test_events",
+      "name": "test_supersedes_cannot_replace_another_source_fact"
+    },
+    {
+      "class": "tests.test_events",
+      "name": "test_pair_recovery_needs_newer_linked_evidence_for_matching_target"
+    },
+    {
+      "class": "tests.test_events",
+      "name": "test_current_evidence_resolves_only_matching_information_hold"
+    },
+    {
+      "class": "tests.test_events",
+      "name": "test_maximum_length_external_id_still_produces_a_valid_restriction"
+    },
+    {
+      "class": "tests.test_information_boundary",
+      "name": "test_dependency_boundaries_are_executable_rules"
+    },
+    {
+      "class": "tests.test_information_boundary",
+      "name": "test_public_loader_reads_only_the_two_public_files"
+    },
+    {
+      "class": "tests.test_information_boundary",
+      "name": "test_future_and_oracle_sentinels_cannot_reach_planning_before_arrival"
+    },
+    {
+      "class": "tests.test_integration",
+      "name": "test_end_to_end_and_independent_score[D01-done0-0]"
+    },
+    {
+      "class": "tests.test_integration",
+      "name": "test_end_to_end_and_independent_score[D02-done1-0]"
+    },
+    {
+      "class": "tests.test_integration",
+      "name": "test_end_to_end_and_independent_score[D03-done2-0]"
+    },
+    {
+      "class": "tests.test_integration",
+      "name": "test_end_to_end_and_independent_score[D04-done3-1]"
+    },
+    {
+      "class": "tests.test_integration",
+      "name": "test_never_overwrites_a_previous_run"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_lookup_then_proposal_preserves_host_metadata_and_public_inputs"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_empty_citations_do_not_turn_report_text_into_evidence"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_lookup_exposes_only_visible_arrived_evidence"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_invented_or_duplicate_references_cannot_bypass_lookup[references0]"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_invented_or_duplicate_references_cannot_bypass_lookup[references1]"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_invented_or_duplicate_references_cannot_bypass_lookup[references2]"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_invented_or_duplicate_references_cannot_bypass_lookup[references3]"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_even_real_evidence_must_have_been_returned_by_lookup"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_untrusted_arrivals_are_rejected_before_model_call[future]"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_untrusted_arrivals_are_rejected_before_model_call[source]"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_untrusted_arrivals_are_rejected_before_model_call[observer]"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_untrusted_arrivals_are_rejected_before_model_call[authority]"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_untrusted_arrivals_are_rejected_before_model_call[incident]"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_untrusted_arrivals_are_rejected_before_model_call[target]"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_untrusted_arrivals_are_rejected_before_model_call[conflict]"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_strict_response_rejects_code_and_host_metadata_fields[not json]"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_strict_response_rejects_code_and_host_metadata_fields[```json\\n{\"action\":\"refuse\"}\\n```]"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_strict_response_rejects_code_and_host_metadata_fields[{\"action\":\"refuse\",\"action\":\"propose\"}]"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_strict_response_rejects_code_and_host_metadata_fields[{\"action\":\"refuse\",\"confidence\":NaN}]"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_strict_response_rejects_code_and_host_metadata_fields[{\"action\":\"execute\",\"code\":\"print(1)\"}]"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_strict_response_rejects_code_and_host_metadata_fields[{\"action\":\"refuse\",\"source_id\":\"sim-inspection\"}]"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_strict_response_rejects_code_and_host_metadata_fields[{\"action\":\"refuse\",\"state_version\":99}]"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_strict_response_rejects_code_and_host_metadata_fields[{\"action\":\"refuse\",\"published_evidence\":[]}]"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_strict_response_rejects_code_and_host_metadata_fields[{\"action\":\"refuse\",\"received_tick\":100}]"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_strict_response_rejects_code_and_host_metadata_fields[{\"action\":\"refuse\",\"plan\":{\"job_id\":\"W20\"}}]"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_known_target_failures_become_common_path_information_hold[raw0-MODEL_TIMEOUT]"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_known_target_failures_become_common_path_information_hold[raw1-MODEL_ERROR]"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_known_target_failures_become_common_path_information_hold[{\"action\":\"refuse\"}-MODEL_REFUSAL]"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_known_target_failures_become_common_path_information_hold[{\"action\":\"clarify\",\"reason\":\"NEED_NEW_OBSERVATION\"}-NEEDS_CLARIFICATION]"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_unknown_target_failure_requests_clarification_without_blanket_hold"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_proposal_target_must_match_host_hint_or_exact_report_identifier[W17 \\uc791\\uc5c5 \\ubd88\\uac00-None-target0-READY]"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_proposal_target_must_match_host_hint_or_exact_report_identifier[W170 \\uc791\\uc5c5 \\ubd88\\uac00-None-target1-INVALID_PROPOSAL]"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_proposal_target_must_match_host_hint_or_exact_report_identifier[XW17 \\uc791\\uc5c5 \\ubd88\\uac00-None-target2-INVALID_PROPOSAL]"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_proposal_target_must_match_host_hint_or_exact_report_identifier[W17 \\uc791\\uc5c5 \\ubd88\\uac00-None-target3-INVALID_PROPOSAL]"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_proposal_target_must_match_host_hint_or_exact_report_identifier[W17 \\ubc0f W19-target_hint4-target4-INVALID_PROPOSAL]"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_two_lookup_requests_stop_at_two_calls_and_one_lookup"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_non_text_model_response_is_rejected"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_invalid_utf8_model_output_returns_safe_fallback"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_report_input_rejects_invalid_utf8_text"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_deeply_nested_model_json_does_not_escape_error_boundary"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_interpretation_hold_needs_explicit_identity_confirmation"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_arrival_without_hint_must_still_match_final_proposal_target"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_report_source_must_be_authorized_for_safe_identity_fallback"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_source_authority_and_event_scope_are_checked_before_proposal"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_repair_proposal_keeps_hold_and_does_not_complete_weld"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_pair_report_retains_job_robot_scope"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_response_and_context_size_limits_return_safe_fallback"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_model_receives_detached_context_and_cannot_mutate_next_request"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_raw_report_prompt_injection_has_no_state_or_execution_authority"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_invalid_host_envelope_never_calls_model_or_emits_delivery[run]"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_invalid_host_envelope_never_calls_model_or_emits_delivery[received_tick]"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_invalid_host_envelope_never_calls_model_or_emits_delivery[source]"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_invalid_host_envelope_never_calls_model_or_emits_delivery[observer]"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_invalid_host_envelope_never_calls_model_or_emits_delivery[hint]"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_report_schema_rejects_missing_text_future_observation_and_execution_fields"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_report_fingerprint_ignores_redelivery_time_but_not_original_content"
+    },
+    {
+      "class": "tests.test_reports",
+      "name": "test_common_reducer_rechecks_current_evidence_after_interpretation"
+    },
+    {
+      "class": "tests.test_reports_integration",
+      "name": "test_fake_reports_preserve_structured_execution_and_independent_score[D01]"
+    },
+    {
+      "class": "tests.test_reports_integration",
+      "name": "test_fake_reports_preserve_structured_execution_and_independent_score[D02]"
+    },
+    {
+      "class": "tests.test_reports_integration",
+      "name": "test_fake_reports_preserve_structured_execution_and_independent_score[D03]"
+    },
+    {
+      "class": "tests.test_reports_integration",
+      "name": "test_fake_reports_preserve_structured_execution_and_independent_score[D04]"
+    },
+    {
+      "class": "tests.test_reports_integration",
+      "name": "test_report_adapter_cannot_import_state_writers_private_driver_or_evaluator"
+    },
+    {
+      "class": "tests.test_reports_integration",
+      "name": "test_future_reports_scripts_and_evaluation_files_do_not_reach_model_or_solver"
+    },
+    {
+      "class": "tests.test_reports_integration",
+      "name": "test_duplicate_report_reuses_receipt_without_model_solver_or_state_change"
+    },
+    {
+      "class": "tests.test_reports_integration",
+      "name": "test_conflicting_report_id_is_quarantined_without_new_event_or_state[False]"
+    },
+    {
+      "class": "tests.test_reports_integration",
+      "name": "test_conflicting_report_id_is_quarantined_without_new_event_or_state[True]"
+    },
+    {
+      "class": "tests.test_reports_integration",
+      "name": "test_state_change_during_interpretation_discards_proposal_and_uses_public_fallback"
+    },
+    {
+      "class": "tests.test_reports_integration",
+      "name": "test_report_result_event_and_state_rollback_together_and_retry_is_possible"
+    },
+    {
+      "class": "tests.test_reports_integration",
+      "name": "test_cli_fake_mode_records_reproduction_inputs_and_default_remains_structured"
+    },
+    {
+      "class": "tests.test_repository",
+      "name": "test_snapshot_is_detached_and_audit_does_not_change_version"
+    },
+    {
+      "class": "tests.test_repository",
+      "name": "test_compare_and_swap_rejects_second_writer_without_partial_log"
+    },
+    {
+      "class": "tests.test_repository",
+      "name": "test_same_event_is_noop_and_conflicting_payload_is_not_applied"
+    },
+    {
+      "class": "tests.test_repository",
+      "name": "test_received_tick_does_not_change_event_identity"
+    },
+    {
+      "class": "tests.test_repository",
+      "name": "test_conflicting_same_batch_event_is_not_partly_applied"
+    },
+    {
+      "class": "tests.test_repository",
+      "name": "test_evidence_identity_failure_rolls_back_state_and_audit"
+    },
+    {
+      "class": "tests.test_repository",
+      "name": "test_plan_apply_is_atomic_and_rejects_check_then_state_change"
+    },
+    {
+      "class": "tests.test_repository",
+      "name": "test_plan_apply_sets_versions_and_does_not_change_running_job"
+    },
+    {
+      "class": "tests.test_repository",
+      "name": "test_tampered_plan_cannot_reuse_check"
+    },
+    {
+      "class": "tests.test_repository",
+      "name": "test_observation_duplicate_is_checked_before_any_proposed_state_change"
+    },
+    {
+      "class": "tests.test_repository",
+      "name": "test_event_trace_records_one_public_lookup_and_published_evidence"
+    },
+    {
+      "class": "tests.test_review_regressions",
+      "name": "test_initial_state_rejects_inconsistent_execution_history[truncated_running_weld]"
+    },
+    {
+      "class": "tests.test_review_regressions",
+      "name": "test_initial_state_rejects_inconsistent_execution_history[unknown_progress_robot]"
+    },
+    {
+      "class": "tests.test_review_regressions",
+      "name": "test_move_cancellation_preserves_arrival_location_and_w18"
+    },
+    {
+      "class": "tests.test_review_regressions",
+      "name": "test_solver_failure_does_not_authorize_newly_blocked_old_pending"
+    },
+    {
+      "class": "tests.test_review_regressions",
+      "name": "test_application_runs_without_optional_pytest_distribution"
+    },
+    {
+      "class": "tests.test_scheduler",
+      "name": "test_fitup_replanning_is_feasible_and_preserves_w18"
+    },
+    {
+      "class": "tests.test_scheduler",
+      "name": "test_all_eligible_jobs_are_required_even_when_every_job_is_late"
+    },
+    {
+      "class": "tests.test_scheduler",
+      "name": "test_no_eligible_work_is_not_infeasibility"
+    },
+    {
+      "class": "tests.test_scheduler",
+      "name": "test_continuation_does_not_repeat_prefix_or_overlap_itself[MOVE-0]"
+    },
+    {
+      "class": "tests.test_scheduler",
+      "name": "test_continuation_does_not_repeat_prefix_or_overlap_itself[SETUP-1]"
+    },
+    {
+      "class": "tests.test_scheduler",
+      "name": "test_continuation_does_not_repeat_prefix_or_overlap_itself[None-2]"
+    },
+    {
+      "class": "tests.test_scheduler",
+      "name": "test_real_infeasibility_and_invalid_model_are_distinct"
+    },
+    {
+      "class": "tests.test_scheduler",
+      "name": "test_unknown_preserves_an_incumbent_from_an_earlier_objective[False]"
+    },
+    {
+      "class": "tests.test_scheduler",
+      "name": "test_unknown_preserves_an_incumbent_from_an_earlier_objective[True]"
+    },
+    {
+      "class": "tests.test_simulator",
+      "name": "test_new_hold_preserves_current_phase_then_cancels_preparation[during_move]"
+    },
+    {
+      "class": "tests.test_simulator",
+      "name": "test_new_hold_preserves_current_phase_then_cancels_preparation[after_move]"
+    },
+    {
+      "class": "tests.test_simulator",
+      "name": "test_new_hold_preserves_current_phase_then_cancels_preparation[during_setup]"
+    },
+    {
+      "class": "tests.test_simulator",
+      "name": "test_future_queue_returns_only_arrived_deliveries"
+    }
+  ],
+  "commands": [
+    {
+      "command": [
+        "/private/tmp/shipyard-tech-probe/bin/uv",
+        "run",
+        "--locked",
+        "--offline",
+        "python",
+        "-m",
+        "shipyard",
+        "run",
+        "--case",
+        "D01",
+        "--report-mode",
+        "structured",
+        "--output",
+        "outputs/reports-verification-20261107/structured-D01"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/private/tmp/shipyard-tech-probe/bin/uv",
+        "run",
+        "--locked",
+        "--offline",
+        "python",
+        "evaluation/score.py",
+        "--run-dir",
+        "outputs/reports-verification-20261107/structured-D01",
+        "--oracle",
+        "evaluation/dev/D01/oracle.json",
+        "--truth",
+        "evaluation/dev/D01/truth.jsonl"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/private/tmp/shipyard-tech-probe/bin/uv",
+        "run",
+        "--locked",
+        "--offline",
+        "python",
+        "-m",
+        "shipyard",
+        "run",
+        "--case",
+        "D02",
+        "--report-mode",
+        "structured",
+        "--output",
+        "outputs/reports-verification-20261107/structured-D02"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/private/tmp/shipyard-tech-probe/bin/uv",
+        "run",
+        "--locked",
+        "--offline",
+        "python",
+        "evaluation/score.py",
+        "--run-dir",
+        "outputs/reports-verification-20261107/structured-D02",
+        "--oracle",
+        "evaluation/dev/D02/oracle.json",
+        "--truth",
+        "evaluation/dev/D02/truth.jsonl"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/private/tmp/shipyard-tech-probe/bin/uv",
+        "run",
+        "--locked",
+        "--offline",
+        "python",
+        "-m",
+        "shipyard",
+        "run",
+        "--case",
+        "D03",
+        "--report-mode",
+        "structured",
+        "--output",
+        "outputs/reports-verification-20261107/structured-D03"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/private/tmp/shipyard-tech-probe/bin/uv",
+        "run",
+        "--locked",
+        "--offline",
+        "python",
+        "evaluation/score.py",
+        "--run-dir",
+        "outputs/reports-verification-20261107/structured-D03",
+        "--oracle",
+        "evaluation/dev/D03/oracle.json",
+        "--truth",
+        "evaluation/dev/D03/truth.jsonl"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/private/tmp/shipyard-tech-probe/bin/uv",
+        "run",
+        "--locked",
+        "--offline",
+        "python",
+        "-m",
+        "shipyard",
+        "run",
+        "--case",
+        "D04",
+        "--report-mode",
+        "structured",
+        "--output",
+        "outputs/reports-verification-20261107/structured-D04"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/private/tmp/shipyard-tech-probe/bin/uv",
+        "run",
+        "--locked",
+        "--offline",
+        "python",
+        "evaluation/score.py",
+        "--run-dir",
+        "outputs/reports-verification-20261107/structured-D04",
+        "--oracle",
+        "evaluation/dev/D04/oracle.json",
+        "--truth",
+        "evaluation/dev/D04/truth.jsonl"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/private/tmp/shipyard-tech-probe/bin/uv",
+        "run",
+        "--locked",
+        "--offline",
+        "python",
+        "-m",
+        "shipyard",
+        "run",
+        "--case",
+        "D01",
+        "--report-mode",
+        "fake",
+        "--output",
+        "outputs/reports-verification-20261107/fake-D01"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/private/tmp/shipyard-tech-probe/bin/uv",
+        "run",
+        "--locked",
+        "--offline",
+        "python",
+        "evaluation/score.py",
+        "--run-dir",
+        "outputs/reports-verification-20261107/fake-D01",
+        "--oracle",
+        "evaluation/dev/D01/oracle.json",
+        "--truth",
+        "evaluation/dev/D01/truth.jsonl"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/private/tmp/shipyard-tech-probe/bin/uv",
+        "run",
+        "--locked",
+        "--offline",
+        "python",
+        "-m",
+        "shipyard",
+        "run",
+        "--case",
+        "D02",
+        "--report-mode",
+        "fake",
+        "--output",
+        "outputs/reports-verification-20261107/fake-D02"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/private/tmp/shipyard-tech-probe/bin/uv",
+        "run",
+        "--locked",
+        "--offline",
+        "python",
+        "evaluation/score.py",
+        "--run-dir",
+        "outputs/reports-verification-20261107/fake-D02",
+        "--oracle",
+        "evaluation/dev/D02/oracle.json",
+        "--truth",
+        "evaluation/dev/D02/truth.jsonl"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/private/tmp/shipyard-tech-probe/bin/uv",
+        "run",
+        "--locked",
+        "--offline",
+        "python",
+        "-m",
+        "shipyard",
+        "run",
+        "--case",
+        "D03",
+        "--report-mode",
+        "fake",
+        "--output",
+        "outputs/reports-verification-20261107/fake-D03"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/private/tmp/shipyard-tech-probe/bin/uv",
+        "run",
+        "--locked",
+        "--offline",
+        "python",
+        "evaluation/score.py",
+        "--run-dir",
+        "outputs/reports-verification-20261107/fake-D03",
+        "--oracle",
+        "evaluation/dev/D03/oracle.json",
+        "--truth",
+        "evaluation/dev/D03/truth.jsonl"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/private/tmp/shipyard-tech-probe/bin/uv",
+        "run",
+        "--locked",
+        "--offline",
+        "python",
+        "-m",
+        "shipyard",
+        "run",
+        "--case",
+        "D04",
+        "--report-mode",
+        "fake",
+        "--output",
+        "outputs/reports-verification-20261107/fake-D04"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/private/tmp/shipyard-tech-probe/bin/uv",
+        "run",
+        "--locked",
+        "--offline",
+        "python",
+        "evaluation/score.py",
+        "--run-dir",
+        "outputs/reports-verification-20261107/fake-D04",
+        "--oracle",
+        "evaluation/dev/D04/oracle.json",
+        "--truth",
+        "evaluation/dev/D04/truth.jsonl"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "runs": {
+    "structured": {
+      "D01": {
+        "output_directory": "outputs/reports-verification-20261107/structured-D01",
+        "summary": {
+          "schema_version": "1.0",
+          "run_id": "83d3ff17-a69e-4649-94d4-2a0533c50c67",
+          "termination": "COMPLETED",
+          "now_tick": 15,
+          "state_version": 50,
+          "active_plan_version": 13,
+          "completed_jobs": [
+            "W17",
+            "W18",
+            "W19",
+            "W20",
+            "W21"
+          ],
+          "unfinished_jobs": [],
+          "active_restrictions": [],
+          "deferred_jobs": [],
+          "additional_human_requests": 0,
+          "failures": [],
+          "completed_phases": 13,
+          "evaluation": "NOT_SCORED_BY_RUNTIME"
+        },
+        "manifest": {
+          "schema_version": "1.0",
+          "run_id": "83d3ff17-a69e-4649-94d4-2a0533c50c67",
+          "case_id": "D01",
+          "started_at": "2026-11-07T00:59:42.667412+00:00",
+          "finished_at": "2026-11-07T00:59:42.815882+00:00",
+          "source_sha256": "0b4b89d593d0c991088bb93321d33c025249b0d2a0b51d116a52ee4d15866c7a",
+          "python": "3.13.18",
+          "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+          "cpu": "arm64",
+          "sqlite": "3.53.1",
+          "packages": {
+            "ortools": "9.15.6755",
+            "pydantic": "2.14.3"
+          },
+          "policy": {
+            "schema_version": "1.0",
+            "policy_version": "dev-v1",
+            "rule_version": "rules-v1",
+            "solver_seconds": 5.0,
+            "num_search_workers": 1,
+            "random_seed": 0,
+            "stale_retries": 2,
+            "evidence_lookup_passes": 1,
+            "db_busy_ms": 1000,
+            "work_conserving": true
+          },
+          "inputs": {
+            "config/dev-policy.json": "96c1a07b1bb39df8be79b145a43c3278c5baa74b422492eb00d0a0ccefd19fd6",
+            "data/dev/D01/initial.json": "0bfd7b2ff6b0639d2ffed2744641e757eccda086388d4b06722be3cc44fc9077",
+            "data/dev/D01/evidence.json": "d4203f91701e05520154a8aa343255124ad4285ad20d1bd561b360787cdf7887",
+            "simulation/dev/D01/events.jsonl": "925574e6e9f55a0224ce0bc70157ff8deccff438ea04593e11f0c72170e150b8"
+          },
+          "report_mode": "structured",
+          "report_adapter": null,
+          "command": "uv run --locked python -m shipyard run --case D01 --output outputs/reports-verification-20261107/structured-D01 --report-mode structured",
+          "argv": [
+            "/Users/yumsj/Documents/ChatGPT/산업공학종합설계/src/shipyard/__main__.py",
+            "run",
+            "--case",
+            "D01",
+            "--report-mode",
+            "structured",
+            "--output",
+            "outputs/reports-verification-20261107/structured-D01"
+          ],
+          "unit": "abstract_tick"
+        },
+        "independent_evaluation": {
+          "acceptance_passed": true,
+          "completed_without_additional_human": true,
+          "evaluated_event_count": 3,
+          "autonomous_correct_count": 3,
+          "additional_human_requests": 0,
+          "executed_violation_count": 0,
+          "issues": []
+        },
+        "artifact_sha256": {
+          "summary.json": "3105bf3ca2346d4c186afcaadc9f477da6966055715cbd5ac63f40be54e6425b",
+          "execution.csv": "1e938e8d621297ca0cd1e1e1e6f48f0557fa161dba03e2cdbbf03c704f706630",
+          "run.sqlite3": "2d0df6112e84b849ff23aa57408806a229c6f25cad9e25a383b2b88986306618",
+          "manifest.json": "7bf794bc8c3c18bb057831e638f995d0ebaa2272fef5b7c83f7a7ec0be418327",
+          "trace.jsonl": "7e5d37399c5ef8ae0bc1691aa896f6b48833ec5a5ec640a6d8695c5bba8f72b9",
+          "evaluation.json": "e2d0214e05d2dbdbdfed66e005d7b5244760ea6065e08aaa10056a1dfe50235d",
+          "evaluation.csv": "d5366b6323267dd59bd5e4e6d98bdb8e768d2edf795df9c0ba229721d7abed64"
+        },
+        "report_trace_refs": [],
+        "execution": [
+          {
+            "job_id": "W19",
+            "robot_id": "R1",
+            "phase": "MOVE",
+            "start_tick": "0",
+            "end_tick": "1"
+          },
+          {
+            "job_id": "W18",
+            "robot_id": "R2",
+            "phase": "WELD",
+            "start_tick": "-2",
+            "end_tick": "2"
+          },
+          {
+            "job_id": "W19",
+            "robot_id": "R1",
+            "phase": "SETUP",
+            "start_tick": "1",
+            "end_tick": "2"
+          },
+          {
+            "job_id": "W21",
+            "robot_id": "R2",
+            "phase": "MOVE",
+            "start_tick": "2",
+            "end_tick": "2"
+          },
+          {
+            "job_id": "W21",
+            "robot_id": "R2",
+            "phase": "SETUP",
+            "start_tick": "2",
+            "end_tick": "3"
+          },
+          {
+            "job_id": "W19",
+            "robot_id": "R1",
+            "phase": "WELD",
+            "start_tick": "2",
+            "end_tick": "5"
+          },
+          {
+            "job_id": "W21",
+            "robot_id": "R2",
+            "phase": "WELD",
+            "start_tick": "3",
+            "end_tick": "5"
+          },
+          {
+            "job_id": "W17",
+            "robot_id": "R1",
+            "phase": "MOVE",
+            "start_tick": "6",
+            "end_tick": "7"
+          },
+          {
+            "job_id": "W17",
+            "robot_id": "R1",
+            "phase": "SETUP",
+            "start_tick": "7",
+            "end_tick": "8"
+          },
+          {
+            "job_id": "W17",
+            "robot_id": "R1",
+            "phase": "WELD",
+            "start_tick": "8",
+            "end_tick": "12"
+          },
+          {
+            "job_id": "W20",
+            "robot_id": "R1",
+            "phase": "MOVE",
+            "start_tick": "12",
+            "end_tick": "12"
+          },
+          {
+            "job_id": "W20",
+            "robot_id": "R1",
+            "phase": "SETUP",
+            "start_tick": "12",
+            "end_tick": "13"
+          },
+          {
+            "job_id": "W20",
+            "robot_id": "R1",
+            "phase": "WELD",
+            "start_tick": "13",
+            "end_tick": "15"
+          }
+        ]
+      },
+      "D02": {
+        "output_directory": "outputs/reports-verification-20261107/structured-D02",
+        "summary": {
+          "schema_version": "1.0",
+          "run_id": "671c61a0-d29b-4bf9-9db3-18ea489ed79a",
+          "termination": "WAITING",
+          "now_tick": 14,
+          "state_version": 30,
+          "active_plan_version": 9,
+          "completed_jobs": [
+            "W17",
+            "W18",
+            "W20"
+          ],
+          "unfinished_jobs": [
+            {
+              "job_id": "W19",
+              "zone_id": "C",
+              "duration_ticks": 3,
+              "setup_ticks": 1,
+              "due_tick": 6,
+              "weight": 3,
+              "predecessor_ids": [],
+              "material_ready": "FALSE",
+              "lifecycle": "NOT_STARTED",
+              "assigned_robot_id": null,
+              "actual_weld_start": null,
+              "actual_weld_end": null,
+              "active_execution_id": null,
+              "fact_refs": {}
+            },
+            {
+              "job_id": "W21",
+              "zone_id": "B",
+              "duration_ticks": 2,
+              "setup_ticks": 1,
+              "due_tick": 10,
+              "weight": 1,
+              "predecessor_ids": [],
+              "material_ready": "FALSE",
+              "lifecycle": "NOT_STARTED",
+              "assigned_robot_id": null,
+              "actual_weld_start": null,
+              "actual_weld_end": null,
+              "active_execution_id": null,
+              "fact_refs": {}
+            }
+          ],
+          "active_restrictions": [],
+          "deferred_jobs": [
+            {
+              "evidence_ids": [],
+              "job_id": "W19",
+              "reason_codes": [
+                "MATERIAL_NOT_READY"
+              ],
+              "recheck_triggers": [
+                "NEW_VALID_EVIDENCE",
+                "RESOURCE_OR_PHASE_COMPLETED",
+                "EXTERNAL_EVENT"
+              ],
+              "restriction_ids": []
+            },
+            {
+              "evidence_ids": [],
+              "job_id": "W21",
+              "reason_codes": [
+                "MATERIAL_NOT_READY"
+              ],
+              "recheck_triggers": [
+                "NEW_VALID_EVIDENCE",
+                "RESOURCE_OR_PHASE_COMPLETED",
+                "EXTERNAL_EVENT"
+              ],
+              "restriction_ids": []
+            }
+          ],
+          "additional_human_requests": 0,
+          "failures": [],
+          "completed_phases": 7,
+          "evaluation": "NOT_SCORED_BY_RUNTIME"
+        },
+        "manifest": {
+          "schema_version": "1.0",
+          "run_id": "671c61a0-d29b-4bf9-9db3-18ea489ed79a",
+          "case_id": "D02",
+          "started_at": "2026-11-07T00:59:43.120284+00:00",
+          "finished_at": "2026-11-07T00:59:43.187530+00:00",
+          "source_sha256": "0b4b89d593d0c991088bb93321d33c025249b0d2a0b51d116a52ee4d15866c7a",
+          "python": "3.13.18",
+          "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+          "cpu": "arm64",
+          "sqlite": "3.53.1",
+          "packages": {
+            "ortools": "9.15.6755",
+            "pydantic": "2.14.3"
+          },
+          "policy": {
+            "schema_version": "1.0",
+            "policy_version": "dev-v1",
+            "rule_version": "rules-v1",
+            "solver_seconds": 5.0,
+            "num_search_workers": 1,
+            "random_seed": 0,
+            "stale_retries": 2,
+            "evidence_lookup_passes": 1,
+            "db_busy_ms": 1000,
+            "work_conserving": true
+          },
+          "inputs": {
+            "config/dev-policy.json": "96c1a07b1bb39df8be79b145a43c3278c5baa74b422492eb00d0a0ccefd19fd6",
+            "data/dev/D02/initial.json": "82873969303e31bc73e737f35da5bf641725fba0b5202a7f58decf89ec729883",
+            "data/dev/D02/evidence.json": "a08b8829f082a00ae2a9d5529de7c51ebdff621aa5c837286d526dfd2cb723a7",
+            "simulation/dev/D02/events.jsonl": "925574e6e9f55a0224ce0bc70157ff8deccff438ea04593e11f0c72170e150b8"
+          },
+          "report_mode": "structured",
+          "report_adapter": null,
+          "command": "uv run --locked python -m shipyard run --case D02 --output outputs/reports-verification-20261107/structured-D02 --report-mode structured",
+          "argv": [
+            "/Users/yumsj/Documents/ChatGPT/산업공학종합설계/src/shipyard/__main__.py",
+            "run",
+            "--case",
+            "D02",
+            "--report-mode",
+            "structured",
+            "--output",
+            "outputs/reports-verification-20261107/structured-D02"
+          ],
+          "unit": "abstract_tick"
+        },
+        "independent_evaluation": {
+          "acceptance_passed": true,
+          "completed_without_additional_human": true,
+          "evaluated_event_count": 3,
+          "autonomous_correct_count": 3,
+          "additional_human_requests": 0,
+          "executed_violation_count": 0,
+          "issues": []
+        },
+        "artifact_sha256": {
+          "summary.json": "d0d298a4384b2291b94fe594722dea3acdd4b823a03c0e5e112c7b863fd6613d",
+          "execution.csv": "34d0a237391150ee221a19a6f25d8f6b9de92cc17599483ec442a892dad4fe12",
+          "run.sqlite3": "efa4ac0bd61c5b9abaeee83de4968a440770d7cfc33fdaed9ed55087e3b5a7b3",
+          "manifest.json": "634cd2bd5bbe949a2ed30a1515c26423aedcda2fbf872069691cf945caffa581",
+          "trace.jsonl": "045074ce045c2e6ec009ea047cb7b91ca598f9ca0167643d83768e9602eafbb1",
+          "evaluation.json": "9c2ccf3f682a1742a9a464b0a33dbcede5f629d299bb93dbc41ad9e4c9610ebe",
+          "evaluation.csv": "d5366b6323267dd59bd5e4e6d98bdb8e768d2edf795df9c0ba229721d7abed64"
+        },
+        "report_trace_refs": [],
+        "execution": [
+          {
+            "job_id": "W18",
+            "robot_id": "R2",
+            "phase": "WELD",
+            "start_tick": "-2",
+            "end_tick": "2"
+          },
+          {
+            "job_id": "W17",
+            "robot_id": "R1",
+            "phase": "MOVE",
+            "start_tick": "6",
+            "end_tick": "6"
+          },
+          {
+            "job_id": "W17",
+            "robot_id": "R1",
+            "phase": "SETUP",
+            "start_tick": "6",
+            "end_tick": "7"
+          },
+          {
+            "job_id": "W17",
+            "robot_id": "R1",
+            "phase": "WELD",
+            "start_tick": "7",
+            "end_tick": "11"
+          },
+          {
+            "job_id": "W20",
+            "robot_id": "R1",
+            "phase": "MOVE",
+            "start_tick": "11",
+            "end_tick": "11"
+          },
+          {
+            "job_id": "W20",
+            "robot_id": "R1",
+            "phase": "SETUP",
+            "start_tick": "11",
+            "end_tick": "12"
+          },
+          {
+            "job_id": "W20",
+            "robot_id": "R1",
+            "phase": "WELD",
+            "start_tick": "12",
+            "end_tick": "14"
+          }
+        ]
+      },
+      "D03": {
+        "output_directory": "outputs/reports-verification-20261107/structured-D03",
+        "summary": {
+          "schema_version": "1.0",
+          "run_id": "cc9f19a5-3279-4dfb-bd0c-27120432fd92",
+          "termination": "COMPLETED",
+          "now_tick": 15,
+          "state_version": 48,
+          "active_plan_version": 12,
+          "completed_jobs": [
+            "W17",
+            "W18",
+            "W19",
+            "W20",
+            "W21"
+          ],
+          "unfinished_jobs": [],
+          "active_restrictions": [
+            {
+              "restriction_id": "restriction:E-pair-W17:PAIR_BAN",
+              "incident_id": "INC-W17-1",
+              "kind": "PAIR_BAN",
+              "target": {
+                "scope": "JOB_ROBOT",
+                "job_id": "W17",
+                "robot_id": "R1",
+                "zone_id": null
+              },
+              "status": "ACTIVE",
+              "opened_event_id": "E-pair-W17",
+              "opened_evidence_ids": [
+                "EV-pair-W17"
+              ],
+              "opened_tick": 0,
+              "rule_id": "rules-v1:PAIR_BAN",
+              "release_rule_id": "rules-v1:release:PAIR_BAN",
+              "released_event_id": null,
+              "released_evidence_ids": [],
+              "released_tick": null
+            }
+          ],
+          "deferred_jobs": [],
+          "additional_human_requests": 0,
+          "failures": [],
+          "completed_phases": 13,
+          "evaluation": "NOT_SCORED_BY_RUNTIME"
+        },
+        "manifest": {
+          "schema_version": "1.0",
+          "run_id": "cc9f19a5-3279-4dfb-bd0c-27120432fd92",
+          "case_id": "D03",
+          "started_at": "2026-11-07T00:59:43.472803+00:00",
+          "finished_at": "2026-11-07T00:59:43.617211+00:00",
+          "source_sha256": "0b4b89d593d0c991088bb93321d33c025249b0d2a0b51d116a52ee4d15866c7a",
+          "python": "3.13.18",
+          "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+          "cpu": "arm64",
+          "sqlite": "3.53.1",
+          "packages": {
+            "ortools": "9.15.6755",
+            "pydantic": "2.14.3"
+          },
+          "policy": {
+            "schema_version": "1.0",
+            "policy_version": "dev-v1",
+            "rule_version": "rules-v1",
+            "solver_seconds": 5.0,
+            "num_search_workers": 1,
+            "random_seed": 0,
+            "stale_retries": 2,
+            "evidence_lookup_passes": 1,
+            "db_busy_ms": 1000,
+            "work_conserving": true
+          },
+          "inputs": {
+            "config/dev-policy.json": "96c1a07b1bb39df8be79b145a43c3278c5baa74b422492eb00d0a0ccefd19fd6",
+            "data/dev/D03/initial.json": "05b765ecfec7301017f37181c2bf5e8ca990a38b01d1b996a4c630a6bb70d009",
+            "data/dev/D03/evidence.json": "ef4752195503687b9a8b16d09e65ab9e7ef18614457d5c8aceddb2df7ff75be7",
+            "simulation/dev/D03/events.jsonl": "54f5441a33afb3abaa02e11a60dbefe437ef3d619c0ef1ed9c529872ba99660c"
+          },
+          "report_mode": "structured",
+          "report_adapter": null,
+          "command": "uv run --locked python -m shipyard run --case D03 --output outputs/reports-verification-20261107/structured-D03 --report-mode structured",
+          "argv": [
+            "/Users/yumsj/Documents/ChatGPT/산업공학종합설계/src/shipyard/__main__.py",
+            "run",
+            "--case",
+            "D03",
+            "--report-mode",
+            "structured",
+            "--output",
+            "outputs/reports-verification-20261107/structured-D03"
+          ],
+          "unit": "abstract_tick"
+        },
+        "independent_evaluation": {
+          "acceptance_passed": true,
+          "completed_without_additional_human": true,
+          "evaluated_event_count": 1,
+          "autonomous_correct_count": 1,
+          "additional_human_requests": 0,
+          "executed_violation_count": 0,
+          "issues": []
+        },
+        "artifact_sha256": {
+          "summary.json": "3a3603ab1010b88abc1bb8e2f31bcaf886e11b7c332b7d39fb48741a1cef1c62",
+          "execution.csv": "62400fca64824f1452256e6fc755396954721c14969f9994e68ee501d5d417de",
+          "run.sqlite3": "8ae23414e0acc1bdce72ce4e5e49a57fb3a184edcefa7426256bf4a7bcb996a9",
+          "manifest.json": "e9f0f52310724900400e5ca4c3662207a9c4ee00edea7bb29c88f5f3058b85e7",
+          "trace.jsonl": "be97052effb440c941ae9d0242fac620bce9c86f48f1aa0b2dbc3dd02f0d4fbc",
+          "evaluation.json": "0d48cec99f9e0952b2d798641d8b1345cbd5a5e991a8605579702e300649a3d0",
+          "evaluation.csv": "4b0d606d3837b51122609db9a419d30b868ed4a38df983d5293a4746ecaad427"
+        },
+        "report_trace_refs": [],
+        "execution": [
+          {
+            "job_id": "W19",
+            "robot_id": "R1",
+            "phase": "MOVE",
+            "start_tick": "0",
+            "end_tick": "1"
+          },
+          {
+            "job_id": "W18",
+            "robot_id": "R2",
+            "phase": "WELD",
+            "start_tick": "-2",
+            "end_tick": "2"
+          },
+          {
+            "job_id": "W19",
+            "robot_id": "R1",
+            "phase": "SETUP",
+            "start_tick": "1",
+            "end_tick": "2"
+          },
+          {
+            "job_id": "W21",
+            "robot_id": "R2",
+            "phase": "MOVE",
+            "start_tick": "2",
+            "end_tick": "2"
+          },
+          {
+            "job_id": "W21",
+            "robot_id": "R2",
+            "phase": "SETUP",
+            "start_tick": "2",
+            "end_tick": "3"
+          },
+          {
+            "job_id": "W19",
+            "robot_id": "R1",
+            "phase": "WELD",
+            "start_tick": "2",
+            "end_tick": "5"
+          },
+          {
+            "job_id": "W21",
+            "robot_id": "R2",
+            "phase": "WELD",
+            "start_tick": "3",
+            "end_tick": "5"
+          },
+          {
+            "job_id": "W17",
+            "robot_id": "R2",
+            "phase": "MOVE",
+            "start_tick": "5",
+            "end_tick": "6"
+          },
+          {
+            "job_id": "W17",
+            "robot_id": "R2",
+            "phase": "SETUP",
+            "start_tick": "6",
+            "end_tick": "7"
+          },
+          {
+            "job_id": "W17",
+            "robot_id": "R2",
+            "phase": "WELD",
+            "start_tick": "7",
+            "end_tick": "11"
+          },
+          {
+            "job_id": "W20",
+            "robot_id": "R1",
+            "phase": "MOVE",
+            "start_tick": "11",
+            "end_tick": "12"
+          },
+          {
+            "job_id": "W20",
+            "robot_id": "R1",
+            "phase": "SETUP",
+            "start_tick": "12",
+            "end_tick": "13"
+          },
+          {
+            "job_id": "W20",
+            "robot_id": "R1",
+            "phase": "WELD",
+            "start_tick": "13",
+            "end_tick": "15"
+          }
+        ]
+      },
+      "D04": {
+        "output_directory": "outputs/reports-verification-20261107/structured-D04",
+        "summary": {
+          "schema_version": "1.0",
+          "run_id": "863eda16-76c8-4cba-a5e2-2b2cb056dc45",
+          "termination": "WAITING",
+          "now_tick": 6,
+          "state_version": 27,
+          "active_plan_version": 7,
+          "completed_jobs": [
+            "W18",
+            "W19",
+            "W21"
+          ],
+          "unfinished_jobs": [
+            {
+              "job_id": "W17",
+              "zone_id": "A",
+              "duration_ticks": 4,
+              "setup_ticks": 1,
+              "due_tick": 14,
+              "weight": 2,
+              "predecessor_ids": [],
+              "material_ready": "TRUE",
+              "lifecycle": "NOT_STARTED",
+              "assigned_robot_id": null,
+              "actual_weld_start": null,
+              "actual_weld_end": null,
+              "active_execution_id": null,
+              "fact_refs": {}
+            },
+            {
+              "job_id": "W20",
+              "zone_id": "A",
+              "duration_ticks": 2,
+              "setup_ticks": 1,
+              "due_tick": 18,
+              "weight": 2,
+              "predecessor_ids": [
+                "W17"
+              ],
+              "material_ready": "TRUE",
+              "lifecycle": "NOT_STARTED",
+              "assigned_robot_id": null,
+              "actual_weld_start": null,
+              "actual_weld_end": null,
+              "active_execution_id": null,
+              "fact_refs": {}
+            }
+          ],
+          "active_restrictions": [
+            {
+              "restriction_id": "restriction:E-fitup-W17:FITUP_HOLD",
+              "incident_id": "INC-W17-1",
+              "kind": "FITUP_HOLD",
+              "target": {
+                "scope": "JOB",
+                "job_id": "W17",
+                "robot_id": null,
+                "zone_id": null
+              },
+              "status": "ACTIVE",
+              "opened_event_id": "E-fitup-W17",
+              "opened_evidence_ids": [
+                "EV-fitup-W17"
+              ],
+              "opened_tick": 0,
+              "rule_id": "rules-v1:FITUP_HOLD",
+              "release_rule_id": "rules-v1:release:FITUP_HOLD",
+              "released_event_id": null,
+              "released_evidence_ids": [],
+              "released_tick": null
+            }
+          ],
+          "deferred_jobs": [
+            {
+              "evidence_ids": [
+                "EV-fitup-W17"
+              ],
+              "job_id": "W17",
+              "reason_codes": [
+                "FITUP_HOLD",
+                "NO_AVAILABLE_ROBOT"
+              ],
+              "recheck_triggers": [
+                "NEW_VALID_EVIDENCE",
+                "RESOURCE_OR_PHASE_COMPLETED",
+                "EXTERNAL_EVENT"
+              ],
+              "restriction_ids": [
+                "restriction:E-fitup-W17:FITUP_HOLD"
+              ]
+            },
+            {
+              "evidence_ids": [],
+              "job_id": "W20",
+              "reason_codes": [
+                "PREDECESSOR_DEFERRED"
+              ],
+              "recheck_triggers": [
+                "NEW_VALID_EVIDENCE",
+                "RESOURCE_OR_PHASE_COMPLETED",
+                "EXTERNAL_EVENT"
+              ],
+              "restriction_ids": []
+            }
+          ],
+          "additional_human_requests": 1,
+          "failures": [],
+          "completed_phases": 7,
+          "evaluation": "NOT_SCORED_BY_RUNTIME"
+        },
+        "manifest": {
+          "schema_version": "1.0",
+          "run_id": "863eda16-76c8-4cba-a5e2-2b2cb056dc45",
+          "case_id": "D04",
+          "started_at": "2026-11-07T00:59:43.901486+00:00",
+          "finished_at": "2026-11-07T00:59:43.954735+00:00",
+          "source_sha256": "0b4b89d593d0c991088bb93321d33c025249b0d2a0b51d116a52ee4d15866c7a",
+          "python": "3.13.18",
+          "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+          "cpu": "arm64",
+          "sqlite": "3.53.1",
+          "packages": {
+            "ortools": "9.15.6755",
+            "pydantic": "2.14.3"
+          },
+          "policy": {
+            "schema_version": "1.0",
+            "policy_version": "dev-v1",
+            "rule_version": "rules-v1",
+            "solver_seconds": 5.0,
+            "num_search_workers": 1,
+            "random_seed": 0,
+            "stale_retries": 2,
+            "evidence_lookup_passes": 1,
+            "db_busy_ms": 1000,
+            "work_conserving": true
+          },
+          "inputs": {
+            "config/dev-policy.json": "96c1a07b1bb39df8be79b145a43c3278c5baa74b422492eb00d0a0ccefd19fd6",
+            "data/dev/D04/initial.json": "648129c54b6080965115ad2ed70f620aef241032bee2c313e96088afa901f5ee",
+            "data/dev/D04/evidence.json": "233296fdc6435c7104f6ab4c6397ada03462ef9ac9d560be2f905717d824d63b",
+            "simulation/dev/D04/events.jsonl": "684ecdd1355cb643a5d88c268aca296250006bf23edfa7e5c40367e56147b310"
+          },
+          "report_mode": "structured",
+          "report_adapter": null,
+          "command": "uv run --locked python -m shipyard run --case D04 --output outputs/reports-verification-20261107/structured-D04 --report-mode structured",
+          "argv": [
+            "/Users/yumsj/Documents/ChatGPT/산업공학종합설계/src/shipyard/__main__.py",
+            "run",
+            "--case",
+            "D04",
+            "--report-mode",
+            "structured",
+            "--output",
+            "outputs/reports-verification-20261107/structured-D04"
+          ],
+          "unit": "abstract_tick"
+        },
+        "independent_evaluation": {
+          "acceptance_passed": true,
+          "completed_without_additional_human": false,
+          "evaluated_event_count": 2,
+          "autonomous_correct_count": 0,
+          "additional_human_requests": 1,
+          "executed_violation_count": 0,
+          "issues": []
+        },
+        "artifact_sha256": {
+          "summary.json": "231be66b9ee37e5e78076b948b7ead16b078f72c74ae1ee467db0864ed024ba4",
+          "execution.csv": "9c33e7410f9dd258e6bd2d6f68780059123a6cfcd1c47b6ffbe5897e41ccc30d",
+          "run.sqlite3": "e02b1259179736e1991914ac881ae4ba202427e063ef5cfc42d1dc530ad24aeb",
+          "manifest.json": "5fe1a1bc1095745dfe570b6fa7276e8439b0b98ab75dbb1d6665aa24385d6353",
+          "trace.jsonl": "6d760973e0499f48de6180746c28f5ad8d7bf72b9a5e269bd10c49b970b47112",
+          "evaluation.json": "82701f114af3a164bef0d1dfba4fd622d1f59079d7869373526ef640efa4a541",
+          "evaluation.csv": "bc7cffd15c05befac18ae5da1e26c38d8bc0649b519dc8e783c17f63e4bbfdf7"
+        },
+        "report_trace_refs": [],
+        "execution": [
+          {
+            "job_id": "W19",
+            "robot_id": "R1",
+            "phase": "MOVE",
+            "start_tick": "0",
+            "end_tick": "1"
+          },
+          {
+            "job_id": "W18",
+            "robot_id": "R2",
+            "phase": "WELD",
+            "start_tick": "-2",
+            "end_tick": "2"
+          },
+          {
+            "job_id": "W19",
+            "robot_id": "R1",
+            "phase": "SETUP",
+            "start_tick": "1",
+            "end_tick": "2"
+          },
+          {
+            "job_id": "W21",
+            "robot_id": "R2",
+            "phase": "MOVE",
+            "start_tick": "2",
+            "end_tick": "2"
+          },
+          {
+            "job_id": "W21",
+            "robot_id": "R2",
+            "phase": "SETUP",
+            "start_tick": "2",
+            "end_tick": "3"
+          },
+          {
+            "job_id": "W19",
+            "robot_id": "R1",
+            "phase": "WELD",
+            "start_tick": "2",
+            "end_tick": "5"
+          },
+          {
+            "job_id": "W21",
+            "robot_id": "R2",
+            "phase": "WELD",
+            "start_tick": "3",
+            "end_tick": "5"
+          }
+        ]
+      }
+    },
+    "fake": {
+      "D01": {
+        "output_directory": "outputs/reports-verification-20261107/fake-D01",
+        "summary": {
+          "schema_version": "1.0",
+          "run_id": "569e5089-4729-476c-b969-a6b2283ac091",
+          "termination": "COMPLETED",
+          "now_tick": 15,
+          "state_version": 50,
+          "active_plan_version": 13,
+          "completed_jobs": [
+            "W17",
+            "W18",
+            "W19",
+            "W20",
+            "W21"
+          ],
+          "unfinished_jobs": [],
+          "active_restrictions": [],
+          "deferred_jobs": [],
+          "additional_human_requests": 0,
+          "failures": [],
+          "completed_phases": 13,
+          "evaluation": "NOT_SCORED_BY_RUNTIME",
+          "reports": {
+            "count": 3,
+            "statuses": {
+              "READY": 3
+            },
+            "model_calls": 6,
+            "lookups": 3
+          }
+        },
+        "manifest": {
+          "schema_version": "1.0",
+          "run_id": "569e5089-4729-476c-b969-a6b2283ac091",
+          "case_id": "D01",
+          "started_at": "2026-11-07T00:59:44.252494+00:00",
+          "finished_at": "2026-11-07T00:59:44.377410+00:00",
+          "source_sha256": "0b4b89d593d0c991088bb93321d33c025249b0d2a0b51d116a52ee4d15866c7a",
+          "python": "3.13.18",
+          "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+          "cpu": "arm64",
+          "sqlite": "3.53.1",
+          "packages": {
+            "ortools": "9.15.6755",
+            "pydantic": "2.14.3"
+          },
+          "policy": {
+            "schema_version": "1.0",
+            "policy_version": "dev-v1",
+            "rule_version": "rules-v1",
+            "solver_seconds": 5.0,
+            "num_search_workers": 1,
+            "random_seed": 0,
+            "stale_retries": 2,
+            "evidence_lookup_passes": 1,
+            "db_busy_ms": 1000,
+            "work_conserving": true
+          },
+          "inputs": {
+            "config/dev-policy.json": "96c1a07b1bb39df8be79b145a43c3278c5baa74b422492eb00d0a0ccefd19fd6",
+            "data/dev/D01/initial.json": "0bfd7b2ff6b0639d2ffed2744641e757eccda086388d4b06722be3cc44fc9077",
+            "data/dev/D01/evidence.json": "d4203f91701e05520154a8aa343255124ad4285ad20d1bd561b360787cdf7887",
+            "simulation/dev/D01/events.jsonl": "925574e6e9f55a0224ce0bc70157ff8deccff438ea04593e11f0c72170e150b8",
+            "simulation/reports/D01.jsonl": "a1f0a972e9c5404e6040920ae6e4394971974f7cd990823b41e694297c7b68dc"
+          },
+          "report_mode": "fake",
+          "report_adapter": {
+            "prompt_version": "report-v1",
+            "max_model_calls": 2,
+            "max_lookups": 1
+          },
+          "command": "uv run --locked python -m shipyard run --case D01 --output outputs/reports-verification-20261107/fake-D01 --report-mode fake",
+          "argv": [
+            "/Users/yumsj/Documents/ChatGPT/산업공학종합설계/src/shipyard/__main__.py",
+            "run",
+            "--case",
+            "D01",
+            "--report-mode",
+            "fake",
+            "--output",
+            "outputs/reports-verification-20261107/fake-D01"
+          ],
+          "unit": "abstract_tick"
+        },
+        "independent_evaluation": {
+          "acceptance_passed": true,
+          "completed_without_additional_human": true,
+          "evaluated_event_count": 3,
+          "autonomous_correct_count": 3,
+          "additional_human_requests": 0,
+          "executed_violation_count": 0,
+          "issues": []
+        },
+        "artifact_sha256": {
+          "summary.json": "56c0df461be4aba0997ccc16bb26aa4bef505677d41d85858ac6b863ef36eaef",
+          "execution.csv": "d427ed85bce3d0c9162f2b7e8a76cb3b4d5d33c7160cd7de181fb2840de2cb55",
+          "run.sqlite3": "4bfc9918ad2b7970a5c7e2531bd83969285434dbfaa06c5d0fa2770439b6fdf8",
+          "manifest.json": "35a27402da67526445144bf2daab22c066c67b14a9deef17ca74cfb649b53d6d",
+          "trace.jsonl": "16ab3bbd2ffae6bc431fcbca57d35fb94f17fa1d6a375dff9f3a318499617b61",
+          "evaluation.json": "fb6d85810d6f8943184f25eb4be0515e958aca621e7d4fe51ac8e54b4277b8a2",
+          "evaluation.csv": "d5366b6323267dd59bd5e4e6d98bdb8e768d2edf795df9c0ba229721d7abed64"
+        },
+        "report_trace_refs": [
+          {
+            "seq": 5,
+            "tick": 0,
+            "report_id": "E-fitup-W17",
+            "status": "READY",
+            "model_calls": 2,
+            "lookup_count": 1
+          },
+          {
+            "seq": 50,
+            "tick": 6,
+            "report_id": "E-repair-W17",
+            "status": "READY",
+            "model_calls": 2,
+            "lookup_count": 1
+          },
+          {
+            "seq": 51,
+            "tick": 6,
+            "report_id": "E-recheck-W17",
+            "status": "READY",
+            "model_calls": 2,
+            "lookup_count": 1
+          }
+        ],
+        "execution": [
+          {
+            "job_id": "W19",
+            "robot_id": "R1",
+            "phase": "MOVE",
+            "start_tick": "0",
+            "end_tick": "1"
+          },
+          {
+            "job_id": "W18",
+            "robot_id": "R2",
+            "phase": "WELD",
+            "start_tick": "-2",
+            "end_tick": "2"
+          },
+          {
+            "job_id": "W19",
+            "robot_id": "R1",
+            "phase": "SETUP",
+            "start_tick": "1",
+            "end_tick": "2"
+          },
+          {
+            "job_id": "W21",
+            "robot_id": "R2",
+            "phase": "MOVE",
+            "start_tick": "2",
+            "end_tick": "2"
+          },
+          {
+            "job_id": "W21",
+            "robot_id": "R2",
+            "phase": "SETUP",
+            "start_tick": "2",
+            "end_tick": "3"
+          },
+          {
+            "job_id": "W19",
+            "robot_id": "R1",
+            "phase": "WELD",
+            "start_tick": "2",
+            "end_tick": "5"
+          },
+          {
+            "job_id": "W21",
+            "robot_id": "R2",
+            "phase": "WELD",
+            "start_tick": "3",
+            "end_tick": "5"
+          },
+          {
+            "job_id": "W17",
+            "robot_id": "R1",
+            "phase": "MOVE",
+            "start_tick": "6",
+            "end_tick": "7"
+          },
+          {
+            "job_id": "W17",
+            "robot_id": "R1",
+            "phase": "SETUP",
+            "start_tick": "7",
+            "end_tick": "8"
+          },
+          {
+            "job_id": "W17",
+            "robot_id": "R1",
+            "phase": "WELD",
+            "start_tick": "8",
+            "end_tick": "12"
+          },
+          {
+            "job_id": "W20",
+            "robot_id": "R1",
+            "phase": "MOVE",
+            "start_tick": "12",
+            "end_tick": "12"
+          },
+          {
+            "job_id": "W20",
+            "robot_id": "R1",
+            "phase": "SETUP",
+            "start_tick": "12",
+            "end_tick": "13"
+          },
+          {
+            "job_id": "W20",
+            "robot_id": "R1",
+            "phase": "WELD",
+            "start_tick": "13",
+            "end_tick": "15"
+          }
+        ]
+      },
+      "D02": {
+        "output_directory": "outputs/reports-verification-20261107/fake-D02",
+        "summary": {
+          "schema_version": "1.0",
+          "run_id": "ddb19373-a6eb-4b26-843f-172c76ba5473",
+          "termination": "WAITING",
+          "now_tick": 14,
+          "state_version": 30,
+          "active_plan_version": 9,
+          "completed_jobs": [
+            "W17",
+            "W18",
+            "W20"
+          ],
+          "unfinished_jobs": [
+            {
+              "job_id": "W19",
+              "zone_id": "C",
+              "duration_ticks": 3,
+              "setup_ticks": 1,
+              "due_tick": 6,
+              "weight": 3,
+              "predecessor_ids": [],
+              "material_ready": "FALSE",
+              "lifecycle": "NOT_STARTED",
+              "assigned_robot_id": null,
+              "actual_weld_start": null,
+              "actual_weld_end": null,
+              "active_execution_id": null,
+              "fact_refs": {}
+            },
+            {
+              "job_id": "W21",
+              "zone_id": "B",
+              "duration_ticks": 2,
+              "setup_ticks": 1,
+              "due_tick": 10,
+              "weight": 1,
+              "predecessor_ids": [],
+              "material_ready": "FALSE",
+              "lifecycle": "NOT_STARTED",
+              "assigned_robot_id": null,
+              "actual_weld_start": null,
+              "actual_weld_end": null,
+              "active_execution_id": null,
+              "fact_refs": {}
+            }
+          ],
+          "active_restrictions": [],
+          "deferred_jobs": [
+            {
+              "evidence_ids": [],
+              "job_id": "W19",
+              "reason_codes": [
+                "MATERIAL_NOT_READY"
+              ],
+              "recheck_triggers": [
+                "NEW_VALID_EVIDENCE",
+                "RESOURCE_OR_PHASE_COMPLETED",
+                "EXTERNAL_EVENT"
+              ],
+              "restriction_ids": []
+            },
+            {
+              "evidence_ids": [],
+              "job_id": "W21",
+              "reason_codes": [
+                "MATERIAL_NOT_READY"
+              ],
+              "recheck_triggers": [
+                "NEW_VALID_EVIDENCE",
+                "RESOURCE_OR_PHASE_COMPLETED",
+                "EXTERNAL_EVENT"
+              ],
+              "restriction_ids": []
+            }
+          ],
+          "additional_human_requests": 0,
+          "failures": [],
+          "completed_phases": 7,
+          "evaluation": "NOT_SCORED_BY_RUNTIME",
+          "reports": {
+            "count": 3,
+            "statuses": {
+              "READY": 3
+            },
+            "model_calls": 6,
+            "lookups": 3
+          }
+        },
+        "manifest": {
+          "schema_version": "1.0",
+          "run_id": "ddb19373-a6eb-4b26-843f-172c76ba5473",
+          "case_id": "D02",
+          "started_at": "2026-11-07T00:59:44.658623+00:00",
+          "finished_at": "2026-11-07T00:59:44.731984+00:00",
+          "source_sha256": "0b4b89d593d0c991088bb93321d33c025249b0d2a0b51d116a52ee4d15866c7a",
+          "python": "3.13.18",
+          "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+          "cpu": "arm64",
+          "sqlite": "3.53.1",
+          "packages": {
+            "ortools": "9.15.6755",
+            "pydantic": "2.14.3"
+          },
+          "policy": {
+            "schema_version": "1.0",
+            "policy_version": "dev-v1",
+            "rule_version": "rules-v1",
+            "solver_seconds": 5.0,
+            "num_search_workers": 1,
+            "random_seed": 0,
+            "stale_retries": 2,
+            "evidence_lookup_passes": 1,
+            "db_busy_ms": 1000,
+            "work_conserving": true
+          },
+          "inputs": {
+            "config/dev-policy.json": "96c1a07b1bb39df8be79b145a43c3278c5baa74b422492eb00d0a0ccefd19fd6",
+            "data/dev/D02/initial.json": "82873969303e31bc73e737f35da5bf641725fba0b5202a7f58decf89ec729883",
+            "data/dev/D02/evidence.json": "a08b8829f082a00ae2a9d5529de7c51ebdff621aa5c837286d526dfd2cb723a7",
+            "simulation/dev/D02/events.jsonl": "925574e6e9f55a0224ce0bc70157ff8deccff438ea04593e11f0c72170e150b8",
+            "simulation/reports/D02.jsonl": "a1f0a972e9c5404e6040920ae6e4394971974f7cd990823b41e694297c7b68dc"
+          },
+          "report_mode": "fake",
+          "report_adapter": {
+            "prompt_version": "report-v1",
+            "max_model_calls": 2,
+            "max_lookups": 1
+          },
+          "command": "uv run --locked python -m shipyard run --case D02 --output outputs/reports-verification-20261107/fake-D02 --report-mode fake",
+          "argv": [
+            "/Users/yumsj/Documents/ChatGPT/산업공학종합설계/src/shipyard/__main__.py",
+            "run",
+            "--case",
+            "D02",
+            "--report-mode",
+            "fake",
+            "--output",
+            "outputs/reports-verification-20261107/fake-D02"
+          ],
+          "unit": "abstract_tick"
+        },
+        "independent_evaluation": {
+          "acceptance_passed": true,
+          "completed_without_additional_human": true,
+          "evaluated_event_count": 3,
+          "autonomous_correct_count": 3,
+          "additional_human_requests": 0,
+          "executed_violation_count": 0,
+          "issues": []
+        },
+        "artifact_sha256": {
+          "summary.json": "a8e402a5e4d52964c3bd25cce4bd7bd205faff5dfbb45bda4efd10e710d23508",
+          "execution.csv": "fb7c7517632ec82428387222023538fac409032a211bbd0cbc492d3c147d5ce3",
+          "run.sqlite3": "bdfed19c0f7ff29f1e7052182e3e83bb11e3d20e6576ccba9ba031ad0422ccbb",
+          "manifest.json": "a9e07bdb31c82958f1df4c0d9c65ba34b2c6e640d8a1933ec8b99ce38a3fcc00",
+          "trace.jsonl": "a13eb26103b95d78990379573a87ddcdae86b5ca1596cc762906fd209795ae6c",
+          "evaluation.json": "f2cdf6c2a0ee93c43da81244e3577e969dd715e97d8fd857dec57e43205da1bb",
+          "evaluation.csv": "d5366b6323267dd59bd5e4e6d98bdb8e768d2edf795df9c0ba229721d7abed64"
+        },
+        "report_trace_refs": [
+          {
+            "seq": 5,
+            "tick": 0,
+            "report_id": "E-fitup-W17",
+            "status": "READY",
+            "model_calls": 2,
+            "lookup_count": 1
+          },
+          {
+            "seq": 23,
+            "tick": 6,
+            "report_id": "E-repair-W17",
+            "status": "READY",
+            "model_calls": 2,
+            "lookup_count": 1
+          },
+          {
+            "seq": 24,
+            "tick": 6,
+            "report_id": "E-recheck-W17",
+            "status": "READY",
+            "model_calls": 2,
+            "lookup_count": 1
+          }
+        ],
+        "execution": [
+          {
+            "job_id": "W18",
+            "robot_id": "R2",
+            "phase": "WELD",
+            "start_tick": "-2",
+            "end_tick": "2"
+          },
+          {
+            "job_id": "W17",
+            "robot_id": "R1",
+            "phase": "MOVE",
+            "start_tick": "6",
+            "end_tick": "6"
+          },
+          {
+            "job_id": "W17",
+            "robot_id": "R1",
+            "phase": "SETUP",
+            "start_tick": "6",
+            "end_tick": "7"
+          },
+          {
+            "job_id": "W17",
+            "robot_id": "R1",
+            "phase": "WELD",
+            "start_tick": "7",
+            "end_tick": "11"
+          },
+          {
+            "job_id": "W20",
+            "robot_id": "R1",
+            "phase": "MOVE",
+            "start_tick": "11",
+            "end_tick": "11"
+          },
+          {
+            "job_id": "W20",
+            "robot_id": "R1",
+            "phase": "SETUP",
+            "start_tick": "11",
+            "end_tick": "12"
+          },
+          {
+            "job_id": "W20",
+            "robot_id": "R1",
+            "phase": "WELD",
+            "start_tick": "12",
+            "end_tick": "14"
+          }
+        ]
+      },
+      "D03": {
+        "output_directory": "outputs/reports-verification-20261107/fake-D03",
+        "summary": {
+          "schema_version": "1.0",
+          "run_id": "a6ee854f-93ae-4580-9b2a-b09339484839",
+          "termination": "COMPLETED",
+          "now_tick": 15,
+          "state_version": 48,
+          "active_plan_version": 12,
+          "completed_jobs": [
+            "W17",
+            "W18",
+            "W19",
+            "W20",
+            "W21"
+          ],
+          "unfinished_jobs": [],
+          "active_restrictions": [
+            {
+              "restriction_id": "restriction:E-pair-W17:PAIR_BAN",
+              "incident_id": "INC-W17-1",
+              "kind": "PAIR_BAN",
+              "target": {
+                "scope": "JOB_ROBOT",
+                "job_id": "W17",
+                "robot_id": "R1",
+                "zone_id": null
+              },
+              "status": "ACTIVE",
+              "opened_event_id": "E-pair-W17",
+              "opened_evidence_ids": [
+                "EV-pair-W17"
+              ],
+              "opened_tick": 0,
+              "rule_id": "rules-v1:PAIR_BAN",
+              "release_rule_id": "rules-v1:release:PAIR_BAN",
+              "released_event_id": null,
+              "released_evidence_ids": [],
+              "released_tick": null
+            }
+          ],
+          "deferred_jobs": [],
+          "additional_human_requests": 0,
+          "failures": [],
+          "completed_phases": 13,
+          "evaluation": "NOT_SCORED_BY_RUNTIME",
+          "reports": {
+            "count": 1,
+            "statuses": {
+              "READY": 1
+            },
+            "model_calls": 2,
+            "lookups": 1
+          }
+        },
+        "manifest": {
+          "schema_version": "1.0",
+          "run_id": "a6ee854f-93ae-4580-9b2a-b09339484839",
+          "case_id": "D03",
+          "started_at": "2026-11-07T00:59:45.008981+00:00",
+          "finished_at": "2026-11-07T00:59:45.160148+00:00",
+          "source_sha256": "0b4b89d593d0c991088bb93321d33c025249b0d2a0b51d116a52ee4d15866c7a",
+          "python": "3.13.18",
+          "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+          "cpu": "arm64",
+          "sqlite": "3.53.1",
+          "packages": {
+            "ortools": "9.15.6755",
+            "pydantic": "2.14.3"
+          },
+          "policy": {
+            "schema_version": "1.0",
+            "policy_version": "dev-v1",
+            "rule_version": "rules-v1",
+            "solver_seconds": 5.0,
+            "num_search_workers": 1,
+            "random_seed": 0,
+            "stale_retries": 2,
+            "evidence_lookup_passes": 1,
+            "db_busy_ms": 1000,
+            "work_conserving": true
+          },
+          "inputs": {
+            "config/dev-policy.json": "96c1a07b1bb39df8be79b145a43c3278c5baa74b422492eb00d0a0ccefd19fd6",
+            "data/dev/D03/initial.json": "05b765ecfec7301017f37181c2bf5e8ca990a38b01d1b996a4c630a6bb70d009",
+            "data/dev/D03/evidence.json": "ef4752195503687b9a8b16d09e65ab9e7ef18614457d5c8aceddb2df7ff75be7",
+            "simulation/dev/D03/events.jsonl": "54f5441a33afb3abaa02e11a60dbefe437ef3d619c0ef1ed9c529872ba99660c",
+            "simulation/reports/D03.jsonl": "4171c4897a8d0aac0d667b4b09311f15c09bc2dc946fe9d1b0af6a82f2b0273f"
+          },
+          "report_mode": "fake",
+          "report_adapter": {
+            "prompt_version": "report-v1",
+            "max_model_calls": 2,
+            "max_lookups": 1
+          },
+          "command": "uv run --locked python -m shipyard run --case D03 --output outputs/reports-verification-20261107/fake-D03 --report-mode fake",
+          "argv": [
+            "/Users/yumsj/Documents/ChatGPT/산업공학종합설계/src/shipyard/__main__.py",
+            "run",
+            "--case",
+            "D03",
+            "--report-mode",
+            "fake",
+            "--output",
+            "outputs/reports-verification-20261107/fake-D03"
+          ],
+          "unit": "abstract_tick"
+        },
+        "independent_evaluation": {
+          "acceptance_passed": true,
+          "completed_without_additional_human": true,
+          "evaluated_event_count": 1,
+          "autonomous_correct_count": 1,
+          "additional_human_requests": 0,
+          "executed_violation_count": 0,
+          "issues": []
+        },
+        "artifact_sha256": {
+          "summary.json": "9fed74f514946bc2c9a57a76e800e787c7c57d13823c678f9b9f8d856a882cf5",
+          "execution.csv": "e25f54be211b28fc4601c622d041eb513da938875fc0538822e64f1723dbb12f",
+          "run.sqlite3": "8d97da04f4d1f135e3746649b544b29b3ac2346c443be131eab347ca65a29927",
+          "manifest.json": "7335cb980194bed80103e45d60f18ec2fac0cdf1dde820b357657dfda8fa0ac2",
+          "trace.jsonl": "c9541111ad6958dc72b7f0cc6679693361bf3578f1fd6d25d5ed5e4608162682",
+          "evaluation.json": "886960673650bfa4c2e7ef3ff7a95cf0545836c03ebd1f4037266c946d8eba23",
+          "evaluation.csv": "4b0d606d3837b51122609db9a419d30b868ed4a38df983d5293a4746ecaad427"
+        },
+        "report_trace_refs": [
+          {
+            "seq": 5,
+            "tick": 0,
+            "report_id": "E-pair-W17",
+            "status": "READY",
+            "model_calls": 2,
+            "lookup_count": 1
+          }
+        ],
+        "execution": [
+          {
+            "job_id": "W19",
+            "robot_id": "R1",
+            "phase": "MOVE",
+            "start_tick": "0",
+            "end_tick": "1"
+          },
+          {
+            "job_id": "W18",
+            "robot_id": "R2",
+            "phase": "WELD",
+            "start_tick": "-2",
+            "end_tick": "2"
+          },
+          {
+            "job_id": "W19",
+            "robot_id": "R1",
+            "phase": "SETUP",
+            "start_tick": "1",
+            "end_tick": "2"
+          },
+          {
+            "job_id": "W21",
+            "robot_id": "R2",
+            "phase": "MOVE",
+            "start_tick": "2",
+            "end_tick": "2"
+          },
+          {
+            "job_id": "W21",
+            "robot_id": "R2",
+            "phase": "SETUP",
+            "start_tick": "2",
+            "end_tick": "3"
+          },
+          {
+            "job_id": "W19",
+            "robot_id": "R1",
+            "phase": "WELD",
+            "start_tick": "2",
+            "end_tick": "5"
+          },
+          {
+            "job_id": "W21",
+            "robot_id": "R2",
+            "phase": "WELD",
+            "start_tick": "3",
+            "end_tick": "5"
+          },
+          {
+            "job_id": "W17",
+            "robot_id": "R2",
+            "phase": "MOVE",
+            "start_tick": "5",
+            "end_tick": "6"
+          },
+          {
+            "job_id": "W17",
+            "robot_id": "R2",
+            "phase": "SETUP",
+            "start_tick": "6",
+            "end_tick": "7"
+          },
+          {
+            "job_id": "W17",
+            "robot_id": "R2",
+            "phase": "WELD",
+            "start_tick": "7",
+            "end_tick": "11"
+          },
+          {
+            "job_id": "W20",
+            "robot_id": "R1",
+            "phase": "MOVE",
+            "start_tick": "11",
+            "end_tick": "12"
+          },
+          {
+            "job_id": "W20",
+            "robot_id": "R1",
+            "phase": "SETUP",
+            "start_tick": "12",
+            "end_tick": "13"
+          },
+          {
+            "job_id": "W20",
+            "robot_id": "R1",
+            "phase": "WELD",
+            "start_tick": "13",
+            "end_tick": "15"
+          }
+        ]
+      },
+      "D04": {
+        "output_directory": "outputs/reports-verification-20261107/fake-D04",
+        "summary": {
+          "schema_version": "1.0",
+          "run_id": "6325f8da-25b8-4472-b4e3-f2fa89448b27",
+          "termination": "WAITING",
+          "now_tick": 6,
+          "state_version": 27,
+          "active_plan_version": 7,
+          "completed_jobs": [
+            "W18",
+            "W19",
+            "W21"
+          ],
+          "unfinished_jobs": [
+            {
+              "job_id": "W17",
+              "zone_id": "A",
+              "duration_ticks": 4,
+              "setup_ticks": 1,
+              "due_tick": 14,
+              "weight": 2,
+              "predecessor_ids": [],
+              "material_ready": "TRUE",
+              "lifecycle": "NOT_STARTED",
+              "assigned_robot_id": null,
+              "actual_weld_start": null,
+              "actual_weld_end": null,
+              "active_execution_id": null,
+              "fact_refs": {}
+            },
+            {
+              "job_id": "W20",
+              "zone_id": "A",
+              "duration_ticks": 2,
+              "setup_ticks": 1,
+              "due_tick": 18,
+              "weight": 2,
+              "predecessor_ids": [
+                "W17"
+              ],
+              "material_ready": "TRUE",
+              "lifecycle": "NOT_STARTED",
+              "assigned_robot_id": null,
+              "actual_weld_start": null,
+              "actual_weld_end": null,
+              "active_execution_id": null,
+              "fact_refs": {}
+            }
+          ],
+          "active_restrictions": [
+            {
+              "restriction_id": "restriction:E-fitup-W17:FITUP_HOLD",
+              "incident_id": "INC-W17-1",
+              "kind": "FITUP_HOLD",
+              "target": {
+                "scope": "JOB",
+                "job_id": "W17",
+                "robot_id": null,
+                "zone_id": null
+              },
+              "status": "ACTIVE",
+              "opened_event_id": "E-fitup-W17",
+              "opened_evidence_ids": [
+                "EV-fitup-W17"
+              ],
+              "opened_tick": 0,
+              "rule_id": "rules-v1:FITUP_HOLD",
+              "release_rule_id": "rules-v1:release:FITUP_HOLD",
+              "released_event_id": null,
+              "released_evidence_ids": [],
+              "released_tick": null
+            }
+          ],
+          "deferred_jobs": [
+            {
+              "evidence_ids": [
+                "EV-fitup-W17"
+              ],
+              "job_id": "W17",
+              "reason_codes": [
+                "FITUP_HOLD",
+                "NO_AVAILABLE_ROBOT"
+              ],
+              "recheck_triggers": [
+                "NEW_VALID_EVIDENCE",
+                "RESOURCE_OR_PHASE_COMPLETED",
+                "EXTERNAL_EVENT"
+              ],
+              "restriction_ids": [
+                "restriction:E-fitup-W17:FITUP_HOLD"
+              ]
+            },
+            {
+              "evidence_ids": [],
+              "job_id": "W20",
+              "reason_codes": [
+                "PREDECESSOR_DEFERRED"
+              ],
+              "recheck_triggers": [
+                "NEW_VALID_EVIDENCE",
+                "RESOURCE_OR_PHASE_COMPLETED",
+                "EXTERNAL_EVENT"
+              ],
+              "restriction_ids": []
+            }
+          ],
+          "additional_human_requests": 1,
+          "failures": [],
+          "completed_phases": 7,
+          "evaluation": "NOT_SCORED_BY_RUNTIME",
+          "reports": {
+            "count": 2,
+            "statuses": {
+              "READY": 2
+            },
+            "model_calls": 4,
+            "lookups": 2
+          }
+        },
+        "manifest": {
+          "schema_version": "1.0",
+          "run_id": "6325f8da-25b8-4472-b4e3-f2fa89448b27",
+          "case_id": "D04",
+          "started_at": "2026-11-07T00:59:45.453574+00:00",
+          "finished_at": "2026-11-07T00:59:45.511026+00:00",
+          "source_sha256": "0b4b89d593d0c991088bb93321d33c025249b0d2a0b51d116a52ee4d15866c7a",
+          "python": "3.13.18",
+          "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+          "cpu": "arm64",
+          "sqlite": "3.53.1",
+          "packages": {
+            "ortools": "9.15.6755",
+            "pydantic": "2.14.3"
+          },
+          "policy": {
+            "schema_version": "1.0",
+            "policy_version": "dev-v1",
+            "rule_version": "rules-v1",
+            "solver_seconds": 5.0,
+            "num_search_workers": 1,
+            "random_seed": 0,
+            "stale_retries": 2,
+            "evidence_lookup_passes": 1,
+            "db_busy_ms": 1000,
+            "work_conserving": true
+          },
+          "inputs": {
+            "config/dev-policy.json": "96c1a07b1bb39df8be79b145a43c3278c5baa74b422492eb00d0a0ccefd19fd6",
+            "data/dev/D04/initial.json": "648129c54b6080965115ad2ed70f620aef241032bee2c313e96088afa901f5ee",
+            "data/dev/D04/evidence.json": "233296fdc6435c7104f6ab4c6397ada03462ef9ac9d560be2f905717d824d63b",
+            "simulation/dev/D04/events.jsonl": "684ecdd1355cb643a5d88c268aca296250006bf23edfa7e5c40367e56147b310",
+            "simulation/reports/D04.jsonl": "3a2a68cf1dab01b25d25c98413832e3b14e5c269d842769a4eae9ae54410c1d1"
+          },
+          "report_mode": "fake",
+          "report_adapter": {
+            "prompt_version": "report-v1",
+            "max_model_calls": 2,
+            "max_lookups": 1
+          },
+          "command": "uv run --locked python -m shipyard run --case D04 --output outputs/reports-verification-20261107/fake-D04 --report-mode fake",
+          "argv": [
+            "/Users/yumsj/Documents/ChatGPT/산업공학종합설계/src/shipyard/__main__.py",
+            "run",
+            "--case",
+            "D04",
+            "--report-mode",
+            "fake",
+            "--output",
+            "outputs/reports-verification-20261107/fake-D04"
+          ],
+          "unit": "abstract_tick"
+        },
+        "independent_evaluation": {
+          "acceptance_passed": true,
+          "completed_without_additional_human": false,
+          "evaluated_event_count": 2,
+          "autonomous_correct_count": 0,
+          "additional_human_requests": 1,
+          "executed_violation_count": 0,
+          "issues": []
+        },
+        "artifact_sha256": {
+          "summary.json": "8b66c2dbf8c7e9df71da77ddf9d270adce8c571cbafd7ea66673bc23ff13a7c2",
+          "execution.csv": "71016fcec96bed5cacf8c3bc249eb266f25c5aeb5856c6b545be89883a3bf279",
+          "run.sqlite3": "9858e0defba95e1ee9407ce316f8cad5d1386783d816f4edec64670a8337f7d5",
+          "manifest.json": "84bbd624320d782b204be0e71aa84ac9df8b4a116f5680af1834b1e0f084c8ac",
+          "trace.jsonl": "25beed2d665e04cb2eadda92085e9f759364ddfda39c6372e4d5ec75dd19566c",
+          "evaluation.json": "8d20cea35fdd271d423cc2dc6bc2545af4e9503f23341d0520c3cf1e9c3a5a3f",
+          "evaluation.csv": "bc7cffd15c05befac18ae5da1e26c38d8bc0649b519dc8e783c17f63e4bbfdf7"
+        },
+        "report_trace_refs": [
+          {
+            "seq": 5,
+            "tick": 0,
+            "report_id": "E-fitup-W17",
+            "status": "READY",
+            "model_calls": 2,
+            "lookup_count": 1
+          },
+          {
+            "seq": 48,
+            "tick": 6,
+            "report_id": "E-repair-W17",
+            "status": "READY",
+            "model_calls": 2,
+            "lookup_count": 1
+          }
+        ],
+        "execution": [
+          {
+            "job_id": "W19",
+            "robot_id": "R1",
+            "phase": "MOVE",
+            "start_tick": "0",
+            "end_tick": "1"
+          },
+          {
+            "job_id": "W18",
+            "robot_id": "R2",
+            "phase": "WELD",
+            "start_tick": "-2",
+            "end_tick": "2"
+          },
+          {
+            "job_id": "W19",
+            "robot_id": "R1",
+            "phase": "SETUP",
+            "start_tick": "1",
+            "end_tick": "2"
+          },
+          {
+            "job_id": "W21",
+            "robot_id": "R2",
+            "phase": "MOVE",
+            "start_tick": "2",
+            "end_tick": "2"
+          },
+          {
+            "job_id": "W21",
+            "robot_id": "R2",
+            "phase": "SETUP",
+            "start_tick": "2",
+            "end_tick": "3"
+          },
+          {
+            "job_id": "W19",
+            "robot_id": "R1",
+            "phase": "WELD",
+            "start_tick": "2",
+            "end_tick": "5"
+          },
+          {
+            "job_id": "W21",
+            "robot_id": "R2",
+            "phase": "WELD",
+            "start_tick": "3",
+            "end_tick": "5"
+          }
+        ]
+      }
+    }
+  },
+  "remaining_failures": [],
+  "limits": [
+    "Fake scripts verify contracts and integration, not Korean language comprehension or real API quality.",
+    "Model access, SDK version, actual money/token/deadline limits and data handling policy remain undecided.",
+    "Timeout and state-race branches are injected tests, not live network or latency benchmarks.",
+    "No OS security sandbox, process crash auto-resume, human-team oracle review, Windows/Linux or main agent comparison experiment verified."
+  ],
+  "documentation_checks": {
+    "local_markdown_links_checked": 63,
+    "missing_targets": [],
+    "code_fences_balanced": true,
+    "mermaid_rendered": false
+  },
+  "actual_execution_environment": {
+    "UV_CACHE_DIR": "/private/tmp/shipyard-uv-cache",
+    "UV_PYTHON_INSTALL_DIR": "/private/tmp/shipyard-python",
+    "UV_PROJECT_ENVIRONMENT": "/private/tmp/shipyard-clean-validation",
+    "uv_executable": "/private/tmp/shipyard-tech-probe/bin/uv",
+    "pytest_python": "/Users/yumsj/Documents/ChatGPT/산업공학종합설계/.venv/bin/python"
+  },
+  "test_source_sha256": "3c1e7c41ac08e97561fc2af724dabd5edfcc96b2dc7f2177c557b1955ea3b5ca"
+}

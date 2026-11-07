@@ -17,6 +17,8 @@ from .controller import Controller
 from .repository import Repository
 from .reporting import export_run, inspect_run
 from .simulator import Simulator
+from .reports import (FakeReportModel, FakeReportRecord, ReportDelivery, ReportInput,
+                      MAX_MODEL_CALLS, MAX_LOOKUPS, PROMPT_VERSION)
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -60,7 +62,17 @@ def source_hash(root: Path) -> str:
     return value.hexdigest()
 
 
-def run_case(case: str, output: Path, root: Path=ROOT) -> dict:
+def run_case(case: str, output: Path, root: Path=ROOT, *, report_mode: str="structured") -> dict:
+    if report_mode not in {"structured", "fake"}:
+        raise ValueError("unknown report mode")
+    report_path = root/'simulation'/'reports'/f'{case}.jsonl'
+    report_records = {}
+    if report_mode == "fake":
+        for line in report_path.read_text(encoding='utf-8').splitlines():
+            record = FakeReportRecord.model_validate(parse_json(line))
+            if record.report_id in report_records:
+                raise ValueError("duplicate fake report ID")
+            report_records[record.report_id] = record
     output=Path(output)
     output.mkdir(parents=True,exist_ok=False)
     run_id=str(uuid4())
@@ -70,6 +82,22 @@ def run_case(case: str, output: Path, root: Path=ROOT) -> dict:
     repository=Repository(output/'run.sqlite3')
     repository.initialize(snapshot)
     controller=Controller(repository,policy)
+
+    def handle_arrivals(batch):
+        if report_mode == "structured":
+            return controller.handle_batch(batch)
+        reports, scripts = [], {}
+        for delivery in batch.deliveries:
+            event = delivery.event
+            record = report_records.get(event.event_id)
+            if record is None or record.delivery_tick != batch.tick:
+                raise ValueError("missing fake report or delivery tick mismatch")
+            reports.append(ReportDelivery(report=ReportInput(run_id=run_id,report_id=record.report_id,
+                incident_id=event.incident_id,source_id=event.source_id,observed_tick=event.observed_tick,
+                received_tick=batch.tick,text=record.text,target_hint=record.target_hint),
+                published_evidence=delivery.published_evidence))
+            scripts[record.report_id] = record.responses
+        return controller.handle_report_batch(batch.tick,batch.observations,reports,FakeReportModel(scripts))
     for progress in snapshot.execution_progress:
         phase=progress.current_phase
         if phase:
@@ -83,7 +111,7 @@ def run_case(case: str, output: Path, root: Path=ROOT) -> dict:
     try:
         for _ in range(1000):
             batch=simulator.due_events(tick)
-            status=controller.handle_batch(batch)
+            status=handle_arrivals(batch)
             for _microstep in range(100):
                 current=repository.read_snapshot()
                 due=[i for i in current.current_instructions if i.status=='PENDING' and i.action!='WAIT' and i.not_before_tick<=tick]
@@ -93,7 +121,7 @@ def run_case(case: str, output: Path, root: Path=ROOT) -> dict:
                         simulator.register_completion(observation,instruction.expected_end_tick)
                 if simulator.next_tick()!=tick:
                     break
-                status=controller.handle_batch(simulator.due_events(tick))
+                status=handle_arrivals(simulator.due_events(tick))
             else:
                 raise RuntimeError('zero-duration phase loop exceeded finite microstep bound')
             current=repository.read_snapshot()
@@ -121,23 +149,27 @@ def run_case(case: str, output: Path, root: Path=ROOT) -> dict:
         repository.close()
         summary=export_run(output,termination)
         input_paths=[root/'config/dev-policy.json',root/'data/dev'/case/'initial.json',root/'data/dev'/case/'evidence.json',root/'simulation/dev'/case/'events.jsonl']
+        if report_mode == 'fake':
+            input_paths.append(report_path)
         manifest={'schema_version':'1.0','run_id':run_id,'case_id':case,'started_at':started,'finished_at':utc_now(),
             'source_sha256':source_hash(root),'python':platform.python_version(),'platform':platform.platform(),'cpu':platform.machine(),
             'sqlite':sqlite3.sqlite_version,'packages':{p:importlib.metadata.version(p) for p in ['ortools','pydantic']},
             'policy':policy.model_dump(),'inputs':{str(p.relative_to(root)):hashlib.sha256(p.read_bytes()).hexdigest() for p in input_paths},
-            'command':f'uv run --locked python -m shipyard run --case {case} --output {output}','argv':sys.argv,'unit':'abstract_tick'}
+            'report_mode':report_mode,'report_adapter':{'prompt_version':PROMPT_VERSION,'max_model_calls':MAX_MODEL_CALLS,'max_lookups':MAX_LOOKUPS} if report_mode=='fake' else None,
+            'command':f'uv run --locked python -m shipyard run --case {case} --output {output} --report-mode {report_mode}','argv':sys.argv,'unit':'abstract_tick'}
         (output/'manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     return summary
 
 
 def main(argv=None):
-    parser=argparse.ArgumentParser(description='정형 사건 기반 용접 예외 처리 시뮬레이션')
+    parser=argparse.ArgumentParser(description='용접 예외 처리 시뮬레이션 (정형 사건 / 가짜 모델 문장 보고)')
     commands=parser.add_subparsers(dest='command',required=True)
     run=commands.add_parser('run');run.add_argument('--case',choices=['D01','D02','D03','D04'],required=True);run.add_argument('--output',type=Path,required=True)
+    run.add_argument('--report-mode',choices=['structured','fake'],default='structured')
     inspect=commands.add_parser('inspect');inspect.add_argument('--run-dir',type=Path,required=True)
     args=parser.parse_args(argv)
     try:
-        summary=run_case(args.case,args.output) if args.command=='run' else inspect_run(args.run_dir)
+        summary=run_case(args.case,args.output,report_mode=args.report_mode) if args.command=='run' else inspect_run(args.run_dir)
         print(json.dumps(summary,ensure_ascii=False,indent=2))
         return 1 if summary.get('termination')=='FAILED' else 0
     except (OSError,ValueError,RuntimeError,sqlite3.Error) as error:

@@ -2,6 +2,7 @@
 import csv
 import json
 import sqlite3
+from collections import Counter
 from pathlib import Path
 from .contracts import PlanningSnapshot
 
@@ -55,5 +56,12 @@ def export_run(run_dir: Path, termination: str) -> dict:
         'failures':[{'seq':r['seq'],'outcome':r['outcome']} for r in trace if r['stage']=='FAILURE' or (r['stage']=='CHECK' and r['outcome'] not in {'PASS','PASSED'})],
         'completed_phases':len(executions),'evaluation':'NOT_SCORED_BY_RUNTIME',
     }
+    reports = [row['data'] for row in trace if row['stage'] == 'REPORT_RESULT']
+    if reports:
+        summary['reports'] = {
+            'count': len(reports), 'statuses': dict(Counter(r['status'] for r in reports)),
+            'model_calls': sum(r['model_calls'] for r in reports),
+            'lookups': sum(r['lookup_count'] for r in reports),
+        }
     (run_dir/'summary.json').write_text(json.dumps(summary,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     return summary

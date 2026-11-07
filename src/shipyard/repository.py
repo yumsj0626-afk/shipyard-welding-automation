@@ -164,6 +164,11 @@ class Repository:
         return [dict(json.loads(row["payload_json"]), seq=row["log_seq"])
                 for row in self._conn.execute("SELECT log_seq,payload_json FROM audit_log ORDER BY log_seq")]
 
+    def report_receipts(self) -> dict[str, dict]:
+        """Committed adapter results; reports and events share one transaction."""
+        return {record["data"]["report_id"]: record["data"]
+                for record in self.audit_records() if record["stage"] == "REPORT_RESULT"}
+
     def commit_snapshot(self, new_snapshot, expected_version, stage, outcome="APPLIED", audit_data=None):
         self._conn.execute("BEGIN IMMEDIATE")
         try:
@@ -202,10 +207,13 @@ class Repository:
                 new.append(group[0])
         return new, results
 
-    def commit_event_batch(self, new_snapshot, deliveries, results, expected_version):
+    def commit_event_batch(self, new_snapshot, deliveries, results, expected_version, *, report_results=()):
         self._conn.execute("BEGIN IMMEDIATE")
         try:
             current = self._current(expected_version)
+            receipts = self.report_receipts()
+            if any(result.report_id in receipts for result in report_results):
+                raise StaleStateError("report was handled after the caller's read")
             if new_snapshot.active_plan_version != current.active_plan_version:
                 raise ValueError("events cannot activate plans")
             result_by_id = {r["event_id"]: r for r in results}
@@ -253,6 +261,13 @@ class Repository:
                 if result.get("intervention_kind") == "ADDITIONAL_HUMAN_REQUEST" and result["outcome"] != "DUPLICATE":
                     self._audit(stored, "HUMAN_REQUEST", "REQUESTED",
                                 {"event_id": event.event_id, "reason_codes": result.get("reason_codes", [])},
+                                current.state_version, stored.state_version)
+            for result in report_results:
+                self._audit(stored, "REPORT_RESULT", result.status, result.model_dump(mode="json"),
+                            current.state_version, stored.state_version)
+                if result.delivery is None:
+                    self._audit(stored, "HUMAN_REQUEST", "REQUESTED",
+                                {"report_id": result.report_id, "reason_codes": result.reason_codes},
                                 current.state_version, stored.state_version)
             self._conn.execute("COMMIT")
             return stored

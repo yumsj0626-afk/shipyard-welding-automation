@@ -5,6 +5,8 @@ from .contracts import (
     Observation, PhaseRecord, Policy, new_id,
 )
 from .repository import Repository
+from .reports import (AdapterResult, ReportDelivery, ReportModel, fallback_delivery,
+                      interpret_report, report_fingerprint)
 
 
 class Controller:
@@ -12,7 +14,7 @@ class Controller:
         self.repository = repository
         self.policy = policy
 
-    def handle_batch(self, batch: ArrivalBatch):
+    def _accept_observations(self, batch: ArrivalBatch):
         snapshot = self.repository.read_snapshot()
         if batch.tick < snapshot.now_tick:
             raise ValueError("INVALID_INPUT: clock cannot move backwards")
@@ -21,11 +23,67 @@ class Controller:
             self.repository.commit_snapshot(snapshot, snapshot.state_version, "CLOCK", "ADVANCED")
         for observation in batch.observations:
             self.complete_phase(observation)
+
+    def handle_batch(self, batch: ArrivalBatch):
+        self._accept_observations(batch)
         if batch.deliveries:
             snapshot = self.repository.read_snapshot()
             fresh, prior = self.repository.filter_deliveries(batch.deliveries)
             updated, results = events.apply_deliveries(snapshot, fresh)
             self.repository.commit_event_batch(updated, batch.deliveries, prior + results, snapshot.state_version)
+        self._cancel_blocked_preparation()
+        return self.plan_and_apply()
+
+    def handle_report_batch(self, tick: int, observations: list[Observation],
+                            reports: list[ReportDelivery], model: ReportModel):
+        """Interpret all arrivals before one shared event update and replan."""
+        before = self.repository.read_snapshot()
+        self._accept_observations(ArrivalBatch(tick=tick, observations=observations))
+        snapshot = self.repository.read_snapshot()
+        receipts = self.repository.report_receipts()
+        grouped = {}
+        for item in reports:
+            grouped.setdefault(item.report.report_id, []).append(item)
+        results = []
+        accepted = {}
+        rejected = False
+        for report_id, group in grouped.items():
+            fingerprints = {report_fingerprint(item) for item in group}
+            old = receipts.get(report_id)
+            if old:
+                duplicate = fingerprints == {old["report_fingerprint"]}
+                self.repository.audit("REPORT_RECEIPT", "DUPLICATE" if duplicate else "ID_CONFLICT",
+                                      {"report_id": report_id, "original_status": old["status"],
+                                       "fingerprints": sorted(fingerprints)})
+                if not duplicate:
+                    rejected = True
+                    self.repository.audit("HUMAN_REQUEST", "REQUESTED",
+                                          {"report_id": report_id, "reason_codes": ["REPORT_ID_REUSED"]})
+                continue
+            item = group[0]
+            if len(fingerprints) > 1:
+                result = AdapterResult(status="ID_CONFLICT", reason_codes=["REPORT_ID_REUSED"],
+                    report_id=report_id, report_fingerprint=report_fingerprint(item),
+                    based_on_state_version=snapshot.state_version, received_report=item.model_copy(deep=True),
+                    trace=[{"step": "CONFLICT", "fingerprints": sorted(fingerprints)}])
+            else:
+                result = interpret_report(item, snapshot, model)
+            results.append(result)
+            accepted[report_id] = item
+        current = self.repository.read_snapshot()
+        for result in results:
+            if result.delivery and current.state_version != result.based_on_state_version:
+                result.status = "STALE_CONTEXT"
+                result.reason_codes = ["STATE_CHANGED_DURING_INTERPRETATION"]
+                result.delivery = fallback_delivery(accepted[result.report_id], current)
+        deliveries = [result.delivery for result in results if result.delivery]
+        if results:
+            fresh, prior = self.repository.filter_deliveries(deliveries)
+            updated, event_results = events.apply_deliveries(current, fresh)
+            self.repository.commit_event_batch(updated, deliveries, prior + event_results,
+                                               current.state_version, report_results=results)
+        if reports and not deliveries and before.state_version == current.state_version:
+            return "REPORT_REJECTED" if results or rejected else "DUPLICATE"
         self._cancel_blocked_preparation()
         return self.plan_and_apply()
 
