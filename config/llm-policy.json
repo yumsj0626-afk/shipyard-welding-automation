@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0",
+  "model": "gpt-6-luna",
+  "project_id": null,
+  "approved_for_paid_calls": false,
+  "data_policy": "SYNTHETIC_DEV_ONLY",
+  "max_input_tokens": 12000,
+  "max_output_tokens": 1000,
+  "request_timeout_seconds": 15,
+  "report_deadline_seconds": 45,
+  "run_deadline_seconds": 180,
+  "report_budget_micro_usd": 5000,
+  "run_budget_micro_usd": 50000,
+  "project_budget_micro_usd": 100000,
+  "input_sha256": {
+    "data/dev/D01/initial.json": "0bfd7b2ff6b0639d2ffed2744641e757eccda086388d4b06722be3cc44fc9077",
+    "data/dev/D01/evidence.json": "d4203f91701e05520154a8aa343255124ad4285ad20d1bd561b360787cdf7887",
+    "simulation/dev/D01/events.jsonl": "925574e6e9f55a0224ce0bc70157ff8deccff438ea04593e11f0c72170e150b8",
+    "simulation/reports/D01.jsonl": "a1f0a972e9c5404e6040920ae6e4394971974f7cd990823b41e694297c7b68dc",
+    "config/dev-policy.json": "96c1a07b1bb39df8be79b145a43c3278c5baa74b422492eb00d0a0ccefd19fd6"
+  }
+}

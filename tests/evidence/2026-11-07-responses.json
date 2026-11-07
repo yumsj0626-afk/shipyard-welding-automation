@@ -1,0 +1,2568 @@
+{
+  "date": "2026-11-07",
+  "stage": "Responses adapter; offline SDK mock verification only",
+  "base_commit": "6bd8af38b2b44ab630e77fe46bed93a4f1520267",
+  "source_sha256": "e6551e8f3923d1b848c205be7bc0edee4f7aa6112a9f270683947efb450b5c58",
+  "test_source_sha256": "0f211cb50254d1ae8ad4cbf057e6dcdc9e349149b5e6ba615150bdd86b8c81c5",
+  "evaluator_sha256": "8e24d718eb6b0d07a9a32d437df9e6a68e7d2754469f64ad1c50b42706c2e120",
+  "lock_sha256": "d62e46f3fd06ee63327a9a234cdbf0783ff2f97aa716108cec34280d9e4dc46d",
+  "policy_sha256": "d7b232c2792c6ee9facd5b4eede12c56f0dc70f655940c58dd8bbd0461f97c4b",
+  "environment": {
+    "python": "3.13.18",
+    "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+    "sqlite": "3.53.1",
+    "packages": {
+      "openai": "3.46.0",
+      "httpx2": "2.16.0",
+      "pydantic": "2.14.3",
+      "ortools": "9.15.6755",
+      "pytest": "9.2.0"
+    }
+  },
+  "baseline_test_files_unchanged": true,
+  "full_pytest": {
+    "tests": 291,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "test_cases": [
+      {
+        "class": "tests.test_application",
+        "name": "test_change_between_check_and_apply_replans_from_new_snapshot"
+      },
+      {
+        "class": "tests.test_application",
+        "name": "test_stale_retries_are_bounded_without_partial_activation"
+      },
+      {
+        "class": "tests.test_application",
+        "name": "test_fault_after_instruction_write_rolls_back_activation"
+      },
+      {
+        "class": "tests.test_application",
+        "name": "test_simultaneous_writers_only_one_can_commit"
+      },
+      {
+        "class": "tests.test_application",
+        "name": "test_duplicate_start_and_inactive_instruction_never_execute_twice"
+      },
+      {
+        "class": "tests.test_application",
+        "name": "test_failure_never_activates_new_plan_or_claims_normal_wait[INFEASIBLE]"
+      },
+      {
+        "class": "tests.test_application",
+        "name": "test_failure_never_activates_new_plan_or_claims_normal_wait[NO_SOLUTION_WITHIN_LIMIT]"
+      },
+      {
+        "class": "tests.test_application",
+        "name": "test_failure_never_activates_new_plan_or_claims_normal_wait[MODEL_INVALID]"
+      },
+      {
+        "class": "tests.test_application",
+        "name": "test_failure_never_activates_new_plan_or_claims_normal_wait[INTERNAL_ERROR]"
+      },
+      {
+        "class": "tests.test_application",
+        "name": "test_feasible_unproven_candidate_may_apply_but_keeps_status"
+      },
+      {
+        "class": "tests.test_checker",
+        "name": "test_independent_checker_rejects_corrupted_plans[weld-WELD_DURATION]"
+      },
+      {
+        "class": "tests.test_checker",
+        "name": "test_independent_checker_rejects_corrupted_plans[travel-TRAVEL_DURATION]"
+      },
+      {
+        "class": "tests.test_checker",
+        "name": "test_independent_checker_rejects_corrupted_plans[setup-SETUP_DURATION_OR_WELD_GAP]"
+      },
+      {
+        "class": "tests.test_checker",
+        "name": "test_independent_checker_rejects_corrupted_plans[capability-FORBIDDEN_ASSIGNMENT]"
+      },
+      {
+        "class": "tests.test_checker",
+        "name": "test_independent_checker_rejects_corrupted_plans[fixed-FIXED_EXECUTION_CHANGED]"
+      },
+      {
+        "class": "tests.test_checker",
+        "name": "test_independent_checker_rejects_corrupted_plans[precedence-PRECEDENCE]"
+      },
+      {
+        "class": "tests.test_checker",
+        "name": "test_independent_checker_rejects_corrupted_plans[overlap-ROBOT_OVERLAP]"
+      },
+      {
+        "class": "tests.test_checker",
+        "name": "test_independent_checker_rejects_corrupted_plans[missing-COMPLETION_PATH_SET]"
+      },
+      {
+        "class": "tests.test_checker",
+        "name": "test_independent_checker_rejects_corrupted_plans[idle-UNJUSTIFIED_IDLE]"
+      },
+      {
+        "class": "tests.test_checker",
+        "name": "test_new_hold_invalidates_previously_valid_plan_without_using_constraint_builder"
+      },
+      {
+        "class": "tests.test_checker",
+        "name": "test_plan_checked_before_state_change_is_stale"
+      },
+      {
+        "class": "tests.test_checker",
+        "name": "test_zone_overlap_is_rejected_even_when_robot_intervals_do_not_overlap"
+      },
+      {
+        "class": "tests.test_checker",
+        "name": "test_finished_setup_retains_zone_for_own_weld_only"
+      },
+      {
+        "class": "tests.test_checker",
+        "name": "test_runtime_gate_requires_actual_predecessor_completion"
+      },
+      {
+        "class": "tests.test_checker",
+        "name": "test_execution_checker_does_not_import_model_builder_or_solver"
+      },
+      {
+        "class": "tests.test_constraints",
+        "name": "test_fitup_is_global_and_predecessor_closure_preserves_unrelated_work"
+      },
+      {
+        "class": "tests.test_constraints",
+        "name": "test_pair_ban_does_not_ban_job_or_robot"
+      },
+      {
+        "class": "tests.test_constraints",
+        "name": "test_no_alternatives_keeps_running_weld_and_explains_each_deferral"
+      },
+      {
+        "class": "tests.test_constraints",
+        "name": "test_missing_travel_is_not_silently_zero"
+      },
+      {
+        "class": "tests.test_constraints",
+        "name": "test_cyclic_precedence_is_rejected"
+      },
+      {
+        "class": "tests.test_contracts",
+        "name": "test_json_rejects_ambiguous_values[{\"a\":1,\"a\":2}]"
+      },
+      {
+        "class": "tests.test_contracts",
+        "name": "test_json_rejects_ambiguous_values[{\"x\":NaN}]"
+      },
+      {
+        "class": "tests.test_contracts",
+        "name": "test_json_rejects_ambiguous_values[{\"x\":Infinity}]"
+      },
+      {
+        "class": "tests.test_contracts",
+        "name": "test_json_rejects_ambiguous_values[{\"x\":-Infinity}]"
+      },
+      {
+        "class": "tests.test_contracts",
+        "name": "test_strict_integer[4]"
+      },
+      {
+        "class": "tests.test_contracts",
+        "name": "test_strict_integer[True]"
+      },
+      {
+        "class": "tests.test_contracts",
+        "name": "test_strict_integer[-1]"
+      },
+      {
+        "class": "tests.test_contracts",
+        "name": "test_strict_integer[1.5]"
+      },
+      {
+        "class": "tests.test_contracts",
+        "name": "test_snapshot_forbids_private_fields[future_recovery_tick]"
+      },
+      {
+        "class": "tests.test_contracts",
+        "name": "test_snapshot_forbids_private_fields[oracle]"
+      },
+      {
+        "class": "tests.test_contracts",
+        "name": "test_snapshot_forbids_private_fields[truth]"
+      },
+      {
+        "class": "tests.test_contracts",
+        "name": "test_snapshot_forbids_private_fields[simulator]"
+      },
+      {
+        "class": "tests.test_contracts",
+        "name": "test_initial_references_and_graph[unknown_pred]"
+      },
+      {
+        "class": "tests.test_contracts",
+        "name": "test_initial_references_and_graph[cycle]"
+      },
+      {
+        "class": "tests.test_contracts",
+        "name": "test_initial_references_and_graph[missing_travel]"
+      },
+      {
+        "class": "tests.test_contracts",
+        "name": "test_initial_references_and_graph[unknown_robot]"
+      },
+      {
+        "class": "tests.test_contracts",
+        "name": "test_initial_references_and_graph[duplicate_id]"
+      },
+      {
+        "class": "tests.test_contracts",
+        "name": "test_initial_references_and_graph[unicode_id]"
+      },
+      {
+        "class": "tests.test_contracts",
+        "name": "test_target_does_not_silently_expand_scope"
+      },
+      {
+        "class": "tests.test_evaluation",
+        "name": "test_manual_feasible_examples_and_human_distinction[D01]"
+      },
+      {
+        "class": "tests.test_evaluation",
+        "name": "test_manual_feasible_examples_and_human_distinction[D02]"
+      },
+      {
+        "class": "tests.test_evaluation",
+        "name": "test_manual_feasible_examples_and_human_distinction[D03]"
+      },
+      {
+        "class": "tests.test_evaluation",
+        "name": "test_manual_feasible_examples_and_human_distinction[D04]"
+      },
+      {
+        "class": "tests.test_evaluation",
+        "name": "test_w17_repair_is_not_actual_predecessor_completion"
+      },
+      {
+        "class": "tests.test_evaluation",
+        "name": "test_checker_pass_does_not_hide_execution_violation"
+      },
+      {
+        "class": "tests.test_evaluation",
+        "name": "test_starts_without_end_are_not_hidden_by_end_only_export"
+      },
+      {
+        "class": "tests.test_evaluation",
+        "name": "test_repair_without_recheck_does_not_release_hold"
+      },
+      {
+        "class": "tests.test_evaluation",
+        "name": "test_fabricated_release_evidence_cannot_pass_two_id_count"
+      },
+      {
+        "class": "tests.test_evaluation",
+        "name": "test_fitup_hold_scope_must_cover_every_robot"
+      },
+      {
+        "class": "tests.test_evaluation",
+        "name": "test_d02_timeout_wait_does_not_count_as_justified_wait"
+      },
+      {
+        "class": "tests.test_evaluation",
+        "name": "test_candidate_violation_and_checker_block_are_separate_from_execution"
+      },
+      {
+        "class": "tests.test_evaluation",
+        "name": "test_missing_event_does_not_shrink_denominator"
+      },
+      {
+        "class": "tests.test_evaluation",
+        "name": "test_evaluator_reads_raw_exports_not_summary"
+      },
+      {
+        "class": "tests.test_evaluation",
+        "name": "test_fabricated_csv_completion_requires_actual_trace"
+      },
+      {
+        "class": "tests.test_evaluation",
+        "name": "test_evaluator_does_not_import_operational_modules"
+      },
+      {
+        "class": "tests.test_events",
+        "name": "test_fitup_hold_is_job_wide_without_mutating_input"
+      },
+      {
+        "class": "tests.test_events",
+        "name": "test_pair_ban_does_not_become_job_or_robot_ban"
+      },
+      {
+        "class": "tests.test_events",
+        "name": "test_repair_alone_cannot_release_and_linked_recheck_can"
+      },
+      {
+        "class": "tests.test_events",
+        "name": "test_recovery_releases_only_its_own_restriction"
+      },
+      {
+        "class": "tests.test_events",
+        "name": "test_wrong_incident_or_recheck_before_repair_cannot_release"
+      },
+      {
+        "class": "tests.test_events",
+        "name": "test_unknown_source_and_future_evidence_are_not_published"
+      },
+      {
+        "class": "tests.test_events",
+        "name": "test_conflicting_sources_do_not_depend_on_arrival_order"
+      },
+      {
+        "class": "tests.test_events",
+        "name": "test_missing_reference_is_filled_from_current_public_evidence"
+      },
+      {
+        "class": "tests.test_events",
+        "name": "test_invalid_evidence_identity_is_quarantined"
+      },
+      {
+        "class": "tests.test_events",
+        "name": "test_running_weld_is_not_stopped_by_out_of_scope_event"
+      },
+      {
+        "class": "tests.test_events",
+        "name": "test_superseded_repair_true_cannot_release_with_old_link"
+      },
+      {
+        "class": "tests.test_events",
+        "name": "test_supersedes_cannot_replace_another_source_fact"
+      },
+      {
+        "class": "tests.test_events",
+        "name": "test_pair_recovery_needs_newer_linked_evidence_for_matching_target"
+      },
+      {
+        "class": "tests.test_events",
+        "name": "test_current_evidence_resolves_only_matching_information_hold"
+      },
+      {
+        "class": "tests.test_events",
+        "name": "test_maximum_length_external_id_still_produces_a_valid_restriction"
+      },
+      {
+        "class": "tests.test_information_boundary",
+        "name": "test_dependency_boundaries_are_executable_rules"
+      },
+      {
+        "class": "tests.test_information_boundary",
+        "name": "test_public_loader_reads_only_the_two_public_files"
+      },
+      {
+        "class": "tests.test_information_boundary",
+        "name": "test_future_and_oracle_sentinels_cannot_reach_planning_before_arrival"
+      },
+      {
+        "class": "tests.test_integration",
+        "name": "test_end_to_end_and_independent_score[D01-done0-0]"
+      },
+      {
+        "class": "tests.test_integration",
+        "name": "test_end_to_end_and_independent_score[D02-done1-0]"
+      },
+      {
+        "class": "tests.test_integration",
+        "name": "test_end_to_end_and_independent_score[D03-done2-0]"
+      },
+      {
+        "class": "tests.test_integration",
+        "name": "test_end_to_end_and_independent_score[D04-done3-1]"
+      },
+      {
+        "class": "tests.test_integration",
+        "name": "test_never_overwrites_a_previous_run"
+      },
+      {
+        "class": "tests.test_llm_budget",
+        "name": "test_reservation_and_actual_settlement_release_only_unused_headroom"
+      },
+      {
+        "class": "tests.test_llm_budget",
+        "name": "test_each_limit_is_checked_before_insert[report-r1-r1-p1-p1-limits0-REPORT_BUDGET_EXCEEDED]"
+      },
+      {
+        "class": "tests.test_llm_budget",
+        "name": "test_each_limit_is_checked_before_insert[run-r1-r1-p1-p2-limits1-RUN_BUDGET_EXCEEDED]"
+      },
+      {
+        "class": "tests.test_llm_budget",
+        "name": "test_each_limit_is_checked_before_insert[project-r1-r2-p1-p1-limits2-PROJECT_BUDGET_EXCEEDED]"
+      },
+      {
+        "class": "tests.test_llm_budget",
+        "name": "test_failed_or_crashed_requests_remain_reserved_after_reopening"
+      },
+      {
+        "class": "tests.test_llm_budget",
+        "name": "test_settlement_is_idempotent_and_conflicting_or_excess_actual_cost_preserves_reservation"
+      },
+      {
+        "class": "tests.test_llm_budget",
+        "name": "test_failed_settlement_write_rolls_back_without_releasing_reservation"
+      },
+      {
+        "class": "tests.test_llm_budget",
+        "name": "test_different_projects_and_runs_are_independent_in_shared_ledger"
+      },
+      {
+        "class": "tests.test_llm_budget",
+        "name": "test_concurrent_connections_cannot_both_claim_last_project_headroom"
+      },
+      {
+        "class": "tests.test_llm_budget",
+        "name": "test_project_limits_cannot_be_silently_raised_on_restart"
+      },
+      {
+        "class": "tests.test_llm_budget",
+        "name": "test_request_count_survives_settlement_and_process_restart"
+      },
+      {
+        "class": "tests.test_llm_budget",
+        "name": "test_competing_connections_share_the_last_request_slot"
+      },
+      {
+        "class": "tests.test_llm_budget",
+        "name": "test_request_limit_is_scoped_to_project_run_and_report"
+      },
+      {
+        "class": "tests.test_llm_budget",
+        "name": "test_none_request_limit_preserves_existing_budget_only_behavior"
+      },
+      {
+        "class": "tests.test_llm_budget",
+        "name": "test_request_limit_requires_a_positive_integer_and_rejects_bool[0]"
+      },
+      {
+        "class": "tests.test_llm_budget",
+        "name": "test_request_limit_requires_a_positive_integer_and_rejects_bool[-1]"
+      },
+      {
+        "class": "tests.test_llm_budget",
+        "name": "test_request_limit_requires_a_positive_integer_and_rejects_bool[True]"
+      },
+      {
+        "class": "tests.test_llm_budget",
+        "name": "test_request_limit_requires_a_positive_integer_and_rejects_bool[False]"
+      },
+      {
+        "class": "tests.test_llm_budget",
+        "name": "test_request_limit_requires_a_positive_integer_and_rejects_bool[1.0]"
+      },
+      {
+        "class": "tests.test_llm_budget",
+        "name": "test_request_limit_requires_a_positive_integer_and_rejects_bool[2]"
+      },
+      {
+        "class": "tests.test_llm_budget",
+        "name": "test_amounts_must_be_positive_integers_without_bool_or_overflow[0]"
+      },
+      {
+        "class": "tests.test_llm_budget",
+        "name": "test_amounts_must_be_positive_integers_without_bool_or_overflow[-1]"
+      },
+      {
+        "class": "tests.test_llm_budget",
+        "name": "test_amounts_must_be_positive_integers_without_bool_or_overflow[True]"
+      },
+      {
+        "class": "tests.test_llm_budget",
+        "name": "test_amounts_must_be_positive_integers_without_bool_or_overflow[False]"
+      },
+      {
+        "class": "tests.test_llm_budget",
+        "name": "test_amounts_must_be_positive_integers_without_bool_or_overflow[1.0]"
+      },
+      {
+        "class": "tests.test_llm_budget",
+        "name": "test_amounts_must_be_positive_integers_without_bool_or_overflow[1]"
+      },
+      {
+        "class": "tests.test_llm_budget",
+        "name": "test_amounts_must_be_positive_integers_without_bool_or_overflow[None]"
+      },
+      {
+        "class": "tests.test_llm_budget",
+        "name": "test_amounts_must_be_positive_integers_without_bool_or_overflow[9223372036854775808]"
+      },
+      {
+        "class": "tests.test_llm_budget",
+        "name": "test_invalid_scope_ids_cannot_create_untracked_reservations[]"
+      },
+      {
+        "class": "tests.test_llm_budget",
+        "name": "test_invalid_scope_ids_cannot_create_untracked_reservations[ ]"
+      },
+      {
+        "class": "tests.test_llm_budget",
+        "name": "test_invalid_scope_ids_cannot_create_untracked_reservations[bad\\x00id]"
+      },
+      {
+        "class": "tests.test_llm_budget",
+        "name": "test_invalid_scope_ids_cannot_create_untracked_reservations[None]"
+      },
+      {
+        "class": "tests.test_llm_budget",
+        "name": "test_invalid_scope_ids_cannot_create_untracked_reservations[1]"
+      },
+      {
+        "class": "tests.test_llm_budget",
+        "name": "test_existing_unrelated_database_or_file_is_not_modified"
+      },
+      {
+        "class": "tests.test_llm_budget",
+        "name": "test_ledger_records_explicit_schema_identity_and_rejects_future_schema"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_lookup_then_proposal_preserves_host_metadata_and_public_inputs"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_empty_citations_do_not_turn_report_text_into_evidence"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_lookup_exposes_only_visible_arrived_evidence"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_invented_or_duplicate_references_cannot_bypass_lookup[references0]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_invented_or_duplicate_references_cannot_bypass_lookup[references1]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_invented_or_duplicate_references_cannot_bypass_lookup[references2]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_invented_or_duplicate_references_cannot_bypass_lookup[references3]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_even_real_evidence_must_have_been_returned_by_lookup"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_untrusted_arrivals_are_rejected_before_model_call[future]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_untrusted_arrivals_are_rejected_before_model_call[source]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_untrusted_arrivals_are_rejected_before_model_call[observer]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_untrusted_arrivals_are_rejected_before_model_call[authority]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_untrusted_arrivals_are_rejected_before_model_call[incident]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_untrusted_arrivals_are_rejected_before_model_call[target]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_untrusted_arrivals_are_rejected_before_model_call[conflict]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_strict_response_rejects_code_and_host_metadata_fields[not json]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_strict_response_rejects_code_and_host_metadata_fields[```json\\n{\"action\":\"refuse\"}\\n```]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_strict_response_rejects_code_and_host_metadata_fields[{\"action\":\"refuse\",\"action\":\"propose\"}]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_strict_response_rejects_code_and_host_metadata_fields[{\"action\":\"refuse\",\"confidence\":NaN}]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_strict_response_rejects_code_and_host_metadata_fields[{\"action\":\"execute\",\"code\":\"print(1)\"}]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_strict_response_rejects_code_and_host_metadata_fields[{\"action\":\"refuse\",\"source_id\":\"sim-inspection\"}]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_strict_response_rejects_code_and_host_metadata_fields[{\"action\":\"refuse\",\"state_version\":99}]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_strict_response_rejects_code_and_host_metadata_fields[{\"action\":\"refuse\",\"published_evidence\":[]}]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_strict_response_rejects_code_and_host_metadata_fields[{\"action\":\"refuse\",\"received_tick\":100}]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_strict_response_rejects_code_and_host_metadata_fields[{\"action\":\"refuse\",\"plan\":{\"job_id\":\"W20\"}}]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_known_target_failures_become_common_path_information_hold[raw0-MODEL_TIMEOUT]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_known_target_failures_become_common_path_information_hold[raw1-MODEL_ERROR]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_known_target_failures_become_common_path_information_hold[{\"action\":\"refuse\"}-MODEL_REFUSAL]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_known_target_failures_become_common_path_information_hold[{\"action\":\"clarify\",\"reason\":\"NEED_NEW_OBSERVATION\"}-NEEDS_CLARIFICATION]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_unknown_target_failure_requests_clarification_without_blanket_hold"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_proposal_target_must_match_host_hint_or_exact_report_identifier[W17 \\uc791\\uc5c5 \\ubd88\\uac00-None-target0-READY]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_proposal_target_must_match_host_hint_or_exact_report_identifier[W170 \\uc791\\uc5c5 \\ubd88\\uac00-None-target1-INVALID_PROPOSAL]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_proposal_target_must_match_host_hint_or_exact_report_identifier[XW17 \\uc791\\uc5c5 \\ubd88\\uac00-None-target2-INVALID_PROPOSAL]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_proposal_target_must_match_host_hint_or_exact_report_identifier[W17 \\uc791\\uc5c5 \\ubd88\\uac00-None-target3-INVALID_PROPOSAL]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_proposal_target_must_match_host_hint_or_exact_report_identifier[W17 \\ubc0f W19-target_hint4-target4-INVALID_PROPOSAL]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_two_lookup_requests_stop_at_two_calls_and_one_lookup"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_non_text_model_response_is_rejected"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_invalid_utf8_model_output_returns_safe_fallback"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_report_input_rejects_invalid_utf8_text"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_deeply_nested_model_json_does_not_escape_error_boundary"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_interpretation_hold_needs_explicit_identity_confirmation"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_arrival_without_hint_must_still_match_final_proposal_target"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_report_source_must_be_authorized_for_safe_identity_fallback"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_source_authority_and_event_scope_are_checked_before_proposal"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_repair_proposal_keeps_hold_and_does_not_complete_weld"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_pair_report_retains_job_robot_scope"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_response_and_context_size_limits_return_safe_fallback"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_model_receives_detached_context_and_cannot_mutate_next_request"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_raw_report_prompt_injection_has_no_state_or_execution_authority"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_invalid_host_envelope_never_calls_model_or_emits_delivery[run]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_invalid_host_envelope_never_calls_model_or_emits_delivery[received_tick]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_invalid_host_envelope_never_calls_model_or_emits_delivery[source]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_invalid_host_envelope_never_calls_model_or_emits_delivery[observer]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_invalid_host_envelope_never_calls_model_or_emits_delivery[hint]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_report_schema_rejects_missing_text_future_observation_and_execution_fields"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_report_fingerprint_ignores_redelivery_time_but_not_original_content"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_common_reducer_rechecks_current_evidence_after_interpretation"
+      },
+      {
+        "class": "tests.test_reports_integration",
+        "name": "test_fake_reports_preserve_structured_execution_and_independent_score[D01]"
+      },
+      {
+        "class": "tests.test_reports_integration",
+        "name": "test_fake_reports_preserve_structured_execution_and_independent_score[D02]"
+      },
+      {
+        "class": "tests.test_reports_integration",
+        "name": "test_fake_reports_preserve_structured_execution_and_independent_score[D03]"
+      },
+      {
+        "class": "tests.test_reports_integration",
+        "name": "test_fake_reports_preserve_structured_execution_and_independent_score[D04]"
+      },
+      {
+        "class": "tests.test_reports_integration",
+        "name": "test_report_adapter_cannot_import_state_writers_private_driver_or_evaluator"
+      },
+      {
+        "class": "tests.test_reports_integration",
+        "name": "test_future_reports_scripts_and_evaluation_files_do_not_reach_model_or_solver"
+      },
+      {
+        "class": "tests.test_reports_integration",
+        "name": "test_duplicate_report_reuses_receipt_without_model_solver_or_state_change"
+      },
+      {
+        "class": "tests.test_reports_integration",
+        "name": "test_conflicting_report_id_is_quarantined_without_new_event_or_state[False]"
+      },
+      {
+        "class": "tests.test_reports_integration",
+        "name": "test_conflicting_report_id_is_quarantined_without_new_event_or_state[True]"
+      },
+      {
+        "class": "tests.test_reports_integration",
+        "name": "test_state_change_during_interpretation_discards_proposal_and_uses_public_fallback"
+      },
+      {
+        "class": "tests.test_reports_integration",
+        "name": "test_report_result_event_and_state_rollback_together_and_retry_is_possible"
+      },
+      {
+        "class": "tests.test_reports_integration",
+        "name": "test_cli_fake_mode_records_reproduction_inputs_and_default_remains_structured"
+      },
+      {
+        "class": "tests.test_repository",
+        "name": "test_snapshot_is_detached_and_audit_does_not_change_version"
+      },
+      {
+        "class": "tests.test_repository",
+        "name": "test_compare_and_swap_rejects_second_writer_without_partial_log"
+      },
+      {
+        "class": "tests.test_repository",
+        "name": "test_same_event_is_noop_and_conflicting_payload_is_not_applied"
+      },
+      {
+        "class": "tests.test_repository",
+        "name": "test_received_tick_does_not_change_event_identity"
+      },
+      {
+        "class": "tests.test_repository",
+        "name": "test_conflicting_same_batch_event_is_not_partly_applied"
+      },
+      {
+        "class": "tests.test_repository",
+        "name": "test_evidence_identity_failure_rolls_back_state_and_audit"
+      },
+      {
+        "class": "tests.test_repository",
+        "name": "test_plan_apply_is_atomic_and_rejects_check_then_state_change"
+      },
+      {
+        "class": "tests.test_repository",
+        "name": "test_plan_apply_sets_versions_and_does_not_change_running_job"
+      },
+      {
+        "class": "tests.test_repository",
+        "name": "test_tampered_plan_cannot_reuse_check"
+      },
+      {
+        "class": "tests.test_repository",
+        "name": "test_observation_duplicate_is_checked_before_any_proposed_state_change"
+      },
+      {
+        "class": "tests.test_repository",
+        "name": "test_event_trace_records_one_public_lookup_and_published_evidence"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_sdk_lookup_and_proposal_share_call_history_and_common_event_checks"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_wire_builder_uses_allowlist_and_fixed_system_instructions"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_function_schemas_are_strict_at_every_object_boundary"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_sdk_failures_are_distinct_safe_and_not_retried[failure0-MODEL_AUTH_ERROR]"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_sdk_failures_are_distinct_safe_and_not_retried[failure1-MODEL_PERMISSION_ERROR]"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_sdk_failures_are_distinct_safe_and_not_retried[failure2-MODEL_NOT_FOUND]"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_sdk_failures_are_distinct_safe_and_not_retried[failure3-MODEL_QUOTA_ERROR]"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_sdk_failures_are_distinct_safe_and_not_retried[failure4-MODEL_QUOTA_ERROR]"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_sdk_failures_are_distinct_safe_and_not_retried[failure5-MODEL_QUOTA_ERROR]"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_sdk_failures_are_distinct_safe_and_not_retried[failure6-MODEL_QUOTA_ERROR]"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_sdk_failures_are_distinct_safe_and_not_retried[failure7-MODEL_QUOTA_ERROR]"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_sdk_failures_are_distinct_safe_and_not_retried[failure8-MODEL_QUOTA_ERROR]"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_sdk_failures_are_distinct_safe_and_not_retried[failure9-MODEL_RATE_LIMIT]"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_sdk_failures_are_distinct_safe_and_not_retried[failure10-MODEL_SERVICE_ERROR]"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_sdk_failures_are_distinct_safe_and_not_retried[failure11-MODEL_REQUEST_ERROR]"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_sdk_failures_are_distinct_safe_and_not_retried[timeout-MODEL_TIMEOUT]"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_sdk_failures_are_distinct_safe_and_not_retried[connection-MODEL_CONNECTION_ERROR]"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_token_count_failure_does_not_start_generation"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_unfinished_response_does_not_accept_embedded_valid_function[incomplete-MODEL_INCOMPLETE]"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_unfinished_response_does_not_accept_embedded_valid_function[failed-MODEL_SERVICE_ERROR]"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_provider_refusal_is_not_a_schema_or_transport_error"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_only_one_completed_allowlisted_function_can_reach_adapter[output0]"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_only_one_completed_allowlisted_function_can_reach_adapter[output1]"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_only_one_completed_allowlisted_function_can_reach_adapter[output2]"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_only_one_completed_allowlisted_function_can_reach_adapter[output3]"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_malformed_or_malicious_arguments_remain_data[not-json-INVALID_FUNCTION_ARGUMENTS]"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_malformed_or_malicious_arguments_remain_data[{\"action\":\"refuse\",\"action\":\"lookup_evidence\"}-INVALID_FUNCTION_ARGUMENTS]"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_malformed_or_malicious_arguments_remain_data[raw2-INVALID_FUNCTION_ARGUMENTS]"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_malformed_or_malicious_arguments_remain_data[raw3-INVALID_FUNCTION_ARGUMENTS]"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_malformed_or_malicious_arguments_remain_data[raw4-FUNCTION_ACTION_MISMATCH]"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_input_limit_prevents_generation_and_keeps_reservation[12001]"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_input_limit_prevents_generation_and_keeps_reservation[-1]"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_input_limit_prevents_generation_and_keeps_reservation[True]"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_unknown_or_invalid_usage_keeps_reservation_and_stops_session[None]"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_unknown_or_invalid_usage_keeps_reservation_and_stops_session[usage1]"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_unknown_or_invalid_usage_keeps_reservation_and_stops_session[usage2]"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_unknown_or_invalid_usage_keeps_reservation_and_stops_session[usage3]"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_unknown_or_invalid_usage_keeps_reservation_and_stops_session[usage4]"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_usage_or_returned_model_outside_approved_policy_is_not_settled[changes0]"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_usage_or_returned_model_outside_approved_policy_is_not_settled[changes1]"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_usage_or_returned_model_outside_approved_policy_is_not_settled[changes2]"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_budget_rejection_happens_before_token_count_or_generation[limits0-REPORT_BUDGET_EXCEEDED]"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_budget_rejection_happens_before_token_count_or_generation[limits1-RUN_BUDGET_EXCEEDED]"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_budget_rejection_happens_before_token_count_or_generation[limits2-PROJECT_BUDGET_EXCEEDED]"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_run_deadline_is_checked_before_reserving_or_sending"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_expired_deadline_after_slow_reservation_prevents_network"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_actual_async_timeout_cancels_pending_request[TOKEN_COUNT]"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_actual_async_timeout_cancels_pending_request[GENERATION]"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_paid_flags_and_project_are_required_before_client_creation"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_policy_project_cannot_charge_another_projects_ledger"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_generation_attempt_cap_survives_provider_and_ledger_recreation"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_policy_rejects_budget_and_timeout_escape_hatches"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_report_context_changes_and_third_generation_are_blocked"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_sdk_factory_ignores_host_and_proxy_environment"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_preflight_without_access_check_reports_presence_without_key_or_network"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_metadata_visibility_does_not_claim_generation_or_billing_access"
+      },
+      {
+        "class": "tests.test_responses",
+        "name": "test_live_input_gate_requires_exact_approved_synthetic_bundle"
+      },
+      {
+        "class": "tests.test_responses_integration",
+        "name": "test_mocked_responses_d01_matches_fake_execution_and_never_sends_private_inputs"
+      },
+      {
+        "class": "tests.test_responses_integration",
+        "name": "test_cli_requires_both_policy_approval_and_explicit_paid_flag[False-False]"
+      },
+      {
+        "class": "tests.test_responses_integration",
+        "name": "test_cli_requires_both_policy_approval_and_explicit_paid_flag[False-True]"
+      },
+      {
+        "class": "tests.test_responses_integration",
+        "name": "test_cli_requires_both_policy_approval_and_explicit_paid_flag[True-False]"
+      },
+      {
+        "class": "tests.test_responses_integration",
+        "name": "test_missing_policy_or_credentials_prevent_network_and_output[policy]"
+      },
+      {
+        "class": "tests.test_responses_integration",
+        "name": "test_missing_policy_or_credentials_prevent_network_and_output[key]"
+      },
+      {
+        "class": "tests.test_responses_integration",
+        "name": "test_missing_policy_or_credentials_prevent_network_and_output[project]"
+      },
+      {
+        "class": "tests.test_responses_integration",
+        "name": "test_only_frozen_approved_d01_inputs_can_reach_responses[case]"
+      },
+      {
+        "class": "tests.test_responses_integration",
+        "name": "test_only_frozen_approved_d01_inputs_can_reach_responses[input_hash]"
+      },
+      {
+        "class": "tests.test_responses_integration",
+        "name": "test_only_frozen_approved_d01_inputs_can_reach_responses[incomplete_allowlist]"
+      },
+      {
+        "class": "tests.test_responses_integration",
+        "name": "test_local_preflight_needs_no_key_and_makes_no_requests"
+      },
+      {
+        "class": "tests.test_responses_integration",
+        "name": "test_metadata_preflight_is_get_only_and_does_not_approve_generation_or_quota"
+      },
+      {
+        "class": "tests.test_responses_integration",
+        "name": "test_default_structured_and_fake_modes_remain_offline_without_credentials"
+      },
+      {
+        "class": "tests.test_review_regressions",
+        "name": "test_initial_state_rejects_inconsistent_execution_history[truncated_running_weld]"
+      },
+      {
+        "class": "tests.test_review_regressions",
+        "name": "test_initial_state_rejects_inconsistent_execution_history[unknown_progress_robot]"
+      },
+      {
+        "class": "tests.test_review_regressions",
+        "name": "test_move_cancellation_preserves_arrival_location_and_w18"
+      },
+      {
+        "class": "tests.test_review_regressions",
+        "name": "test_solver_failure_does_not_authorize_newly_blocked_old_pending"
+      },
+      {
+        "class": "tests.test_review_regressions",
+        "name": "test_application_runs_without_optional_pytest_distribution"
+      },
+      {
+        "class": "tests.test_scheduler",
+        "name": "test_fitup_replanning_is_feasible_and_preserves_w18"
+      },
+      {
+        "class": "tests.test_scheduler",
+        "name": "test_all_eligible_jobs_are_required_even_when_every_job_is_late"
+      },
+      {
+        "class": "tests.test_scheduler",
+        "name": "test_no_eligible_work_is_not_infeasibility"
+      },
+      {
+        "class": "tests.test_scheduler",
+        "name": "test_continuation_does_not_repeat_prefix_or_overlap_itself[MOVE-0]"
+      },
+      {
+        "class": "tests.test_scheduler",
+        "name": "test_continuation_does_not_repeat_prefix_or_overlap_itself[SETUP-1]"
+      },
+      {
+        "class": "tests.test_scheduler",
+        "name": "test_continuation_does_not_repeat_prefix_or_overlap_itself[None-2]"
+      },
+      {
+        "class": "tests.test_scheduler",
+        "name": "test_real_infeasibility_and_invalid_model_are_distinct"
+      },
+      {
+        "class": "tests.test_scheduler",
+        "name": "test_unknown_preserves_an_incumbent_from_an_earlier_objective[False]"
+      },
+      {
+        "class": "tests.test_scheduler",
+        "name": "test_unknown_preserves_an_incumbent_from_an_earlier_objective[True]"
+      },
+      {
+        "class": "tests.test_simulator",
+        "name": "test_new_hold_preserves_current_phase_then_cancels_preparation[during_move]"
+      },
+      {
+        "class": "tests.test_simulator",
+        "name": "test_new_hold_preserves_current_phase_then_cancels_preparation[after_move]"
+      },
+      {
+        "class": "tests.test_simulator",
+        "name": "test_new_hold_preserves_current_phase_then_cancels_preparation[during_setup]"
+      },
+      {
+        "class": "tests.test_simulator",
+        "name": "test_future_queue_returns_only_arrived_deliveries"
+      }
+    ],
+    "junit_sha256": "169279f4a511a0f11ba2f7601e17fd642845b4f1558be791d29a0c4ef892a46f"
+  },
+  "baseline_without_sdk": {
+    "tests": 186,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "test_cases": [
+      {
+        "class": "tests.test_application",
+        "name": "test_change_between_check_and_apply_replans_from_new_snapshot"
+      },
+      {
+        "class": "tests.test_application",
+        "name": "test_stale_retries_are_bounded_without_partial_activation"
+      },
+      {
+        "class": "tests.test_application",
+        "name": "test_fault_after_instruction_write_rolls_back_activation"
+      },
+      {
+        "class": "tests.test_application",
+        "name": "test_simultaneous_writers_only_one_can_commit"
+      },
+      {
+        "class": "tests.test_application",
+        "name": "test_duplicate_start_and_inactive_instruction_never_execute_twice"
+      },
+      {
+        "class": "tests.test_application",
+        "name": "test_failure_never_activates_new_plan_or_claims_normal_wait[INFEASIBLE]"
+      },
+      {
+        "class": "tests.test_application",
+        "name": "test_failure_never_activates_new_plan_or_claims_normal_wait[NO_SOLUTION_WITHIN_LIMIT]"
+      },
+      {
+        "class": "tests.test_application",
+        "name": "test_failure_never_activates_new_plan_or_claims_normal_wait[MODEL_INVALID]"
+      },
+      {
+        "class": "tests.test_application",
+        "name": "test_failure_never_activates_new_plan_or_claims_normal_wait[INTERNAL_ERROR]"
+      },
+      {
+        "class": "tests.test_application",
+        "name": "test_feasible_unproven_candidate_may_apply_but_keeps_status"
+      },
+      {
+        "class": "tests.test_checker",
+        "name": "test_independent_checker_rejects_corrupted_plans[weld-WELD_DURATION]"
+      },
+      {
+        "class": "tests.test_checker",
+        "name": "test_independent_checker_rejects_corrupted_plans[travel-TRAVEL_DURATION]"
+      },
+      {
+        "class": "tests.test_checker",
+        "name": "test_independent_checker_rejects_corrupted_plans[setup-SETUP_DURATION_OR_WELD_GAP]"
+      },
+      {
+        "class": "tests.test_checker",
+        "name": "test_independent_checker_rejects_corrupted_plans[capability-FORBIDDEN_ASSIGNMENT]"
+      },
+      {
+        "class": "tests.test_checker",
+        "name": "test_independent_checker_rejects_corrupted_plans[fixed-FIXED_EXECUTION_CHANGED]"
+      },
+      {
+        "class": "tests.test_checker",
+        "name": "test_independent_checker_rejects_corrupted_plans[precedence-PRECEDENCE]"
+      },
+      {
+        "class": "tests.test_checker",
+        "name": "test_independent_checker_rejects_corrupted_plans[overlap-ROBOT_OVERLAP]"
+      },
+      {
+        "class": "tests.test_checker",
+        "name": "test_independent_checker_rejects_corrupted_plans[missing-COMPLETION_PATH_SET]"
+      },
+      {
+        "class": "tests.test_checker",
+        "name": "test_independent_checker_rejects_corrupted_plans[idle-UNJUSTIFIED_IDLE]"
+      },
+      {
+        "class": "tests.test_checker",
+        "name": "test_new_hold_invalidates_previously_valid_plan_without_using_constraint_builder"
+      },
+      {
+        "class": "tests.test_checker",
+        "name": "test_plan_checked_before_state_change_is_stale"
+      },
+      {
+        "class": "tests.test_checker",
+        "name": "test_zone_overlap_is_rejected_even_when_robot_intervals_do_not_overlap"
+      },
+      {
+        "class": "tests.test_checker",
+        "name": "test_finished_setup_retains_zone_for_own_weld_only"
+      },
+      {
+        "class": "tests.test_checker",
+        "name": "test_runtime_gate_requires_actual_predecessor_completion"
+      },
+      {
+        "class": "tests.test_checker",
+        "name": "test_execution_checker_does_not_import_model_builder_or_solver"
+      },
+      {
+        "class": "tests.test_constraints",
+        "name": "test_fitup_is_global_and_predecessor_closure_preserves_unrelated_work"
+      },
+      {
+        "class": "tests.test_constraints",
+        "name": "test_pair_ban_does_not_ban_job_or_robot"
+      },
+      {
+        "class": "tests.test_constraints",
+        "name": "test_no_alternatives_keeps_running_weld_and_explains_each_deferral"
+      },
+      {
+        "class": "tests.test_constraints",
+        "name": "test_missing_travel_is_not_silently_zero"
+      },
+      {
+        "class": "tests.test_constraints",
+        "name": "test_cyclic_precedence_is_rejected"
+      },
+      {
+        "class": "tests.test_contracts",
+        "name": "test_json_rejects_ambiguous_values[{\"a\":1,\"a\":2}]"
+      },
+      {
+        "class": "tests.test_contracts",
+        "name": "test_json_rejects_ambiguous_values[{\"x\":NaN}]"
+      },
+      {
+        "class": "tests.test_contracts",
+        "name": "test_json_rejects_ambiguous_values[{\"x\":Infinity}]"
+      },
+      {
+        "class": "tests.test_contracts",
+        "name": "test_json_rejects_ambiguous_values[{\"x\":-Infinity}]"
+      },
+      {
+        "class": "tests.test_contracts",
+        "name": "test_strict_integer[4]"
+      },
+      {
+        "class": "tests.test_contracts",
+        "name": "test_strict_integer[True]"
+      },
+      {
+        "class": "tests.test_contracts",
+        "name": "test_strict_integer[-1]"
+      },
+      {
+        "class": "tests.test_contracts",
+        "name": "test_strict_integer[1.5]"
+      },
+      {
+        "class": "tests.test_contracts",
+        "name": "test_snapshot_forbids_private_fields[future_recovery_tick]"
+      },
+      {
+        "class": "tests.test_contracts",
+        "name": "test_snapshot_forbids_private_fields[oracle]"
+      },
+      {
+        "class": "tests.test_contracts",
+        "name": "test_snapshot_forbids_private_fields[truth]"
+      },
+      {
+        "class": "tests.test_contracts",
+        "name": "test_snapshot_forbids_private_fields[simulator]"
+      },
+      {
+        "class": "tests.test_contracts",
+        "name": "test_initial_references_and_graph[unknown_pred]"
+      },
+      {
+        "class": "tests.test_contracts",
+        "name": "test_initial_references_and_graph[cycle]"
+      },
+      {
+        "class": "tests.test_contracts",
+        "name": "test_initial_references_and_graph[missing_travel]"
+      },
+      {
+        "class": "tests.test_contracts",
+        "name": "test_initial_references_and_graph[unknown_robot]"
+      },
+      {
+        "class": "tests.test_contracts",
+        "name": "test_initial_references_and_graph[duplicate_id]"
+      },
+      {
+        "class": "tests.test_contracts",
+        "name": "test_initial_references_and_graph[unicode_id]"
+      },
+      {
+        "class": "tests.test_contracts",
+        "name": "test_target_does_not_silently_expand_scope"
+      },
+      {
+        "class": "tests.test_evaluation",
+        "name": "test_manual_feasible_examples_and_human_distinction[D01]"
+      },
+      {
+        "class": "tests.test_evaluation",
+        "name": "test_manual_feasible_examples_and_human_distinction[D02]"
+      },
+      {
+        "class": "tests.test_evaluation",
+        "name": "test_manual_feasible_examples_and_human_distinction[D03]"
+      },
+      {
+        "class": "tests.test_evaluation",
+        "name": "test_manual_feasible_examples_and_human_distinction[D04]"
+      },
+      {
+        "class": "tests.test_evaluation",
+        "name": "test_w17_repair_is_not_actual_predecessor_completion"
+      },
+      {
+        "class": "tests.test_evaluation",
+        "name": "test_checker_pass_does_not_hide_execution_violation"
+      },
+      {
+        "class": "tests.test_evaluation",
+        "name": "test_starts_without_end_are_not_hidden_by_end_only_export"
+      },
+      {
+        "class": "tests.test_evaluation",
+        "name": "test_repair_without_recheck_does_not_release_hold"
+      },
+      {
+        "class": "tests.test_evaluation",
+        "name": "test_fabricated_release_evidence_cannot_pass_two_id_count"
+      },
+      {
+        "class": "tests.test_evaluation",
+        "name": "test_fitup_hold_scope_must_cover_every_robot"
+      },
+      {
+        "class": "tests.test_evaluation",
+        "name": "test_d02_timeout_wait_does_not_count_as_justified_wait"
+      },
+      {
+        "class": "tests.test_evaluation",
+        "name": "test_candidate_violation_and_checker_block_are_separate_from_execution"
+      },
+      {
+        "class": "tests.test_evaluation",
+        "name": "test_missing_event_does_not_shrink_denominator"
+      },
+      {
+        "class": "tests.test_evaluation",
+        "name": "test_evaluator_reads_raw_exports_not_summary"
+      },
+      {
+        "class": "tests.test_evaluation",
+        "name": "test_fabricated_csv_completion_requires_actual_trace"
+      },
+      {
+        "class": "tests.test_evaluation",
+        "name": "test_evaluator_does_not_import_operational_modules"
+      },
+      {
+        "class": "tests.test_events",
+        "name": "test_fitup_hold_is_job_wide_without_mutating_input"
+      },
+      {
+        "class": "tests.test_events",
+        "name": "test_pair_ban_does_not_become_job_or_robot_ban"
+      },
+      {
+        "class": "tests.test_events",
+        "name": "test_repair_alone_cannot_release_and_linked_recheck_can"
+      },
+      {
+        "class": "tests.test_events",
+        "name": "test_recovery_releases_only_its_own_restriction"
+      },
+      {
+        "class": "tests.test_events",
+        "name": "test_wrong_incident_or_recheck_before_repair_cannot_release"
+      },
+      {
+        "class": "tests.test_events",
+        "name": "test_unknown_source_and_future_evidence_are_not_published"
+      },
+      {
+        "class": "tests.test_events",
+        "name": "test_conflicting_sources_do_not_depend_on_arrival_order"
+      },
+      {
+        "class": "tests.test_events",
+        "name": "test_missing_reference_is_filled_from_current_public_evidence"
+      },
+      {
+        "class": "tests.test_events",
+        "name": "test_invalid_evidence_identity_is_quarantined"
+      },
+      {
+        "class": "tests.test_events",
+        "name": "test_running_weld_is_not_stopped_by_out_of_scope_event"
+      },
+      {
+        "class": "tests.test_events",
+        "name": "test_superseded_repair_true_cannot_release_with_old_link"
+      },
+      {
+        "class": "tests.test_events",
+        "name": "test_supersedes_cannot_replace_another_source_fact"
+      },
+      {
+        "class": "tests.test_events",
+        "name": "test_pair_recovery_needs_newer_linked_evidence_for_matching_target"
+      },
+      {
+        "class": "tests.test_events",
+        "name": "test_current_evidence_resolves_only_matching_information_hold"
+      },
+      {
+        "class": "tests.test_events",
+        "name": "test_maximum_length_external_id_still_produces_a_valid_restriction"
+      },
+      {
+        "class": "tests.test_information_boundary",
+        "name": "test_dependency_boundaries_are_executable_rules"
+      },
+      {
+        "class": "tests.test_information_boundary",
+        "name": "test_public_loader_reads_only_the_two_public_files"
+      },
+      {
+        "class": "tests.test_information_boundary",
+        "name": "test_future_and_oracle_sentinels_cannot_reach_planning_before_arrival"
+      },
+      {
+        "class": "tests.test_integration",
+        "name": "test_end_to_end_and_independent_score[D01-done0-0]"
+      },
+      {
+        "class": "tests.test_integration",
+        "name": "test_end_to_end_and_independent_score[D02-done1-0]"
+      },
+      {
+        "class": "tests.test_integration",
+        "name": "test_end_to_end_and_independent_score[D03-done2-0]"
+      },
+      {
+        "class": "tests.test_integration",
+        "name": "test_end_to_end_and_independent_score[D04-done3-1]"
+      },
+      {
+        "class": "tests.test_integration",
+        "name": "test_never_overwrites_a_previous_run"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_lookup_then_proposal_preserves_host_metadata_and_public_inputs"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_empty_citations_do_not_turn_report_text_into_evidence"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_lookup_exposes_only_visible_arrived_evidence"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_invented_or_duplicate_references_cannot_bypass_lookup[references0]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_invented_or_duplicate_references_cannot_bypass_lookup[references1]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_invented_or_duplicate_references_cannot_bypass_lookup[references2]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_invented_or_duplicate_references_cannot_bypass_lookup[references3]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_even_real_evidence_must_have_been_returned_by_lookup"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_untrusted_arrivals_are_rejected_before_model_call[future]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_untrusted_arrivals_are_rejected_before_model_call[source]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_untrusted_arrivals_are_rejected_before_model_call[observer]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_untrusted_arrivals_are_rejected_before_model_call[authority]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_untrusted_arrivals_are_rejected_before_model_call[incident]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_untrusted_arrivals_are_rejected_before_model_call[target]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_untrusted_arrivals_are_rejected_before_model_call[conflict]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_strict_response_rejects_code_and_host_metadata_fields[not json]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_strict_response_rejects_code_and_host_metadata_fields[```json\\n{\"action\":\"refuse\"}\\n```]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_strict_response_rejects_code_and_host_metadata_fields[{\"action\":\"refuse\",\"action\":\"propose\"}]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_strict_response_rejects_code_and_host_metadata_fields[{\"action\":\"refuse\",\"confidence\":NaN}]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_strict_response_rejects_code_and_host_metadata_fields[{\"action\":\"execute\",\"code\":\"print(1)\"}]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_strict_response_rejects_code_and_host_metadata_fields[{\"action\":\"refuse\",\"source_id\":\"sim-inspection\"}]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_strict_response_rejects_code_and_host_metadata_fields[{\"action\":\"refuse\",\"state_version\":99}]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_strict_response_rejects_code_and_host_metadata_fields[{\"action\":\"refuse\",\"published_evidence\":[]}]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_strict_response_rejects_code_and_host_metadata_fields[{\"action\":\"refuse\",\"received_tick\":100}]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_strict_response_rejects_code_and_host_metadata_fields[{\"action\":\"refuse\",\"plan\":{\"job_id\":\"W20\"}}]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_known_target_failures_become_common_path_information_hold[raw0-MODEL_TIMEOUT]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_known_target_failures_become_common_path_information_hold[raw1-MODEL_ERROR]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_known_target_failures_become_common_path_information_hold[{\"action\":\"refuse\"}-MODEL_REFUSAL]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_known_target_failures_become_common_path_information_hold[{\"action\":\"clarify\",\"reason\":\"NEED_NEW_OBSERVATION\"}-NEEDS_CLARIFICATION]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_unknown_target_failure_requests_clarification_without_blanket_hold"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_proposal_target_must_match_host_hint_or_exact_report_identifier[W17 \\uc791\\uc5c5 \\ubd88\\uac00-None-target0-READY]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_proposal_target_must_match_host_hint_or_exact_report_identifier[W170 \\uc791\\uc5c5 \\ubd88\\uac00-None-target1-INVALID_PROPOSAL]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_proposal_target_must_match_host_hint_or_exact_report_identifier[XW17 \\uc791\\uc5c5 \\ubd88\\uac00-None-target2-INVALID_PROPOSAL]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_proposal_target_must_match_host_hint_or_exact_report_identifier[W17 \\uc791\\uc5c5 \\ubd88\\uac00-None-target3-INVALID_PROPOSAL]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_proposal_target_must_match_host_hint_or_exact_report_identifier[W17 \\ubc0f W19-target_hint4-target4-INVALID_PROPOSAL]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_two_lookup_requests_stop_at_two_calls_and_one_lookup"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_non_text_model_response_is_rejected"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_invalid_utf8_model_output_returns_safe_fallback"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_report_input_rejects_invalid_utf8_text"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_deeply_nested_model_json_does_not_escape_error_boundary"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_interpretation_hold_needs_explicit_identity_confirmation"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_arrival_without_hint_must_still_match_final_proposal_target"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_report_source_must_be_authorized_for_safe_identity_fallback"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_source_authority_and_event_scope_are_checked_before_proposal"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_repair_proposal_keeps_hold_and_does_not_complete_weld"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_pair_report_retains_job_robot_scope"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_response_and_context_size_limits_return_safe_fallback"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_model_receives_detached_context_and_cannot_mutate_next_request"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_raw_report_prompt_injection_has_no_state_or_execution_authority"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_invalid_host_envelope_never_calls_model_or_emits_delivery[run]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_invalid_host_envelope_never_calls_model_or_emits_delivery[received_tick]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_invalid_host_envelope_never_calls_model_or_emits_delivery[source]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_invalid_host_envelope_never_calls_model_or_emits_delivery[observer]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_invalid_host_envelope_never_calls_model_or_emits_delivery[hint]"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_report_schema_rejects_missing_text_future_observation_and_execution_fields"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_report_fingerprint_ignores_redelivery_time_but_not_original_content"
+      },
+      {
+        "class": "tests.test_reports",
+        "name": "test_common_reducer_rechecks_current_evidence_after_interpretation"
+      },
+      {
+        "class": "tests.test_reports_integration",
+        "name": "test_fake_reports_preserve_structured_execution_and_independent_score[D01]"
+      },
+      {
+        "class": "tests.test_reports_integration",
+        "name": "test_fake_reports_preserve_structured_execution_and_independent_score[D02]"
+      },
+      {
+        "class": "tests.test_reports_integration",
+        "name": "test_fake_reports_preserve_structured_execution_and_independent_score[D03]"
+      },
+      {
+        "class": "tests.test_reports_integration",
+        "name": "test_fake_reports_preserve_structured_execution_and_independent_score[D04]"
+      },
+      {
+        "class": "tests.test_reports_integration",
+        "name": "test_report_adapter_cannot_import_state_writers_private_driver_or_evaluator"
+      },
+      {
+        "class": "tests.test_reports_integration",
+        "name": "test_future_reports_scripts_and_evaluation_files_do_not_reach_model_or_solver"
+      },
+      {
+        "class": "tests.test_reports_integration",
+        "name": "test_duplicate_report_reuses_receipt_without_model_solver_or_state_change"
+      },
+      {
+        "class": "tests.test_reports_integration",
+        "name": "test_conflicting_report_id_is_quarantined_without_new_event_or_state[False]"
+      },
+      {
+        "class": "tests.test_reports_integration",
+        "name": "test_conflicting_report_id_is_quarantined_without_new_event_or_state[True]"
+      },
+      {
+        "class": "tests.test_reports_integration",
+        "name": "test_state_change_during_interpretation_discards_proposal_and_uses_public_fallback"
+      },
+      {
+        "class": "tests.test_reports_integration",
+        "name": "test_report_result_event_and_state_rollback_together_and_retry_is_possible"
+      },
+      {
+        "class": "tests.test_reports_integration",
+        "name": "test_cli_fake_mode_records_reproduction_inputs_and_default_remains_structured"
+      },
+      {
+        "class": "tests.test_repository",
+        "name": "test_snapshot_is_detached_and_audit_does_not_change_version"
+      },
+      {
+        "class": "tests.test_repository",
+        "name": "test_compare_and_swap_rejects_second_writer_without_partial_log"
+      },
+      {
+        "class": "tests.test_repository",
+        "name": "test_same_event_is_noop_and_conflicting_payload_is_not_applied"
+      },
+      {
+        "class": "tests.test_repository",
+        "name": "test_received_tick_does_not_change_event_identity"
+      },
+      {
+        "class": "tests.test_repository",
+        "name": "test_conflicting_same_batch_event_is_not_partly_applied"
+      },
+      {
+        "class": "tests.test_repository",
+        "name": "test_evidence_identity_failure_rolls_back_state_and_audit"
+      },
+      {
+        "class": "tests.test_repository",
+        "name": "test_plan_apply_is_atomic_and_rejects_check_then_state_change"
+      },
+      {
+        "class": "tests.test_repository",
+        "name": "test_plan_apply_sets_versions_and_does_not_change_running_job"
+      },
+      {
+        "class": "tests.test_repository",
+        "name": "test_tampered_plan_cannot_reuse_check"
+      },
+      {
+        "class": "tests.test_repository",
+        "name": "test_observation_duplicate_is_checked_before_any_proposed_state_change"
+      },
+      {
+        "class": "tests.test_repository",
+        "name": "test_event_trace_records_one_public_lookup_and_published_evidence"
+      },
+      {
+        "class": "tests.test_review_regressions",
+        "name": "test_initial_state_rejects_inconsistent_execution_history[truncated_running_weld]"
+      },
+      {
+        "class": "tests.test_review_regressions",
+        "name": "test_initial_state_rejects_inconsistent_execution_history[unknown_progress_robot]"
+      },
+      {
+        "class": "tests.test_review_regressions",
+        "name": "test_move_cancellation_preserves_arrival_location_and_w18"
+      },
+      {
+        "class": "tests.test_review_regressions",
+        "name": "test_solver_failure_does_not_authorize_newly_blocked_old_pending"
+      },
+      {
+        "class": "tests.test_review_regressions",
+        "name": "test_application_runs_without_optional_pytest_distribution"
+      },
+      {
+        "class": "tests.test_scheduler",
+        "name": "test_fitup_replanning_is_feasible_and_preserves_w18"
+      },
+      {
+        "class": "tests.test_scheduler",
+        "name": "test_all_eligible_jobs_are_required_even_when_every_job_is_late"
+      },
+      {
+        "class": "tests.test_scheduler",
+        "name": "test_no_eligible_work_is_not_infeasibility"
+      },
+      {
+        "class": "tests.test_scheduler",
+        "name": "test_continuation_does_not_repeat_prefix_or_overlap_itself[MOVE-0]"
+      },
+      {
+        "class": "tests.test_scheduler",
+        "name": "test_continuation_does_not_repeat_prefix_or_overlap_itself[SETUP-1]"
+      },
+      {
+        "class": "tests.test_scheduler",
+        "name": "test_continuation_does_not_repeat_prefix_or_overlap_itself[None-2]"
+      },
+      {
+        "class": "tests.test_scheduler",
+        "name": "test_real_infeasibility_and_invalid_model_are_distinct"
+      },
+      {
+        "class": "tests.test_scheduler",
+        "name": "test_unknown_preserves_an_incumbent_from_an_earlier_objective[False]"
+      },
+      {
+        "class": "tests.test_scheduler",
+        "name": "test_unknown_preserves_an_incumbent_from_an_earlier_objective[True]"
+      },
+      {
+        "class": "tests.test_simulator",
+        "name": "test_new_hold_preserves_current_phase_then_cancels_preparation[during_move]"
+      },
+      {
+        "class": "tests.test_simulator",
+        "name": "test_new_hold_preserves_current_phase_then_cancels_preparation[after_move]"
+      },
+      {
+        "class": "tests.test_simulator",
+        "name": "test_new_hold_preserves_current_phase_then_cancels_preparation[during_setup]"
+      },
+      {
+        "class": "tests.test_simulator",
+        "name": "test_future_queue_returns_only_arrived_deliveries"
+      }
+    ],
+    "junit_sha256": "caacbdab3660a82426b8f4fa04acf7bd5d70eef9818e02d0e3f5d4e3b358d3e1",
+    "earlier_cold_import_deprecation_warnings": 2,
+    "final_warnings": 0,
+    "openai_installed": false
+  },
+  "commands": [
+    {
+      "command": ".venv/bin/python -m pytest -q --basetemp=outputs/responses-verification-20261107/full-suite --junitxml=outputs/responses-verification-20261107/pytest.xml",
+      "exit_code": 0
+    },
+    {
+      "command": "uv run --locked --offline pytest -q --ignore=tests/test_llm_budget.py --ignore=tests/test_responses.py --ignore=tests/test_responses_integration.py --junitxml=outputs/responses-verification-20261107/baseline-no-llm.xml",
+      "environment": {
+        "UV_PROJECT_ENVIRONMENT": "/private/tmp/shipyard-base-without-llm",
+        "UV_CACHE_DIR": "/private/tmp/shipyard-uv-cache",
+        "UV_PYTHON_INSTALL_DIR": "/private/tmp/shipyard-python"
+      },
+      "uv_executable": "/private/tmp/shipyard-tech-probe/bin/uv",
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/Users/yumsj/Documents/ChatGPT/산업공학종합설계/.venv/bin/python",
+        "evaluation/score.py",
+        "--run-dir",
+        "outputs/responses-verification-20261107/full-suite/test_mocked_responses_d01_matc0/mocked-responses",
+        "--oracle",
+        "evaluation/dev/D01/oracle.json",
+        "--truth",
+        "evaluation/dev/D01/truth.jsonl"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/Users/yumsj/Documents/ChatGPT/산업공학종합설계/.venv/bin/python",
+        "evaluation/score.py",
+        "--run-dir",
+        "outputs/responses-verification-20261107/full-suite/test_mocked_responses_d01_matc0/fake",
+        "--oracle",
+        "evaluation/dev/D01/oracle.json",
+        "--truth",
+        "evaluation/dev/D01/truth.jsonl"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "preflight": {
+    "api_key_present": false,
+    "project_configured": false,
+    "model": "gpt-6-luna",
+    "paid_calls_approved": false,
+    "data_policy": "SYNTHETIC_DEV_ONLY",
+    "model_access": "CREDENTIALS_OR_SDK_MISSING",
+    "responses_permission": "NOT_CHECKED",
+    "billing_quota": "NOT_CHECKED",
+    "sdk_version": "3.46.0",
+    "generation_requests": 0,
+    "generation_limits": {
+      "schema_version": "1.0",
+      "model": "gpt-6-luna",
+      "approved_for_paid_calls": false,
+      "data_policy": "SYNTHETIC_DEV_ONLY",
+      "max_input_tokens": 12000,
+      "max_output_tokens": 1000,
+      "request_timeout_seconds": 15,
+      "report_deadline_seconds": 45,
+      "run_deadline_seconds": 180,
+      "report_budget_micro_usd": 5000,
+      "run_budget_micro_usd": 50000,
+      "project_budget_micro_usd": 100000
+    }
+  },
+  "actual_account_api_requests": {
+    "models_get": 0,
+    "input_token_count": 0,
+    "generation": 0
+  },
+  "mock_requests": {
+    "input_token_count": 6,
+    "generation": 6,
+    "network_transport": "httpx2.MockTransport",
+    "provider_metadata": [
+      {
+        "counted_input_tokens": 100,
+        "estimated_generation_micro_usd": 25,
+        "generation_attempt": 1,
+        "input_tokens": 100,
+        "network_stage": "GENERATION",
+        "output_tokens": 30,
+        "provider": "openai",
+        "request_id": "req_mock_1",
+        "requested_model": "gpt-6-luna",
+        "reservation_id": "reservation:614fdec913b641738a6ed767f8c1731a",
+        "reserved_micro_usd": 1700,
+        "response_id": "resp_mock_1",
+        "response_status": "completed",
+        "returned_model": "gpt-6-luna",
+        "sdk_version": "3.46.0",
+        "usage_status": "GENERATION_ESTIMATE_SETTLED",
+        "wire_version": "responses-v1"
+      },
+      {
+        "counted_input_tokens": 100,
+        "estimated_generation_micro_usd": 25,
+        "generation_attempt": 2,
+        "input_tokens": 100,
+        "network_stage": "GENERATION",
+        "output_tokens": 30,
+        "provider": "openai",
+        "request_id": "req_mock_2",
+        "requested_model": "gpt-6-luna",
+        "reservation_id": "reservation:a81edcd8cd6d4109bb46e35139ca6a26",
+        "reserved_micro_usd": 1700,
+        "response_id": "resp_mock_2",
+        "response_status": "completed",
+        "returned_model": "gpt-6-luna",
+        "sdk_version": "3.46.0",
+        "usage_status": "GENERATION_ESTIMATE_SETTLED",
+        "wire_version": "responses-v1"
+      },
+      {
+        "counted_input_tokens": 100,
+        "estimated_generation_micro_usd": 25,
+        "generation_attempt": 1,
+        "input_tokens": 100,
+        "network_stage": "GENERATION",
+        "output_tokens": 30,
+        "provider": "openai",
+        "request_id": "req_mock_3",
+        "requested_model": "gpt-6-luna",
+        "reservation_id": "reservation:caf821f8eba4418da3027c992aec8356",
+        "reserved_micro_usd": 1700,
+        "response_id": "resp_mock_3",
+        "response_status": "completed",
+        "returned_model": "gpt-6-luna",
+        "sdk_version": "3.46.0",
+        "usage_status": "GENERATION_ESTIMATE_SETTLED",
+        "wire_version": "responses-v1"
+      },
+      {
+        "counted_input_tokens": 100,
+        "estimated_generation_micro_usd": 25,
+        "generation_attempt": 2,
+        "input_tokens": 100,
+        "network_stage": "GENERATION",
+        "output_tokens": 30,
+        "provider": "openai",
+        "request_id": "req_mock_4",
+        "requested_model": "gpt-6-luna",
+        "reservation_id": "reservation:a1c4fceb185044a18c2cccd5f2f502a7",
+        "reserved_micro_usd": 1700,
+        "response_id": "resp_mock_4",
+        "response_status": "completed",
+        "returned_model": "gpt-6-luna",
+        "sdk_version": "3.46.0",
+        "usage_status": "GENERATION_ESTIMATE_SETTLED",
+        "wire_version": "responses-v1"
+      },
+      {
+        "counted_input_tokens": 100,
+        "estimated_generation_micro_usd": 25,
+        "generation_attempt": 1,
+        "input_tokens": 100,
+        "network_stage": "GENERATION",
+        "output_tokens": 30,
+        "provider": "openai",
+        "request_id": "req_mock_5",
+        "requested_model": "gpt-6-luna",
+        "reservation_id": "reservation:bb9d49caea224b889eea78712a74ad46",
+        "reserved_micro_usd": 1700,
+        "response_id": "resp_mock_5",
+        "response_status": "completed",
+        "returned_model": "gpt-6-luna",
+        "sdk_version": "3.46.0",
+        "usage_status": "GENERATION_ESTIMATE_SETTLED",
+        "wire_version": "responses-v1"
+      },
+      {
+        "counted_input_tokens": 100,
+        "estimated_generation_micro_usd": 25,
+        "generation_attempt": 2,
+        "input_tokens": 100,
+        "network_stage": "GENERATION",
+        "output_tokens": 30,
+        "provider": "openai",
+        "request_id": "req_mock_6",
+        "requested_model": "gpt-6-luna",
+        "reservation_id": "reservation:3761f0432cd44071a6d8687596c84b8a",
+        "reserved_micro_usd": 1700,
+        "response_id": "resp_mock_6",
+        "response_status": "completed",
+        "returned_model": "gpt-6-luna",
+        "sdk_version": "3.46.0",
+        "usage_status": "GENERATION_ESTIMATE_SETTLED",
+        "wire_version": "responses-v1"
+      }
+    ]
+  },
+  "independent_mock_evaluation": {
+    "acceptance_passed": true,
+    "completed_without_additional_human": true,
+    "additional_human_requests": 0,
+    "executed_violation_count": 0,
+    "issues": []
+  },
+  "runs": {
+    "outputs/responses-verification-20261107/full-suite/test_mocked_responses_d01_matc0/mocked-responses": {
+      "summary": {
+        "schema_version": "1.0",
+        "run_id": "3ba05c8a-257a-4069-800d-b59af7474d54",
+        "termination": "COMPLETED",
+        "now_tick": 15,
+        "state_version": 50,
+        "active_plan_version": 13,
+        "completed_jobs": [
+          "W17",
+          "W18",
+          "W19",
+          "W20",
+          "W21"
+        ],
+        "unfinished_jobs": [],
+        "active_restrictions": [],
+        "deferred_jobs": [],
+        "additional_human_requests": 0,
+        "failures": [],
+        "completed_phases": 13,
+        "evaluation": "NOT_SCORED_BY_RUNTIME",
+        "reports": {
+          "count": 3,
+          "statuses": {
+            "READY": 3
+          },
+          "model_calls": 6,
+          "lookups": 3
+        }
+      },
+      "manifest": {
+        "schema_version": "1.0",
+        "run_id": "3ba05c8a-257a-4069-800d-b59af7474d54",
+        "case_id": "D01",
+        "started_at": "2026-11-07T01:29:30.500604+00:00",
+        "finished_at": "2026-11-07T01:29:30.666735+00:00",
+        "source_sha256": "e6551e8f3923d1b848c205be7bc0edee4f7aa6112a9f270683947efb450b5c58",
+        "python": "3.13.18",
+        "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+        "cpu": "arm64",
+        "sqlite": "3.53.1",
+        "packages": {
+          "ortools": "9.15.6755",
+          "pydantic": "2.14.3"
+        },
+        "policy": {
+          "schema_version": "1.0",
+          "policy_version": "dev-v1",
+          "rule_version": "rules-v1",
+          "solver_seconds": 5.0,
+          "num_search_workers": 1,
+          "random_seed": 0,
+          "stale_retries": 2,
+          "evidence_lookup_passes": 1,
+          "db_busy_ms": 1000,
+          "work_conserving": true
+        },
+        "inputs": {
+          "config/dev-policy.json": "96c1a07b1bb39df8be79b145a43c3278c5baa74b422492eb00d0a0ccefd19fd6",
+          "data/dev/D01/initial.json": "0bfd7b2ff6b0639d2ffed2744641e757eccda086388d4b06722be3cc44fc9077",
+          "data/dev/D01/evidence.json": "d4203f91701e05520154a8aa343255124ad4285ad20d1bd561b360787cdf7887",
+          "simulation/dev/D01/events.jsonl": "925574e6e9f55a0224ce0bc70157ff8deccff438ea04593e11f0c72170e150b8",
+          "simulation/reports/D01.jsonl": "6abc509778c068192eddcd85bb9012917cd0547e5dcf3ae061c439b89156478d"
+        },
+        "report_mode": "responses",
+        "report_adapter": {
+          "prompt_version": "report-v1",
+          "max_model_calls": 2,
+          "max_lookups": 1
+        },
+        "command": "uv run --locked --extra llm python -m shipyard run --case D01 --output '/Users/yumsj/Documents/ChatGPT/산업공학종합설계/outputs/responses-verification-20261107/full-suite/test_mocked_responses_d01_matc0/mocked-responses' --report-mode responses --llm-policy '/Users/yumsj/Documents/ChatGPT/산업공학종합설계/outputs/responses-verification-20261107/full-suite/test_mocked_responses_d01_matc0/project/test llm-policy.json' --allow-paid",
+        "argv": [
+          "/Users/yumsj/Documents/ChatGPT/산업공학종합설계/.venv/lib/python3.13/site-packages/pytest/__main__.py",
+          "-q",
+          "--basetemp=outputs/responses-verification-20261107/full-suite",
+          "--junitxml=outputs/responses-verification-20261107/pytest.xml"
+        ],
+        "unit": "abstract_tick",
+        "llm": {
+          "policy": {
+            "schema_version": "1.0",
+            "model": "gpt-6-luna",
+            "approved_for_paid_calls": true,
+            "data_policy": "SYNTHETIC_DEV_ONLY",
+            "max_input_tokens": 12000,
+            "max_output_tokens": 1000,
+            "request_timeout_seconds": 15,
+            "report_deadline_seconds": 45,
+            "run_deadline_seconds": 180,
+            "report_budget_micro_usd": 5000,
+            "run_budget_micro_usd": 50000,
+            "project_budget_micro_usd": 100000,
+            "input_sha256": {
+              "data/dev/D01/initial.json": "0bfd7b2ff6b0639d2ffed2744641e757eccda086388d4b06722be3cc44fc9077",
+              "data/dev/D01/evidence.json": "d4203f91701e05520154a8aa343255124ad4285ad20d1bd561b360787cdf7887",
+              "simulation/dev/D01/events.jsonl": "925574e6e9f55a0224ce0bc70157ff8deccff438ea04593e11f0c72170e150b8",
+              "simulation/reports/D01.jsonl": "6abc509778c068192eddcd85bb9012917cd0547e5dcf3ae061c439b89156478d",
+              "config/dev-policy.json": "96c1a07b1bb39df8be79b145a43c3278c5baa74b422492eb00d0a0ccefd19fd6"
+            }
+          },
+          "policy_sha256": "313d7e8572d25d5a4805c921e0a33d652a86ea632d277ea174375f9489264ecc",
+          "sdk_version": "3.46.0",
+          "generation_budget": {
+            "run": {
+              "reserved_micro_usd": 0,
+              "settled_micro_usd": 150,
+              "committed_micro_usd": 150,
+              "request_count": 6
+            },
+            "project": {
+              "reserved_micro_usd": 0,
+              "settled_micro_usd": 150,
+              "committed_micro_usd": 150,
+              "request_count": 6
+            }
+          },
+          "pricing_scope": "estimated text generation only; token-count billing unverified"
+        }
+      },
+      "artifact_sha256": {
+        "summary.json": "736ad977d066eaf3439b1c56a17851f56dbc94bf18b86477f7dd5ddcccb2c5e2",
+        "execution.csv": "57ede2c679040a135b6b1245166f8647ffa3d8f0f75b2e660bd4c5650854192c",
+        "run.sqlite3": "2fe3feebe91edddc309c529fc149772afa528d3aa9b19ee4a8649c2b566a43f9",
+        "manifest.json": "dd1d33d1aa7acab8273b7841d31cef0b5da8ca563280bb4d600ded091360e3e6",
+        "trace.jsonl": "a5fd47c2aa33d1ec36d64f77a6884fb7825d94bcb153b961002447ab636f3071",
+        "evaluation.json": "ac75f1233338c6bdc786589770cd42e555729d809bb97b5646a2070dd27dafb4",
+        "evaluation.csv": "d5366b6323267dd59bd5e4e6d98bdb8e768d2edf795df9c0ba229721d7abed64"
+      }
+    },
+    "outputs/responses-verification-20261107/full-suite/test_mocked_responses_d01_matc0/fake": {
+      "summary": {
+        "schema_version": "1.0",
+        "run_id": "9d8c5575-dd7a-433e-9e11-4edb02e7fd15",
+        "termination": "COMPLETED",
+        "now_tick": 15,
+        "state_version": 50,
+        "active_plan_version": 13,
+        "completed_jobs": [
+          "W17",
+          "W18",
+          "W19",
+          "W20",
+          "W21"
+        ],
+        "unfinished_jobs": [],
+        "active_restrictions": [],
+        "deferred_jobs": [],
+        "additional_human_requests": 0,
+        "failures": [],
+        "completed_phases": 13,
+        "evaluation": "NOT_SCORED_BY_RUNTIME",
+        "reports": {
+          "count": 3,
+          "statuses": {
+            "READY": 3
+          },
+          "model_calls": 6,
+          "lookups": 3
+        }
+      },
+      "manifest": {
+        "schema_version": "1.0",
+        "run_id": "9d8c5575-dd7a-433e-9e11-4edb02e7fd15",
+        "case_id": "D01",
+        "started_at": "2026-11-07T01:29:30.365000+00:00",
+        "finished_at": "2026-11-07T01:29:30.492963+00:00",
+        "source_sha256": "e6551e8f3923d1b848c205be7bc0edee4f7aa6112a9f270683947efb450b5c58",
+        "python": "3.13.18",
+        "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+        "cpu": "arm64",
+        "sqlite": "3.53.1",
+        "packages": {
+          "ortools": "9.15.6755",
+          "pydantic": "2.14.3"
+        },
+        "policy": {
+          "schema_version": "1.0",
+          "policy_version": "dev-v1",
+          "rule_version": "rules-v1",
+          "solver_seconds": 5.0,
+          "num_search_workers": 1,
+          "random_seed": 0,
+          "stale_retries": 2,
+          "evidence_lookup_passes": 1,
+          "db_busy_ms": 1000,
+          "work_conserving": true
+        },
+        "inputs": {
+          "config/dev-policy.json": "96c1a07b1bb39df8be79b145a43c3278c5baa74b422492eb00d0a0ccefd19fd6",
+          "data/dev/D01/initial.json": "0bfd7b2ff6b0639d2ffed2744641e757eccda086388d4b06722be3cc44fc9077",
+          "data/dev/D01/evidence.json": "d4203f91701e05520154a8aa343255124ad4285ad20d1bd561b360787cdf7887",
+          "simulation/dev/D01/events.jsonl": "925574e6e9f55a0224ce0bc70157ff8deccff438ea04593e11f0c72170e150b8",
+          "simulation/reports/D01.jsonl": "a1f0a972e9c5404e6040920ae6e4394971974f7cd990823b41e694297c7b68dc"
+        },
+        "report_mode": "fake",
+        "report_adapter": {
+          "prompt_version": "report-v1",
+          "max_model_calls": 2,
+          "max_lookups": 1
+        },
+        "command": "uv run --locked python -m shipyard run --case D01 --output '/Users/yumsj/Documents/ChatGPT/산업공학종합설계/outputs/responses-verification-20261107/full-suite/test_mocked_responses_d01_matc0/fake' --report-mode fake",
+        "argv": [
+          "/Users/yumsj/Documents/ChatGPT/산업공학종합설계/.venv/lib/python3.13/site-packages/pytest/__main__.py",
+          "-q",
+          "--basetemp=outputs/responses-verification-20261107/full-suite",
+          "--junitxml=outputs/responses-verification-20261107/pytest.xml"
+        ],
+        "unit": "abstract_tick"
+      },
+      "artifact_sha256": {
+        "summary.json": "a0626d2b459bb101f19b2791b7aa90f803eb2d55e433937332fdca57dc3e54dc",
+        "execution.csv": "ac5666e3720d6addc2de50eb03a2d0e7c40fd693110fcf5e45a44b68c4ed05dd",
+        "run.sqlite3": "1eaf66163e154fe3046d1bc5daad58114fb02553044ba7d10edb657249c6b2e1",
+        "manifest.json": "4b5bfe28e4ddb9bb05e119d6e3d910d5c38432e1ad57ceb46274ab113167cd23",
+        "trace.jsonl": "2648736b7bd04bc3af5fb34d7f17681b08b0fd3db78bcf211217eb7819e922d7",
+        "evaluation.json": "c1dbd8e5b54e7ec707dd19e73ad35297aa4154b991b63e49a4a0e2bf841ef72c",
+        "evaluation.csv": "d5366b6323267dd59bd5e4e6d98bdb8e768d2edf795df9c0ba229721d7abed64"
+      }
+    },
+    "outputs/responses-verification-20261107/no-llm-structured-final": {
+      "summary": {
+        "schema_version": "1.0",
+        "run_id": "949e45d9-dfbd-4d4f-9ab6-960065677b45",
+        "termination": "COMPLETED",
+        "now_tick": 15,
+        "state_version": 50,
+        "active_plan_version": 13,
+        "completed_jobs": [
+          "W17",
+          "W18",
+          "W19",
+          "W20",
+          "W21"
+        ],
+        "unfinished_jobs": [],
+        "active_restrictions": [],
+        "deferred_jobs": [],
+        "additional_human_requests": 0,
+        "failures": [],
+        "completed_phases": 13,
+        "evaluation": "NOT_SCORED_BY_RUNTIME"
+      },
+      "manifest": {
+        "schema_version": "1.0",
+        "run_id": "949e45d9-dfbd-4d4f-9ab6-960065677b45",
+        "case_id": "D01",
+        "started_at": "2026-11-07T01:29:44.348374+00:00",
+        "finished_at": "2026-11-07T01:29:44.475372+00:00",
+        "source_sha256": "e6551e8f3923d1b848c205be7bc0edee4f7aa6112a9f270683947efb450b5c58",
+        "python": "3.13.18",
+        "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+        "cpu": "arm64",
+        "sqlite": "3.53.1",
+        "packages": {
+          "ortools": "9.15.6755",
+          "pydantic": "2.14.3"
+        },
+        "policy": {
+          "schema_version": "1.0",
+          "policy_version": "dev-v1",
+          "rule_version": "rules-v1",
+          "solver_seconds": 5.0,
+          "num_search_workers": 1,
+          "random_seed": 0,
+          "stale_retries": 2,
+          "evidence_lookup_passes": 1,
+          "db_busy_ms": 1000,
+          "work_conserving": true
+        },
+        "inputs": {
+          "config/dev-policy.json": "96c1a07b1bb39df8be79b145a43c3278c5baa74b422492eb00d0a0ccefd19fd6",
+          "data/dev/D01/initial.json": "0bfd7b2ff6b0639d2ffed2744641e757eccda086388d4b06722be3cc44fc9077",
+          "data/dev/D01/evidence.json": "d4203f91701e05520154a8aa343255124ad4285ad20d1bd561b360787cdf7887",
+          "simulation/dev/D01/events.jsonl": "925574e6e9f55a0224ce0bc70157ff8deccff438ea04593e11f0c72170e150b8"
+        },
+        "report_mode": "structured",
+        "report_adapter": null,
+        "command": "uv run --locked python -m shipyard run --case D01 --output outputs/responses-verification-20261107/no-llm-structured-final --report-mode structured",
+        "argv": [
+          "/Users/yumsj/Documents/ChatGPT/산업공학종합설계/src/shipyard/__main__.py",
+          "run",
+          "--case",
+          "D01",
+          "--report-mode",
+          "structured",
+          "--output",
+          "outputs/responses-verification-20261107/no-llm-structured-final"
+        ],
+        "unit": "abstract_tick"
+      },
+      "artifact_sha256": {
+        "summary.json": "48bd48b1c278f91edf7d0b1ee23ad1390e8e7db55f51a442c6d7d5149ef5432b",
+        "execution.csv": "d1a53389adf7366c8ba5c350e92e8aebfa0b9492e92e3129070678a5e605dc58",
+        "run.sqlite3": "1188a8962d0d62a32176d77c8ba3ec3417170ed47f2853069a37559983ab28a0",
+        "manifest.json": "e616f040176e998d85dfa81ea4f33a55f6a0fa358dada435cfef75ee2caaf05c",
+        "trace.jsonl": "34ee0f71653b6834337fd68d746453161c804191ea16b9b7aa69bc68d22974ce"
+      }
+    },
+    "outputs/responses-verification-20261107/no-llm-fake-final": {
+      "summary": {
+        "schema_version": "1.0",
+        "run_id": "32aed812-d6d4-40f5-b0f7-760ab319411d",
+        "termination": "COMPLETED",
+        "now_tick": 15,
+        "state_version": 50,
+        "active_plan_version": 13,
+        "completed_jobs": [
+          "W17",
+          "W18",
+          "W19",
+          "W20",
+          "W21"
+        ],
+        "unfinished_jobs": [],
+        "active_restrictions": [],
+        "deferred_jobs": [],
+        "additional_human_requests": 0,
+        "failures": [],
+        "completed_phases": 13,
+        "evaluation": "NOT_SCORED_BY_RUNTIME",
+        "reports": {
+          "count": 3,
+          "statuses": {
+            "READY": 3
+          },
+          "model_calls": 6,
+          "lookups": 3
+        }
+      },
+      "manifest": {
+        "schema_version": "1.0",
+        "run_id": "32aed812-d6d4-40f5-b0f7-760ab319411d",
+        "case_id": "D01",
+        "started_at": "2026-11-07T01:29:44.348356+00:00",
+        "finished_at": "2026-11-07T01:29:44.484504+00:00",
+        "source_sha256": "e6551e8f3923d1b848c205be7bc0edee4f7aa6112a9f270683947efb450b5c58",
+        "python": "3.13.18",
+        "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+        "cpu": "arm64",
+        "sqlite": "3.53.1",
+        "packages": {
+          "ortools": "9.15.6755",
+          "pydantic": "2.14.3"
+        },
+        "policy": {
+          "schema_version": "1.0",
+          "policy_version": "dev-v1",
+          "rule_version": "rules-v1",
+          "solver_seconds": 5.0,
+          "num_search_workers": 1,
+          "random_seed": 0,
+          "stale_retries": 2,
+          "evidence_lookup_passes": 1,
+          "db_busy_ms": 1000,
+          "work_conserving": true
+        },
+        "inputs": {
+          "config/dev-policy.json": "96c1a07b1bb39df8be79b145a43c3278c5baa74b422492eb00d0a0ccefd19fd6",
+          "data/dev/D01/initial.json": "0bfd7b2ff6b0639d2ffed2744641e757eccda086388d4b06722be3cc44fc9077",
+          "data/dev/D01/evidence.json": "d4203f91701e05520154a8aa343255124ad4285ad20d1bd561b360787cdf7887",
+          "simulation/dev/D01/events.jsonl": "925574e6e9f55a0224ce0bc70157ff8deccff438ea04593e11f0c72170e150b8",
+          "simulation/reports/D01.jsonl": "a1f0a972e9c5404e6040920ae6e4394971974f7cd990823b41e694297c7b68dc"
+        },
+        "report_mode": "fake",
+        "report_adapter": {
+          "prompt_version": "report-v1",
+          "max_model_calls": 2,
+          "max_lookups": 1
+        },
+        "command": "uv run --locked python -m shipyard run --case D01 --output outputs/responses-verification-20261107/no-llm-fake-final --report-mode fake",
+        "argv": [
+          "/Users/yumsj/Documents/ChatGPT/산업공학종합설계/src/shipyard/__main__.py",
+          "run",
+          "--case",
+          "D01",
+          "--report-mode",
+          "fake",
+          "--output",
+          "outputs/responses-verification-20261107/no-llm-fake-final"
+        ],
+        "unit": "abstract_tick"
+      },
+      "artifact_sha256": {
+        "summary.json": "ff0dd8bb1d617ea066b17feb18c26e6cf415d3dc14efe9e9f4cb9fc7196eb40d",
+        "execution.csv": "978f868c7039b9840c0847cc68da420f68b19a0d6f708f8e0ed661b8ead422fd",
+        "run.sqlite3": "a10026a207d73d08701a3f2b3c73cc5d81afd9294bff354e588662382eda449a",
+        "manifest.json": "e64e2db4519683bf799b3a5db95d69a8c0285ecef9cd67dd7e5aa00dab7f4401",
+        "trace.jsonl": "c7a9e291200178d94e2bb6a266896aa43aabe3d450616d5deeff7521b994759f"
+      }
+    }
+  },
+  "remaining_failures": [],
+  "unverified": [
+    "Actual model access, Responses request permission, balance, quota and rate limits.",
+    "Paid API response schema acceptance and Korean report interpretation quality.",
+    "Token-count endpoint billing and retention conditions; local ledger only estimates generation cost.",
+    "Provider cancellation or zero cost after a local timeout.",
+    "Windows/Linux and main agent-comparison experiment."
+  ],
+  "resolved_findings": [
+    "Provider/ledger project mismatch rejected.",
+    "Malformed usage handled without logging raw error.",
+    "Quota and rate limit status separated.",
+    "Persistent per-report attempt counter survives provider recreation.",
+    "Deadline rechecked after reservation and before sending.",
+    "Recorded live command includes optional SDK extra and quotes paths."
+  ],
+  "documentation_checks": {
+    "local_link_count": 53,
+    "missing_targets": [],
+    "balanced_code_fences": true,
+    "mermaid_rendered": false
+  }
+}

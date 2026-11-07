@@ -1,6 +1,6 @@
 # 최소 자동 처리 흐름의 데이터 계약
 
-2026-11-07, 계약 `schema_version="1.0"`, 개발 정책 `dev-v1`. **정형 사건과 가짜 모델 문장형 보고 어댑터의 현재 계약이다.** DTO·저장·사건 처리·계획·검사·시뮬레이션 코드와 개발 데이터·테스트를 작성했다. 실제 실행 범위와 M01–M10의 최종 증거는 [구현 작업과 검증 기록](next-steps.md)에서 관리한다. 기술 결정은 [DEC-01–06](decisions.md), 모듈과 파일은 [아키텍처](architecture.md)를 따른다. R §4.2 표7·§4.3·4.5와 B §2–6의 요구를 구현 필드·처리 조건으로 구체화했다.
+2026-11-07, 계약 `schema_version="1.0"`, 개발 정책 `dev-v1`. **정형/fake 경로와 선택적 Responses API 어댑터의 현재 계약이다. 실제 유료 호출은 미실행이다.** DTO·저장·사건 처리·계획·검사·시뮬레이션 코드와 개발 데이터·테스트를 작성했다. 실제 실행 범위와 M01–M10의 최종 증거는 [구현 작업과 검증 기록](next-steps.md)에서 관리한다. 기술 결정은 [DEC-01–06](decisions.md), 모듈과 파일은 [아키텍처](architecture.md)를 따른다. R §4.2 표7·§4.3·4.5와 B §2–6의 요구를 구현 필드·처리 조건으로 구체화했다.
 
 ## 공통 표현과 ID
 
@@ -71,6 +71,44 @@
 보고당 모델 2회·읽기 전용 조회 1회, 응답 16,384 UTF-8 bytes·요청 문맥 32,768 bytes를 개발 상한으로 둔다. 자동 재시도는 없다. 가짜 모델의 `TimeoutError` 주입은 오류 분기 검사이며 벽시계 deadline이나 실제 API 취소가 구현됐다는 뜻이 아니다. 과금 토큰·실제 금액·SDK timeout·전체 deadline은 유료 연결 전에 별도로 정한다([DEC-07](decisions.md)).
 
 `simulation/reports/D01–D04.jsonl`은 보고 본문·접수 대상·가짜 응답 대본을 가진 드라이버 전용 replay fixture다. 미래 대본을 모델 문맥으로 넘기지 않고 현재 도착한 보고의 대본만 `FakeReportModel`에 준다. 가짜 모델은 대본을 반환할 뿐 문장을 이해하거나 정답을 추론하지 않는다. 모델에 전달된 요청을 관측하는 sentinel 테스트로 미래 보고·복구 근거·oracle·truth 누출을 확인한다. 이 경계는 단일 프로세스 데이터 흐름이며 OS 격리가 아니다.
+
+## Responses API 공급자 계약 (미승인 파일럿)
+
+`responses.ResponsesReportModel.respond(request)`는 기존 `ReportModel` 인터페이스를 구현한다. SDK는 이 공급자 경계에서만 지연 import하며 운영 상태 저장소를 받지 않는다. 기존 `interpret_report`가 조회 결과를 만들고 최종 사건을 검사한다. 기준 상태·제약·솔버·checker·evaluator는 그대로 사용한다. 새로운 `ModelCallFailure(status, reason, metadata)`는 공급자별 실패를 기존 대상별 확인 대기/식별 요청 경로에 연결하며 원문 HTTP 오류를 복사하지 않는다.
+
+### 실제 전송과 응답
+
+첫 요청에는 고정 system instruction, 보고 본문과 접수 대상, 현재 엔터티 ID, 사건 종류 목록·현재 tick만 보낸다. run/report/source ID·전체 snapshot·파일 경로·미래 대본·정답·API 키를 프롬프트에 합치지 않는다. 조회 후에는 해당 보고의 첫 function call과 `call_id`를 가진 `function_call_output`으로 현재 조회 결과를 보낸다. SDK의 서버 대화 저장이나 `previous_response_id`를 사용하지 않는다. 첫 응답의 유효한 output items를 그대로 연결하고 새 보고는 새 대화로 시작한다.
+
+허용 function은 `lookup_evidence`, `propose`, `clarify`이며 모두 기존 Pydantic 계약으로 만든 strict schema를 사용한다. 각 객체는 모든 필드를 required로 표시하고 nullable 필드로 선택값을 나타내며 extra 필드를 금지한다. `parallel_tool_calls=false`, 한 응답의 허용 function call 정확히 1개를 요구한다. 조회 이후에는 lookup tool을 제거한다. `propose`도 실행 도구가 아니라 사건 제안의 전달 형식이다. 알 수 없는 도구·복수 호출·함수명/action 불일치·추가 코드 필드는 거부한다.
+
+생성 요청은 `store=false`, `background=false`, `stream=false`, Standard `service_tier=default`, `reasoning.effort=none`, `truncation=disabled`, explicit cache 모드와 breakpoint 없음으로 고정한다. SDK 기본 재시도 대신 `max_retries=0`을 쓴다. 토큰 count endpoint에는 SDK가 지원하는 동일 model/input/instructions/tools/choice/reasoning 형식을 전달하며, count 규격에 없는 저장 옵션을 넣었다고 주장하지 않는다. count도 외부 데이터 전송이므로 같은 사전 동의 뒤에만 실행한다. 모델·데이터 보관·count 청구의 공식 확인 범위는 [DEC-07](decisions.md)에 있다.
+
+### 승인·범위·시간과 비용
+
+`config/llm-policy.json`은 검토용 제안이며 `approved_for_paid_calls=false`, `project_id=null`이다. 생성과 count를 시작하려면 승인된 로컬 설정과 `--allow-paid`가 모두 있어야 한다. `OPENAI_API_KEY`는 실행 환경에서만 읽고 파일/프롬프트/trace에 기록하지 않는다. SDK API URL은 `https://api.openai.com/v1`로 명시하며 환경 프록시·redirect로 다른 곳에 전송하지 않는다. 조직·프로젝트·모델의 실제 권한은 계정 설정의 책임이며 모델 metadata 조회만으로 생성 권한·잔액·쿼터를 확인했다고 쓰지 않는다.
+
+첫 구현의 외부 전송은 **합성 D01, 최대 3개 보고**로 제한한다. 승인 설정에는 공개 초기값·근거·드라이버 입력·보고 대본·개발 정책의 SHA-256을 고정한다. 파일 내용이 달라지거나 다른 사례를 지정하면 네트워크 전에 거부한다. 이것은 승인한 fixture의 바이트 경계이며 민감정보를 자동 탐지하는 기능이 아니다. 원본 보고서와 실제 현장 자료는 전송 대상에 포함하지 않는다.
+
+제안 기본값은 입력 12,000/출력 1,000토큰(요청당), 보고당 생성 2회·조회 1회, HTTP 작업 15초·보고 전체 45초·실행 전체 180초다. count는 생성 전 최대 1회다. 출력 상한은 reasoning/formatting을 포함하는 API max_output_tokens로 전달하고, 입력은 count 결과가 상한 이내일 때만 생성한다. UTF-8 바이트/본문 길이의 기존 제한도 유지한다. AsyncOpenAI 요청은 `asyncio.timeout`으로 감싸고 남은 보고/실행 시간을 다시 계산하며 deadline 이후 결과는 적용하지 않는다. 로컬 취소는 서버 생성·과금 취소 보장이 아니다.
+
+`llm_budget.BudgetLedger`는 운영 DB와 분리된 `artifacts/llm-budget.sqlite3`를 사용한다. 보고($0.005)·실행($0.05)·프로젝트 누적($0.10)의 제안 한도를 정수 micro-USD로 저장한다. 네트워크 전에 최대 입력·출력에 대한 generation 비용을 `BEGIN IMMEDIATE`로 예약한다. Luna의 현재 Standard text 단가와 캐시 비사용 조건에서 최대 한 생성 예약액은 **1,700 micro-USD($0.0017)**다. usage가 유효하면 generation 추정 비용만 정산하고, timeout/연결 실패/usage 누락/과다 usage/프로세스 종료 시 미정산 예약을 유지한다. 같은 run/report의 예약 횟수도 2회로 제한하므로 재시작으로 생성 상한을 초기화할 수 없다. count에서 실패한 예약도 횟수에 포함한다. 보고·실행·프로젝트 한도는 동시에 검사하며 다른 프로세스·새 실행에서도 같은 프로젝트 원장을 계속 사용한다. 다른 DB·스키마를 기존 원장으로 오인하지 않는다.
+
+원장의 `settled_micro_usd`는 공급자 청구서가 아니라 usage와 고정 단가에서 계산한 generation 추정액이다. count의 별도 청구 조건은 확인되지 않았으므로 계정 전체 청구액의 절대 상한을 보장하지 않는다. 플랫폼의 별도 지출 한도도 설정·전파 조건을 확인해야 한다. 원장을 삭제하거나 새 경로로 바꿔 한도를 초기화하면 안 된다. 이 버전은 저장된 프로젝트 한도를 조용히 변경하지 않으며, 변경에는 사용자의 별도 결정과 명시적 후속 작업이 필요하다.
+
+### 오류와 추적
+
+| 결과 | 동작 |
+| --- | --- |
+| `MODEL_AUTH_ERROR`, `MODEL_PERMISSION_ERROR`, `MODEL_NOT_FOUND` | 인증/권한/모델 endpoint 오류를 구별. 자동 모델 변경 없이 현재 공급자 세션 중단 |
+| `MODEL_QUOTA_ERROR`, `MODEL_RATE_LIMIT` | 429의 quota와 rate 원인을 구별. 숨은 재시도 없이 중단 |
+| `MODEL_TIMEOUT`, `MODEL_CONNECTION_ERROR`, `MODEL_SERVICE_ERROR`, `MODEL_REQUEST_ERROR` | 지연·연결·서비스·요청 오류. 미확정 비용 예약 유지, 사건은 기존 확인 필요 경로 |
+| `MODEL_REFUSAL`, `MODEL_INCOMPLETE` | 거절 또는 불완전 출력. 유효해 보이는 함수 인자가 있어도 제안으로 적용하지 않음 |
+| `MODEL_INPUT_LIMIT`, `MODEL_BUDGET_EXCEEDED`, `MODEL_CALL_LIMIT` | 입력/count·금액·횟수 상한 위반. 다음 generation 금지 |
+| `MODEL_USAGE_UNKNOWN`, `MODEL_USAGE_MISMATCH` | usage 누락/이상·출력/입력 초과·모델 불일치. 예약 유지하고 공급자 세션 중단 |
+| `MODEL_SESSION_STOPPED` | 앞선 전송/정산 오류 뒤 남은 보고에서 추가 요청하지 않음 |
+
+`REPORT_RESULT.trace[].provider`에는 모델/SDK/wire 버전, 호출 단계, response/request ID, 토큰 사용량, 예약 ID·예약액·generation 추정액·정산 상태를 기록한다. `manifest.llm`에는 키/프로젝트 ID를 제외한 정책·정책 hash·SDK 버전·원장의 실행/프로젝트 집계를 남긴다. 보고의 `model_calls`는 기존 어댑터 호출 횟수이며 실제 성공한 generation 수와 같다고 가정하지 않는다. 사전 차단과 token-count 단계 실패는 provider metadata의 단계로 구별한다. local trace는 기존처럼 Git 제외 실행 폴더에 보존하며 자동 삭제 기간은 아직 정하지 않았다.
 
 ## 사건과 활성 제한
 

@@ -6,6 +6,7 @@ import json
 import platform
 import sqlite3
 import sys
+import shlex
 from pathlib import Path
 from uuid import uuid4
 
@@ -62,12 +63,31 @@ def source_hash(root: Path) -> str:
     return value.hexdigest()
 
 
-def run_case(case: str, output: Path, root: Path=ROOT, *, report_mode: str="structured") -> dict:
-    if report_mode not in {"structured", "fake"}:
+def run_case(case: str, output: Path, root: Path=ROOT, *, report_mode: str="structured",
+             llm_policy_path: Path | None=None, allow_paid: bool=False) -> dict:
+    if report_mode not in {"structured", "fake", "responses"}:
         raise ValueError("unknown report mode")
+    llm_policy = None
+    live_model = ledger = None
+    if report_mode == "responses":
+        from .responses import load_policy, credential_status, validate_live_inputs, ResponsesReportModel
+        from .llm_budget import BudgetLedger
+        if llm_policy_path is None:
+            raise ValueError("LLM_POLICY_REQUIRED")
+        llm_policy = load_policy(llm_policy_path)
+        if not allow_paid or not llm_policy.approved_for_paid_calls:
+            raise ValueError("PAID_CALLS_NOT_APPROVED")
+        validate_live_inputs(root,llm_policy,case)
+        credentials = credential_status(llm_policy)
+        if not credentials['api_key_present'] or not credentials['project_configured']:
+            raise ValueError("LLM_CREDENTIALS_MISSING")
+        try:
+            importlib.metadata.version('openai')
+        except importlib.metadata.PackageNotFoundError:
+            raise ValueError("LLM_SDK_MISSING: run uv sync --locked --extra llm") from None
     report_path = root/'simulation'/'reports'/f'{case}.jsonl'
     report_records = {}
-    if report_mode == "fake":
+    if report_mode != "structured":
         for line in report_path.read_text(encoding='utf-8').splitlines():
             record = FakeReportRecord.model_validate(parse_json(line))
             if record.report_id in report_records:
@@ -82,6 +102,16 @@ def run_case(case: str, output: Path, root: Path=ROOT, *, report_mode: str="stru
     repository=Repository(output/'run.sqlite3')
     repository.initialize(snapshot)
     controller=Controller(repository,policy)
+    try:
+        if llm_policy:
+            ledger = BudgetLedger(root/'artifacts/llm-budget.sqlite3',llm_policy.project_id,
+                llm_policy.report_budget_micro_usd,llm_policy.run_budget_micro_usd,llm_policy.project_budget_micro_usd)
+            live_model = ResponsesReportModel(llm_policy,ledger,allow_paid=allow_paid)
+    except Exception:
+        repository.close()
+        if ledger is not None:
+            ledger.close()
+        raise
 
     def handle_arrivals(batch):
         if report_mode == "structured":
@@ -97,7 +127,8 @@ def run_case(case: str, output: Path, root: Path=ROOT, *, report_mode: str="stru
                 received_tick=batch.tick,text=record.text,target_hint=record.target_hint),
                 published_evidence=delivery.published_evidence))
             scripts[record.report_id] = record.responses
-        return controller.handle_report_batch(batch.tick,batch.observations,reports,FakeReportModel(scripts))
+        return controller.handle_report_batch(batch.tick,batch.observations,reports,
+                                             live_model if live_model is not None else FakeReportModel(scripts))
     for progress in snapshot.execution_progress:
         phase=progress.current_phase
         if phase:
@@ -146,30 +177,54 @@ def run_case(case: str, output: Path, root: Path=ROOT, *, report_mode: str="stru
         repository.audit('FAILURE','INTERNAL_ERROR',{'reason_codes':[type(error).__name__+': '+str(error)]})
         raise
     finally:
+        llm_usage = None
+        if live_model is not None:
+            live_model.close()
+            llm_usage = {'run':ledger.summary(run_id), 'project':ledger.summary()}
+            ledger.close()
         repository.close()
         summary=export_run(output,termination)
         input_paths=[root/'config/dev-policy.json',root/'data/dev'/case/'initial.json',root/'data/dev'/case/'evidence.json',root/'simulation/dev'/case/'events.jsonl']
-        if report_mode == 'fake':
+        if report_mode != 'structured':
             input_paths.append(report_path)
+        command=['uv','run','--locked',*(['--extra','llm'] if llm_policy else []),'python','-m','shipyard',
+                 'run','--case',case,'--output',str(output),'--report-mode',report_mode]
+        if llm_policy:
+            command += ['--llm-policy',str(llm_policy_path),'--allow-paid']
         manifest={'schema_version':'1.0','run_id':run_id,'case_id':case,'started_at':started,'finished_at':utc_now(),
             'source_sha256':source_hash(root),'python':platform.python_version(),'platform':platform.platform(),'cpu':platform.machine(),
             'sqlite':sqlite3.sqlite_version,'packages':{p:importlib.metadata.version(p) for p in ['ortools','pydantic']},
             'policy':policy.model_dump(),'inputs':{str(p.relative_to(root)):hashlib.sha256(p.read_bytes()).hexdigest() for p in input_paths},
-            'report_mode':report_mode,'report_adapter':{'prompt_version':PROMPT_VERSION,'max_model_calls':MAX_MODEL_CALLS,'max_lookups':MAX_LOOKUPS} if report_mode=='fake' else None,
-            'command':f'uv run --locked python -m shipyard run --case {case} --output {output} --report-mode {report_mode}','argv':sys.argv,'unit':'abstract_tick'}
+            'report_mode':report_mode,'report_adapter':{'prompt_version':PROMPT_VERSION,'max_model_calls':MAX_MODEL_CALLS,'max_lookups':MAX_LOOKUPS} if report_mode!='structured' else None,
+            'command':shlex.join(command),'argv':sys.argv,'unit':'abstract_tick'}
+        if llm_policy:
+            manifest['llm'] = {'policy':llm_policy.model_dump(exclude={'project_id'}),
+                'policy_sha256':hashlib.sha256(llm_policy_path.read_bytes()).hexdigest(),
+                'sdk_version':importlib.metadata.version('openai'), 'generation_budget':llm_usage,
+                'pricing_scope':'estimated text generation only; token-count billing unverified'}
         (output/'manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     return summary
 
 
 def main(argv=None):
-    parser=argparse.ArgumentParser(description='용접 예외 처리 시뮬레이션 (정형 사건 / 가짜 모델 문장 보고)')
+    parser=argparse.ArgumentParser(description='용접 예외 처리 시뮬레이션 (정형 사건 / fake / Responses 문장 보고)')
     commands=parser.add_subparsers(dest='command',required=True)
     run=commands.add_parser('run');run.add_argument('--case',choices=['D01','D02','D03','D04'],required=True);run.add_argument('--output',type=Path,required=True)
-    run.add_argument('--report-mode',choices=['structured','fake'],default='structured')
+    run.add_argument('--report-mode',choices=['structured','fake','responses'],default='structured')
+    run.add_argument('--llm-policy',type=Path)
+    run.add_argument('--allow-paid',action='store_true')
+    preflight=commands.add_parser('llm-preflight')
+    preflight.add_argument('--llm-policy',type=Path,default=ROOT/'config/llm-policy.json')
+    preflight.add_argument('--check-access',action='store_true')
     inspect=commands.add_parser('inspect');inspect.add_argument('--run-dir',type=Path,required=True)
     args=parser.parse_args(argv)
     try:
-        summary=run_case(args.case,args.output,report_mode=args.report_mode) if args.command=='run' else inspect_run(args.run_dir)
+        if args.command=='llm-preflight':
+            from .responses import load_policy, preflight as inspect_llm
+            print(json.dumps(inspect_llm(load_policy(args.llm_policy),check_access=args.check_access),ensure_ascii=False,indent=2))
+            return 0
+        summary=run_case(args.case,args.output,report_mode=args.report_mode,
+                         llm_policy_path=args.llm_policy,allow_paid=args.allow_paid) if args.command=='run' else inspect_run(args.run_dir)
         print(json.dumps(summary,ensure_ascii=False,indent=2))
         return 1 if summary.get('termination')=='FAILED' else 0
     except (OSError,ValueError,RuntimeError,sqlite3.Error) as error:

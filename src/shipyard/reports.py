@@ -104,6 +104,13 @@ class ReportModel(Protocol):
     def respond(self, request: dict) -> str: ...
 
 
+class ModelCallFailure(Exception):
+    """Provider-neutral failure; metadata must exclude credentials/raw errors."""
+    def __init__(self, status: str, reason: str, metadata: dict | None = None):
+        super().__init__(reason)
+        self.status, self.reason, self.metadata = status, reason, metadata or {}
+
+
 class FakeReportModel:
     """Scripts cover only reports already delivered to this batch; no network."""
     def __init__(self, scripts: dict[str, list[str | Exception]]):
@@ -203,11 +210,16 @@ def interpret_report(item: ReportDelivery, snapshot: PlanningSnapshot, model: Re
         result.trace.append(entry)
         try:
             raw=model.respond(json.loads(canonical(request)))
+        except ModelCallFailure as error:
+            entry["provider"] = error.metadata
+            return stop(error.status,error.reason)
         except TimeoutError:
             return stop("MODEL_TIMEOUT","MODEL_TIMEOUT")
         except Exception as error:
             entry["error_type"]=type(error).__name__
             return stop("MODEL_ERROR","MODEL_TRANSPORT_ERROR")
+        if getattr(model,"last_call_metadata",None):
+            entry["provider"] = json.loads(canonical(model.last_call_metadata))
         if not isinstance(raw,str):
             return stop("INVALID_MODEL_RESPONSE","RESPONSE_MUST_BE_JSON_TEXT")
         try:

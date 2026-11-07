@@ -32,3 +32,6 @@ node_modules/
 dist/
 build/
 coverage/
+
+# Local approved LLM policy (project identifier and consent state)
+/config/llm-policy.local.json

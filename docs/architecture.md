@@ -1,6 +1,6 @@
 # 최소 사건·문장형 보고 처리의 구현 아키텍처
 
-2026-11-07 구현 반영. **단일 Python 실행 프로그램에서 로봇 2대·작업 5개의 D01–D04 정형 사건과 가짜 모델을 사용하는 문장형 보고를 처리한다.** 두 입력은 같은 근거·사건 검사, 상태 저장, 재계획, 독립 실행 검사, 시뮬레이션과 추적 경로에 합류한다. 실제 LLM 연결, 단일/역할 분리 에이전트 비교와 본 비교실험은 아직 구현·실행하지 않았다. 가짜 모델은 미리 작성한 응답을 재생하므로 자연어 해석 성능을 검증하지 않는다.
+2026-11-07 구현 반영. **단일 Python 실행 프로그램에서 로봇 2대·작업 5개의 D01–D04 정형 사건과 가짜 모델을 사용하는 문장형 보고를 처리한다.** 같은 보고 인터페이스에 OpenAI Responses 공급자 어댑터와 별도 비용 원장을 구현했다. 모든 입력은 같은 근거·사건 검사, 상태 저장, 재계획, 독립 실행 검사, 시뮬레이션과 추적 경로에 합류한다. **실제 계정 API·토큰 count·모델 생성은 호출하지 않았고 유료 파일럿은 미승인이다.** 가짜 모델·모의 HTTP 검사는 자연어 해석 성능이나 실제 서비스 호환성의 검증이 아니다. 단일/역할 분리 비교와 본 비교실험은 아직 수행하지 않았다.
 
 기술 선택과 비교 근거는 [결정 기록](decisions.md), 필드·전이·시간·실패·정책의 규범은 [데이터 계약](data-contracts.md), 실제 구현 순서는 [다음 작업](next-steps.md)에 둔다. 이 문서는 모듈의 책임·권한·의존관계와 파일 배치를 설명한다. 계약이 바뀌면 이 문서와 구현 작업도 함께 갱신한다.
 
@@ -25,7 +25,10 @@ R은 원본 중간보고서, B는 프로젝트 기준 문서 v1.0이며 파일 �
 ```mermaid
 flowchart TD
     I["도착한 정형 사건과 실행 관측"] --> E["사건 검사와 근거 확인"]
-    L["도착한 문장형 보고"] --> F["보고 어댑터와 가짜 모델"]
+    L["도착한 문장형 보고"] --> F["보고 어댑터와 Model 인터페이스"]
+    F --> G["가짜 모델 또는 Responses 공급자"]
+    G --> F
+    G -. "Responses만 사용" .-> B["공급자 전용 비용 원장"]
     Q["현재 공개 근거와 도착한 근거의 읽기 전용 조회"] --> F
     F --> P["검증된 사건 제안 또는 확인 필요 사건"]
     P --> E
@@ -39,7 +42,7 @@ flowchart TD
 
 그림의 DB 쓰기 화살표는 직접 수정 권한을 뜻하지 않는다. `controller`가 검증된 변경을 `repository`의 제한된 쓰기 메서드에 전달한다. 솔버는 기준 상태를 직접 바꾸지 않는다. phase 시작은 controller가 승인·저장하고, simulator는 승인된 시작 관측으로 완료 사건을 예약하여 해당 tick에 반환한다. simulator는 DB를 직접 갱신하지 않는다. 여기서 실제 시작·완료는 경량 시뮬레이션 안의 실행 사실이며 물리 로봇 관측이 아니다.
 
-1. CLI의 `run_case`가 개발 정책과 공개 초기 상태를 검사하고 `Repository.initialize`와 `Controller`를 구성한다. CLI 실행 드라이버는 시뮬레이터 전용 외부 사건 파일을 따로 로드한다. `--report-mode fake`에서는 `simulation/reports/D01.jsonl`의 문장·가짜 응답도 드라이버가 로드하고, 도착한 보고의 응답만 해당 batch의 `FakeReportModel`에 제공한다.
+1. CLI의 `run_case`가 개발 정책과 공개 초기 상태를 검사하고 `Repository.initialize`와 `Controller`를 구성한다. CLI 실행 드라이버는 시뮬레이터 전용 외부 사건 파일을 따로 로드한다. `--report-mode fake`에서는 `simulation/reports/D01.jsonl`의 문장·가짜 응답도 드라이버가 로드하고, 도착한 보고의 응답만 해당 batch의 `FakeReportModel`에 제공한다. `responses`는 같은 파일의 도착한 보고 문장만 사용하고 가짜 응답을 공급자에 전달하지 않는다. 이 모드의 실행 전에는 별도 LLM 정책·승인 플래그·자격 증명·동결한 D01 입력 해시를 확인한다.
 2. 드라이버가 현재 tick까지 도착한 사건·실행 관측만 전달한다. 문장형 경로에서는 먼저 완료 관측을 반영한 뒤 보고 중복/충돌, 출처·대상·공개 근거를 검사하고 `interpret_report`로 사건을 제안한다. 두 경로 모두 repository의 사건 ID·fingerprint 검사와 `events.apply_deliveries`의 출처·근거·대상·현재성·상반된 관측 검사를 거친다.
 3. controller가 사건 처리 결과와 활성 제한 변경을 저장한다. 제한은 원인별로 유지하며, 복구는 자신이 가리키는 제한만 해제한다.
 4. 공개 `PlanningSnapshot`에서 필수 계획 대상과 사유가 있는 제외 대상을 결정하고, 고정 규칙으로 제약을 만든다. 솔버가 작업을 임의로 빠뜨려 목적값을 낮추지 못하게 한다.
@@ -57,6 +60,8 @@ flowchart TD
 | `contracts.py` | JSON 값 → 타입이 검사된 작업·로봇·근거·사건·계획·관측 DTO | 순수 스키마·enum·구조 검사. DB·솔버·파일 I/O 없음. 의미가 맞는지의 업무 검사는 각 모듈에서 수행 |
 | `repository.py`: `Repository.initialize`, `read_snapshot`, `report_receipts`, `filter_deliveries`, `commit_event_batch`, `record_plan`, `apply_plan`, `commit_observation` | 검사된 초기값/변경 명령 → 저장 결과·새 버전·조회 DTO | **기준 DB의 유일한 쓰기 구현**. 최초 초기화는 CLI, 이후 업무 갱신은 controller가 호출. `commit_event_batch(..., report_results=...)`는 보고 결과와 사건·상태를 함께 저장 |
 | `reports.py`: `ReportInput`, `ReportDelivery`, `ReportModel.respond`, `FakeReportModel`, `interpret_report`, `fallback_delivery` | 현재 도착 보고·공개 snapshot·모델 인터페이스 → `AdapterResult`와 선택적 `Delivery` | DB·파일 경로·simulator를 받지 않음. 허용된 근거 조회, 엄격한 모델 응답 검사, 호출/크기 제한, 확인 필요 fallback을 담당. 모델 출력은 최종 업무 판정이 아님 |
+| `responses.py`: `LLMPolicy`, `ResponsesReportModel.respond`, `preflight`, `validate_live_inputs` | 검사된 보고 요청·미승인/승인 정책·비용 원장 → 공통 모델 응답 또는 `ModelCallFailure` | 기준 DB·미래 큐·평가자료를 받지 않음. SDK는 필요할 때만 import. 입력 토큰 count, strict function calling, 공급자 응답/오류 검사와 호출 제한을 담당. `preflight`의 기본값은 네트워크 없이 설정을 조회 |
+| `llm_budget.py`: `BudgetLedger.reserve`, `settle`, `summary` | 프로젝트/실행/보고 ID·생성 비용 예약/사용량 기반 추정액 → 예산 허용/거부·원장 요약 | 기준 DB와 별도 SQLite에만 쓰기. 원자적 사전 예약과 누적 상한 검사, 결과 미확정 예약 유지. operational 상태·지시 변경 권한 없음 |
 | `events.py`: `apply_deliveries(snapshot, deliveries)` | 공개 상태·현재 도착 근거/사건 → 갱신 제안 snapshot과 사건별 처리 결과 | DB 쓰기 없음. 공개 DTO의 사본에서 출처·대상·유효 범위를 재검사하고 제한·근거 변경을 제안. 저장과 중복 ID 처리는 repository 담당 |
 | `constraints.py`: `build_constraints` | 공개 상태·활성 제한·정책 → 필수/제외 작업과 정형 제약 집합 | 쓰기 없음. 제한·선행·능력·가용·구역·이동/준비·현재 phase를 고정 규칙으로 변환. 임의 코드/수식 입력 없음 |
 | `scheduler.py`: `solve(snapshot, constraints, policy)` | 공개 상태·정형 제약 집합·정책 → 후보 계획·해 상태·목적값·단계별 bound·계산 기록 | 쓰기·실행 권한 없음. CP-SAT 모델, 인접 작업의 이동, 4단계 목적, 이전 incumbent 보존 담당. 미래 외부 사건이나 평가 정답을 받지 않음 |
@@ -73,6 +78,7 @@ flowchart TD
 - `constraints`, `scheduler`, `checker`는 복사된 공개 DTO를 받는다. 로더 전체·저장소 파일 경로·시뮬레이터 객체를 받지 않는다.
 - controller가 공개 업무 흐름을 조율하고 CLI의 드라이버가 시간 진행과 외부 사건 도착을 조율한다. controller에 미래 큐를 가진 simulator 객체를 넘기지 않는다.
 - `reports`는 공개 snapshot을 받아 필요한 값만 새 모델 요청으로 직렬화한다. 모델 요청에는 보고·호스트 메타데이터·현재 ID 목록·버전/tick·허용 사건 종류와 조회 결과만 포함하며 전체 snapshot이나 미래 응답 대본을 넣지 않는다. 모델 응답 스키마에 호스트의 run/report/incident/source ID와 수신·관측 시각 변경 필드는 없다.
+- `responses`는 내부 요청에서 외부 전송할 값을 한 번 더 제한한다. 최초 API 입력은 보고 본문·대상 힌트·현재 ID·허용 사건 종류·현재 tick이며, 조회 뒤에는 실제 조회 결과와 공급자의 이전 도구 호출을 연결한다. 호스트의 run/report/incident/source ID·수신/관측 시각·상태 버전은 로컬 검증에 사용하며 외부 입력에 복사하지 않는다. 기준 DB에 쓰는 코드와 비용 원장에 쓰는 코드는 서로 분리되어 있다.
 - checker는 솔버 모델의 제약 생성 코드를 재호출하지 않는다. evaluator는 checker의 허용 판정을 채점 결과로 가져오지 않는다.
 - 에이전트가 추가되어도 공개 조회 도구와 사건 제안 제출만 허용한다. 일반 파일 읽기·SQL 실행·shell·동적 코드 실행을 도구로 제공하지 않는다.
 
@@ -83,6 +89,16 @@ flowchart TD
 보고 ID와 내용 fingerprint가 같은 재전달은 모델을 다시 호출하지 않는다. 다른 새 입력·시간/상태 변화가 없는 중복 보고만의 batch는 재계획도 하지 않는다. 같은 ID의 다른 내용은 충돌과 확인 요청을 기록한다. 해석 중 상태 버전이 바뀌면 `STALE_CONTEXT`로 기록하고, 최신 상태에서 검증한 호스트 대상 힌트가 있으면 그 대상의 `IDENTITY_UNCERTAIN` 사건으로 전환한다. 대상이 특정되지 않으면 `UNRESOLVED`로 확인을 요청하며 전 작업을 일괄 보류하지 않는다.
 
 모델 timeout·거절·잘못된 형식·허용 한도 초과도 원인을 보존하고 같은 확인 필요 경로를 사용한다. 호스트 봉투의 run/tick/출처가 유효하지 않으면 모델을 호출하거나 사건을 제출하지 않는다. 보고 결과의 `READY`는 사건 제안을 만들었다는 뜻이며 상태 변경 승인이나 정답 판정이 아니다.
+
+### Responses 공급자와 비용 경계
+
+`ResponsesReportModel`은 기존 `ReportModel.respond`를 구현한다. 첫 응답의 native `function_call`을 보관하고, 읽기 전용 조회 뒤 두 번째 요청에는 같은 `call_id`의 `function_call_output`을 연결한다. 허용 도구는 `lookup_evidence`, `propose`, `clarify`이며 조회 뒤에는 다시 조회하는 도구를 제공하지 않는다. strict schema·단일 도구 호출 설정과 별개로 공통 어댑터가 응답 형태·조회 횟수·근거 ID·사건 제안을 재검사한다. 공급자 거절은 공통 거절 응답으로, timeout·인증/권한·요금/속도·프로토콜 오류는 `ModelCallFailure`로 전달되어 같은 확인 필요 fallback을 사용한다.
+
+선택적 `openai==3.46.0`을 `llm` extra로 고정했다. 정형/fake 경로는 SDK를 import하거나 모델 API를 호출하지 않는다. 공급자는 공식 API 호스트를 사용하며 자동 재시도·환경 프록시·redirect를 끈다. 생성마다 같은 입력·도구·스키마의 토큰 수를 먼저 count하고, 한도를 통과한 경우에만 생성한다. **count 역시 보고 데이터를 전송하는 API 요청**이다. `store=false`, `background=false`, `stream=false`, `service_tier="default"`, explicit cache/no breakpoint는 생성 `create`에만 넣는다. count 메서드에 이 옵션이 없다는 사실로 보관·무료 조건이 같다고 추정하지 않는다. 값과 공식 근거는 [DEC-07](decisions.md#dec-07-문장형-보고-어댑터와-이후-llm-연결)을 따른다.
+
+`config/llm-policy.json`은 현재 `approved_for_paid_calls=false`, `project_id=null`이다. 실제 실행에는 정책 승인 값과 `--allow-paid`가 모두 필요하며, 합성 D01의 공개 초기값·근거·사건 파일·보고 파일·개발 정책 다섯 파일의 SHA-256도 일치해야 한다. 첫 파일럿은 최대 3개 보고로 제한한다. 이 조건은 구현된 실행 gate이며 사용자 승인·모델 접근 가능성의 증거가 아니다.
+
+비용 원장은 실행별 `run.sqlite3`와 다른 `artifacts/llm-budget.sqlite3`다. count를 보내기 전에 생성 최대 비용을 정수 micro-USD로 예약하고, usage를 받은 경우에만 단가 기반 추정액으로 정산한다. timeout·usage 누락·응답 불일치 등 결과가 미확정이면 예약을 남긴다. 정책과 원장의 프로젝트 ID를 일치시키고 같은 원장을 재사용할 때 누적 금액과 **같은 run/report ID 쌍의 최대 2회 예약**을 확인하므로, 객체 재생성이나 crash 후에도 같은 ID의 세 번째 요청은 차단한다. 예약과 클라이언트 구성 뒤에도 deadline을 다시 확인한다. 생성 비용 추정은 실제 청구서가 아니고 count 요금·다른 클라이언트의 호출·원장 삭제/교체까지 통제하지 않는다. 실행 manifest에는 정책/입력 해시·SDK 버전·원장 요약을, 보고 추적에는 요청/응답 모델·request/response ID·usage·정산 상태를 기록한다. 비밀 키나 공급자 원문 오류는 기록하지 않는다.
 
 ## 기준 상태와 계획 적용
 
@@ -138,6 +154,7 @@ SQLite 한 파일을 실행별 기준 저장소로 사용한다. 현재 DDL은 `
 | 현재 공개 상태·도착한 근거 | repository | allowlist로 새로 만든 공개 snapshot/조회 응답 |
 | 아직 도착하지 않은 외부 사건·복구 시각 | simulator의 전용 큐와 실행 드라이버 | 현재 tick에 도착한 사건만 전달 |
 | 미래 문장 보고·가짜 모델 응답 대본 | `simulation/reports/`를 읽는 CLI 드라이버 | 도착한 보고와 그 보고의 fake 응답만 전달. 전체 미래 대본은 adapter/model 요청에 전달하지 않음 |
+| 외부 Responses 요청 | `responses`의 공개 입력 직렬화 | 현재 보고·ID·tick·허용 종류와 실제 조회 결과만 전송. 가짜 응답 대본·전체 상태·평가자료를 전송하지 않음 |
 | 평가자 정답 `oracle.json` | 별도 평가 명령 | controller·에이전트·솔버에 전달하지 않음 |
 | 평가자 환경 사실 `truth.jsonl` | 별도 평가 명령 | 사전 작성한 평가자 기준 사실. 공개 운영 근거나 프롬프트로 전달하지 않음 |
 | 실제 지시·시작·완료·개입 기록 | 실행 DB와 출력 | 시스템 추적과 사후 채점에 사용. 평가자 정답과는 별도 |
@@ -150,13 +167,13 @@ SQLite 한 파일을 실행별 기준 저장소로 사용한다. 현재 DDL은 `
 - 미래 큐·oracle·truth에 고유 sentinel 값을 넣고 runtime의 평가 파일 읽기를 차단한 상태에서 실행한다. 미래 근거는 도착 전 solver 입력에 없어야 하고, oracle/truth 표식은 실행 내내 없어야 한다.
 - 평가 명령은 실행 종료 후 출력과 평가 전용 경로를 읽는다. 정답은 원문 규칙에서 별도로 작성했으며 팀원의 교차 검토 상태는 각 oracle의 `provenance.review_status`로 표시한다.
 
-문장형 어댑터의 `tests/test_reports.py`는 조회되지 않은 근거 ID, 보이지 않거나 아직 도착하지 않은 근거, 임의 코드/호스트 메타데이터 필드, 모델이 요청 사본을 변경하는 경우 등을 검사한다. 실제 모델의 프롬프트 지시 준수·한국어 해석 품질이나 네트워크 취소는 가짜 모델 검사로 확인한 것이 아니다. 통합·오류 주입 검증의 실행 결과는 [검증 기록](next-steps.md)을 따른다.
+문장형 어댑터의 `tests/test_reports.py`는 조회되지 않은 근거 ID, 보이지 않거나 아직 도착하지 않은 근거, 임의 코드/호스트 메타데이터 필드, 모델이 요청 사본을 변경하는 경우 등을 검사한다. `tests/test_responses.py`, `tests/test_responses_integration.py`, `tests/test_llm_budget.py`는 모의 공급자 응답과 비용 원장 경계를 대상으로 한다. 실제 모델의 프롬프트 지시 준수·한국어 해석 품질이나 네트워크/과금 취소는 가짜 모델 또는 모의 HTTP 검사로 확인한 것이 아니다. 통합·오류 주입 검증의 실행 결과는 [검증 기록](next-steps.md)을 따른다.
 
 이는 단일 프로세스의 의존성과 데이터 흐름을 검증하는 설계다. 악의적인 Python 코드에 대한 운영체제 수준 보안 격리를 구현했다고 주장하지 않는다. 실제 읽기 권한 분리가 필요한 배포 환경은 이후 별도 프로세스·계정·파일 권한 등으로 검토한다.
 
 ## 현재 파일 배치
 
-아래 코드·설정·데이터 파일은 실제 존재한다. D01을 대표로 표시했으며 D02–D04에도 공개 초기값/근거, 전용 사건 흐름과 독립 정답/환경 사실 파일이 있다. `outputs/` 아래 파일은 실행할 때 생성하며 Git에 포함하지 않는다.
+아래 코드·설정·데이터 파일은 실제 존재한다. D01을 대표로 표시했으며 D02–D04에도 공개 초기값/근거, 전용 사건 흐름과 독립 정답/환경 사실 파일이 있다. `outputs/`와 비용 원장 파일은 실행 시 생성하며 Git에 포함하지 않는다.
 
 ```text
 .
@@ -164,7 +181,8 @@ SQLite 한 파일을 실행별 기준 저장소로 사용한다. 현재 DDL은 `
 ├── uv.lock                              # 실제 해결된 전이 의존성까지 고정
 ├── .python-version                      # 검증한 Python 패치 버전
 ├── config/
-│   └── dev-policy.json                  # 개발 정책·솔버 설정·계약 버전
+│   ├── dev-policy.json                  # 개발 정책·솔버 설정·계약 버전
+│   └── llm-policy.json                  # 미승인 LLM 제안·D01 입력 해시
 ├── data/dev/D01/
 │   ├── initial.json                     # 시스템 공개 초기 상태
 │   └── evidence.json                    # 현재까지 공개된 근거
@@ -180,6 +198,8 @@ SQLite 한 파일을 실행별 기준 저장소로 사용한다. 현재 DDL은 `
 │   ├── schema.sql
 │   ├── events.py
 │   ├── reports.py                       # 보고 DTO·읽기 전용 조회·fake 모델 경계
+│   ├── responses.py                     # 선택적 SDK 공급자·strict 도구·오류 변환
+│   ├── llm_budget.py                    # 별도 SQLite 비용 원장의 사전 예약/정산
 │   ├── constraints.py
 │   ├── scheduler.py
 │   ├── checker.py
@@ -192,6 +212,7 @@ SQLite 한 파일을 실행별 기준 저장소로 사용한다. 현재 DDL은 `
 │   └── dev/D01/
 │       ├── oracle.json                  # 독립 작성한 허용·금지 행동
 │       └── truth.jsonl                  # 평가자 전용 환경 사실
+├── artifacts/llm-budget.sqlite3          # 승인된 Responses 실행 시 생성, Git 제외
 └── outputs/D01/                         # 실행 생성물, Git 제외
     ├── run.sqlite3                      # 기준 상태와 추적 기록
     ├── manifest.json                    # 실행 환경·버전·입력 해시
@@ -219,10 +240,19 @@ uv run --locked pytest
 
 `run`은 공개 데이터 경로와 드라이버 전용 사건 경로를 정해진 case 규칙으로 해석한다. `--report-mode` 기본값은 `structured`이며 `fake`는 같은 도착 시각·호스트 출처·공개 근거를 문장형 어댑터에 전달한다. manifest에는 입력 해시와 모드·프롬프트 버전·호출/조회 상한을 기록한다. `inspect`는 완료·미완료 작업, 활성 제한, 확인 요청과 실패를 담은 `summary.json`을 출력한다. 보고 결과와 세부 사건→근거→제한→계획→검사→지시→실행 연결은 `trace.jsonl`, `execution.csv`와 실행 DB에서 확인한다. `score.py`는 지정한 독립 정답과 환경 사실로 개발 사례를 채점한다. fake 출력의 채점/조회에는 `--run-dir outputs/D01-fake`를 사용한다. 기존 실행 출력 디렉터리는 덮어쓰지 않으며 재실행에는 새 경로를 사용한다.
 
-현재 범위는 정형 D01–D04와 같은 사례의 가짜 모델 보고 경로 및 개발 수락 검증이다. crash 후 자동 재개, DB 자동 migration, 웹 탐색 화면, 실제 LLM/역할 분리 비교, 본 평가의 규모·반복·시간 기준은 구현 완료에 포함하지 않는다. 실제 실행·채점 증거와 검증 범위는 루트 README 및 [다음 작업](next-steps.md)에 기록한다.
+선택적 SDK 설치와 네트워크 없는 준비 상태 조회는 다음 명령으로 분리한다. `--check-access`를 추가한 경우에만 모델 metadata GET을 시도하며, 성공해도 생성 권한·잔액·쿼터를 입증하지 않는다. 현재 계정에서는 이 GET도 실행하지 않았다.
+
+```bash
+uv sync --locked --extra llm
+uv run --locked --extra llm python -m shipyard llm-preflight --llm-policy config/llm-policy.json
+```
+
+승인 후 사용할 실행 인터페이스는 `run --case D01 --output <새 경로> --report-mode responses --llm-policy <승인된 정책 파일> --allow-paid`다. 현재 저장된 제안 정책으로는 승인 검사를 통과하지 않는다. API 키는 환경 변수 `OPENAI_API_KEY`, 프로젝트 ID는 승인 정책의 `project_id`에서 받는다. `OPENAI_PROJECT_ID`의 존재나 키의 존재만으로 설정·사용 권한을 확정하지 않는다.
+
+현재 범위는 정형 D01–D04, 같은 사례의 가짜 모델 보고 경로, Responses 공급자 어댑터와 모의 검증이다. 실제 LLM 호출·한국어 품질 검증·역할 분리 비교, crash 후 자동 재개, DB 자동 migration, 웹 탐색 화면, 본 평가의 규모·반복·시간 기준은 구현 완료에 포함하지 않는다. 실제 실행·채점 증거와 검증 범위는 루트 README 및 [다음 작업](next-steps.md)에 기록한다.
 
 ## 후속 연결
 
-다음 실제 LLM 연결은 현재 `ReportModel.respond` 인터페이스 뒤에 공급자 어댑터를 추가한다. 단일 에이전트와 해석·근거 확인·조율 역할 분리는 같은 공개 도구와 최종 사건 계약, 같은 controller·솔버·검사기·시뮬레이터를 공유한다. 역할을 나눈다는 이유로 DB를 복제하거나 솔버를 여러 제품으로 구현하지 않는다. 조회와 자기 검토는 단일 구조에도 허용하고 동일한 모델·자료·호출/토큰 상한을 적용한다.
+다음 단계는 DEC-07의 계정·예산·자료 전송 결정을 받은 뒤 구현된 Responses 어댑터로 제한된 파일럿을 실행하는 것이다. 단일 에이전트와 해석·근거 확인·조율 역할 분리는 같은 공개 도구와 최종 사건 계약, 같은 controller·솔버·검사기·시뮬레이터를 공유한다. 역할을 나눈다는 이유로 DB를 복제하거나 솔버를 여러 제품으로 구현하지 않는다. 조회와 자기 검토는 단일 구조에도 허용하고 동일한 모델·자료·보고 전체 호출/토큰 상한을 적용한다.
 
-LLM SDK·모델·agent 구성의 추천과 미결정 범위는 DEC-07을 따른다. 정형 경로의 필수 의존성에 모델 API·agent framework를 넣지 않는다. OCR·웹 UI·3D·클라우드는 핵심 흐름에 필요한 근거가 생기면 DEC-09에서 별도로 판단한다.
+SDK는 선택적 의존성으로 구현했고, 모델·실제 실행 조건·agent 구성의 추천과 미결정 범위는 DEC-07을 따른다. 정형 경로의 필수 의존성에 모델 API·agent framework를 넣지 않는다. OCR·웹 UI·3D·클라우드는 핵심 흐름에 필요한 근거가 생기면 DEC-09에서 별도로 판단한다.

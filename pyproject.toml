@@ -9,6 +9,11 @@ description = "Structured-event welding exception simulation"
 requires-python = ">=3.13,<3.14"
 dependencies = ["ortools==9.15.6755", "pydantic==2.14.3"]
 
+[project.optional-dependencies]
+llm = [
+    "openai==3.46.0",
+]
+
 [dependency-groups]
 dev = ["pytest==9.2.0"]
 

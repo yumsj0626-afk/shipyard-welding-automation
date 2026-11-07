@@ -1,6 +1,6 @@
 # 구현 상태·검증 증거와 다음 작업
 
-**현재 단계: 정형 사건 I01–I09와 가짜 모델 문장형 보고 어댑터 구현·개발 검증 완료.** 기존 117개 테스트를 수정하지 않고 유지했으며 2026-11-07 추가한 69개를 포함해 186개가 통과했다. 2026-11-06의 정형 사건 검증 기록은 아래에 그대로 보존한다. [DEC-01–06](decisions.md), [아키텍처](architecture.md), [데이터 계약](data-contracts.md)을 구현에 맞게 갱신했다. 아래는 실제 구현 순서와 증거이며 본 비교실험의 결과가 아니다.
+**현재 단계: 정형/fake 경로와 Responses API 공급자·비용 원장 구현, 유료 호출 미실행.** 기존 186개 테스트 파일을 유지하고 선택 SDK를 사용하는 오프라인 검증을 추가했다. 아래에 이전 I01–I09·M01–M10 기록과 새 공급자 검증을 구별해 보존한다. 실제 계정 생성 권한·과금·언어 이해 성능은 아직 확인하지 않았다.
 
 이번 구현은 **하나의 프로그램에서 로봇 2대·작업 5개의 정형 사건을 근거 확인 → 보류 → 대체 또는 대기 → 재계획 → 독립 검사 → 적용 → 시뮬레이션 → 복구와 재편입까지 연결**했다. 정형 경로에는 LLM·API 서버·웹 UI가 필요하지 않다.
 
@@ -143,6 +143,52 @@ uv run --locked python evaluation/score.py --run-dir outputs/reports-D01 --oracl
 
 LLM 연결 전 결정: [DEC-07](decisions.md)의 모델 후보·계정 권한, SDK 버전, 보고/실행/프로젝트 금액 상한, 토큰·timeout·전체 deadline, 입력 외부 전송/보관 정책을 정한다. 먼저 Pydantic의 discriminated union/extra 금지, 읽기 전용 tool call, receipt·state version·트랜잭션을 학습하면 다음 구현과 바로 연결된다. 현재 가짜 모델에는 API 키·네트워크·유료 호출이 없다.
 
+## Responses API 연결 준비·검증 — 2026-11-07
+
+`responses.py`에 공식 SDK 3.46.0 공급자, native function call 연결, strict 도구 schema, 입력 토큰 count·출력 한도·비동기 대기 제한·오류 분류·preflight를 구현했다. `llm_budget.py`는 운영 상태 DB와 분리된 영속 비용 원장이다. `reports.py`에는 공급자 중립 오류를 기존 확인 필요 경로로 연결하는 부분만 추가했고 controller·solver·checker·evaluator와 기존 186개 테스트는 변경하지 않았다.
+
+`config/llm-policy.json`은 **미승인 제안**이다. 키/프로젝트를 자동 발견해 생성하지 않으며 승인 설정과 `--allow-paid`, credential, D01 입력 hash가 모두 충족돼야 외부 전송한다. `--report-mode responses`를 추가했고 structured/fake 기본 실행은 유지했다. 프로젝트 식별자와 동의 상태를 담을 `config/llm-policy.local.json`은 Git에서 제외한다.
+
+[Responses 검증 증거](../tests/evidence/2026-11-07-responses.json)와 `outputs/responses-verification-20261107/`에 명령·환경·소스/입출력 hash·JUnit·모의 D01 trace를 남긴다. 앞선 증거 파일은 당시 코드의 역사적 기록으로 유지한다.
+
+- **전체 291 passed: 기존 186 + 비용 원장 35 + 공급자 단위 57 + 통합 13**, 실패·오류·skip 0. 실제 SDK와 `httpx2.MockTransport`로 요청 직렬화·응답 해석을 실행했다. 실제 서버로 보낸 요청은 없다.
+- 새 **SDK 미설치 환경**에서 기존 186개가 통과했고 structured/fake D01 각각 5개 작업 완료. 첫 cold import에서 bool 반전 관련 DeprecationWarning 2개가 출력됐으며 최종 재실행은 경고 없이 통과했다. Python 3.16 지원을 확인한 것은 아니다.
+- 모의 Responses D01은 count 6회·generation 6회, 보고 3건을 기존 경로로 처리하여 fake와 실제 phase CSV 및 독립 평가가 일치했다. 이 호출 수는 인메모리 HTTP 요청 수이며 계정 API 사용량이 아니다.
+- wire payload에 미래 보고·가짜 정답 대본·oracle·truth sentinel이 유입되지 않았고 runtime의 평가 파일 읽기도 막은 상태로 통과했다. 시스템 API 키와 내부 실행 ID를 프롬프트에 합치지 않는지 검사했다.
+- 401/403/404/429의 quota·rate 원인/5xx/연결·timeout, refusal/incomplete, 부정확한 usage, 복수·미허용 도구, 인용·action 불일치, 입력 상한·예산·deadline을 주입했다. 잘못된 응답은 사건 상태를 직접 바꾸지 않는다.
+- 비용은 요청 전 예약하고 정산 실패·통신 단절·재시작 뒤에도 미정산액과 요청 횟수를 보존했다. 같은 run/report는 새 공급자 인스턴스로도 세 번째 예약을 할 수 없다. 원장 동시 연결·저장 오류·기존 파일 오인 방지도 검사했다.
+- 검토 중 실제 발견해 수정한 문제: provider와 ledger의 프로젝트 불일치 허용, 누락 usage의 일반 오류 처리, 429 지출 제한의 rate-limit 오분류, 메모리 초기화에 따른 세 번째 생성 가능성, 느린 예약 이후 deadline을 다시 검사하지 않던 경로. 기록된 재현 명령에도 `--extra llm`과 공백 포함 경로의 shell quoting을 반영했다. 최종 검사에 남은 실패는 없다.
+
+### 실제 계정 상태와 사용자 결정
+
+로컬 preflight에서 API 키·프로젝트 설정 없음, paid 승인 false를 확인했다. `--check-access`도 자격 증명 누락으로 GET을 시작하지 않았다. 모델 metadata 조회·token-count·generation의 실제 계정 요청은 **각각 0회**다. 공식 지원 문서와 SDK signature를 확인했지만 실제 계정의 모델 권한·잔액·쿼터·rate limit을 확인했다고 기록하지 않는다.
+
+| 결정할 항목 | 준비된 제안 | 남은 확인 |
+| --- | --- | --- |
+| 모델·시험 범위 | Luna/none/Standard, 합성 D01 3개 보고 1회 | 실제 프로젝트·API 키의 권한과 잔액. 자동 다른 모델 대체 없음 |
+| generation 예산 | 보고 $0.005 / 실행 $0.05 / 같은 프로젝트 누적 $0.10 | 사용자의 금액 승인, 플랫폼 hard limit 설정·전파 조건, count의 별도 청구 조건 |
+| 토큰·대기 | 요청 입력 12k / 출력 1k, 생성 2회·조회 1회/보고, count≤2회; HTTP15초/보고45초/실행180초 | 값 승인. 로컬 대기 제한이 서버 취소·과금 0 보장은 아님 |
+| 외부 전송 | hash로 고정한 합성 보고·현재 ID·조회 근거만, 원본/현장 자료 제외 | OpenAI API 전송 동의. count에도 같은 입력이 전송됨 |
+| 보관 | 생성 store=false·캐시 비사용, 로컬 실행 기록은 Git 제외 폴더에 보존 | 공급자 abuse logs 가능성 수용/ZDR 필요 여부, 로컬 기록의 보관·삭제 기간 |
+
+계정 전체 청구 한도와 이 프로그램의 generation 추정 원장을 구별한다. count 단가/무료 여부가 공식 자료에서 확인되지 않았으므로, 사용자가 총 청구 절대 상한을 요구하면 플랫폼 설정과 count 청구를 먼저 확인해야 한다. 키는 채팅/문서/저장소에 붙이지 않고 실행 환경의 `OPENAI_API_KEY`로 설정한다. 모델 read 권한 검사만으로 Responses 생성 권한이나 비용 승인을 대신하지 않는다([DEC-07](decisions.md)).
+
+### 재현과 다음 실행
+
+```sh
+uv sync --locked --extra llm
+uv run --locked --extra llm pytest -q
+uv run --locked --extra llm python -m shipyard llm-preflight
+```
+
+마지막 명령은 로컬 진단이다. 프로젝트와 키를 준비한 뒤 `--check-access`를 붙이는 명령은 모델 metadata GET만 한다. 유료 생성은 다음 명령 형식이지만, 이번 작업에서 실행하지 않았다. **사용자 결정 이후에만** 로컬 정책에 프로젝트와 승인 상태를 반영한다.
+
+```sh
+uv run --locked --extra llm python -m shipyard run --case D01 --report-mode responses --llm-policy config/llm-policy.local.json --allow-paid --output outputs/live-D01
+```
+
+이후 같은 독립 평가 명령을 사용한다. 실제 파일럿에서는 사용량·비용·요청 ID·거절/불완전·무개입 정답완결을 기록하고 실패한 언어 해석을 가짜 응답으로 대체하지 않는다. 현 구현은 공급자에 임의 파일·shell·SQL·코드 실행 도구를 제공하지 않는다. 단일/역할 분리 비교·본 비교실험·OCR·UI·3D·클라우드·물리 제어는 후속 범위로 남긴다.
+
 ## 최소 흐름 이후
 
 정형 흐름·가짜 보고 어댑터 통과 → 예산·데이터 전송 정책 확정 → 실제 단일 모델의 문장형 보고 처리 → 같은 모델의 해석·근거 검증·조율 구성 → 단일 사건 비교 → 복수 사건 → 연속 사건과 복구 → 예비실험 → 설정 동결과 본 평가 순서다. 두 에이전트 구성은 같은 솔버·근거 조회·상태 갱신·검사·적용 경로를 사용한다. 역할 분리의 우수성을 전제하지 않는다.
@@ -152,17 +198,14 @@ LLM 연결 전 결정: [DEC-07](decisions.md)의 모델 후보·계정 권한, S
 ## 다음 Codex 작업에 그대로 넣을 요청
 
 ```text
-현재 정형 사건·가짜 모델 보고 어댑터와 186개 회귀 테스트를 유지하며,
-DEC-07의 미결정 사항을 확인해 실제 LLM 연결을 준비해 주세요.
-먼저 AGENTS.md, git status, 실제 코드·계약·검증 기록을 읽고 기존 변경을 보존하세요.
-OpenAI 공식 문서에서 후보/가격/SDK 지원을 다시 확인하고, 모델 계정 권한과
-보고·실행·프로젝트별 금액/토큰/시간 상한, 보고 외부 전송·보관 정책을 정하세요.
-아직 승인되지 않은 유료 호출은 실행하지 말고, 필요한 결정만 구체적으로 요청하세요.
-ReportModel 뒤에 얇은 공급자 어댑터를 연결하며 SDK 숨은 재시도와 병렬 도구 호출을
-차단하고 refusal/incomplete/timeout/권한/속도 제한/과금 오류를 구별하세요.
-모델은 현재 공개 근거 조회와 사건 제안만 수행하고 기존 controller·solver·checker·
-evaluator를 공유하게 하세요. 정답·truth·미래 보고·복구 시각을 전달하지 마세요.
-가짜 모델 회귀를 먼저 통과시키고, 명시적으로 합의한 소규모 유료 예비시험만 실행하세요.
-언어 해석 정확도와 무개입 정답완결, 실제 사용량·비용을 별도로 기록하세요.
-역할 분리 비교·본 비교실험·OCR·3D·클라우드·실제 로봇 제어는 확대하지 마세요.
+Responses API 어댑터와 기존 정형/fake 경로를 유지하고, DEC-07 및
+config/llm-policy.json의 미승인 파일럿 조건을 확인해 주세요.
+모델·실제 API 프로젝트·generation 예산·count 청구·토큰/시간·외부 전송·보관 정책에
+대한 내 결정과 키 환경 설정을 먼저 확인하세요. 키 값을 채팅/로그에 출력하지 마세요.
+승인되지 않은 조건이 남아 있으면 실제 count/generation을 실행하지 마세요.
+모든 조건이 합의되면 기존 원장을 유지하며 합성 D01 1회만 실행하세요.
+모델 metadata 조회와 실제 생성 권한·잔액을 구별하고, 자동 모델 변경/추가 재시도는 금지합니다.
+독립 평가 결과·실제 usage·generation 추정/확인된 과금·미정산 예약·오류·남은 불확실성을
+기록하세요. 실제 모델이 실패한 결과를 가짜 응답으로 바꿔 성공 처리하지 마세요.
+원본/현장 자료 업로드와 에이전트 비교·본 비교실험으로 범위를 확대하지 마세요.
 ```
