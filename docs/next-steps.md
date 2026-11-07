@@ -147,7 +147,7 @@ LLM 연결 전 결정: [DEC-07](decisions.md)의 모델 후보·계정 권한, S
 
 `responses.py`에 공식 SDK 3.46.0 공급자, native function call 연결, strict 도구 schema, 입력 토큰 count·출력 한도·비동기 대기 제한·오류 분류·preflight를 구현했다. `llm_budget.py`는 운영 상태 DB와 분리된 영속 비용 원장이다. `reports.py`에는 공급자 중립 오류를 기존 확인 필요 경로로 연결하는 부분만 추가했고 controller·solver·checker·evaluator와 기존 186개 테스트는 변경하지 않았다.
 
-`config/llm-policy.json`은 **미승인 제안**이다. 키/프로젝트를 자동 발견해 생성하지 않으며 승인 설정과 `--allow-paid`, credential, D01 입력 hash가 모두 충족돼야 외부 전송한다. `--report-mode responses`를 추가했고 structured/fake 기본 실행은 유지했다. 프로젝트 식별자와 동의 상태를 담을 `config/llm-policy.local.json`은 Git에서 제외한다.
+`config/llm-policy.json`은 복제 시 자동 실행되지 않도록 **미승인 공용 템플릿**으로 유지한다. 이번 작업의 모델·상한·합성 D01 전송 승인은 Git 제외 로컬 정책에 반영했다. 키/프로젝트를 자동 발견해 생성하지 않으며 승인 설정과 `--allow-paid`, credential, D01 입력 hash가 모두 충족돼야 외부 전송한다. `--report-mode responses`를 추가했고 structured/fake 기본 실행은 유지했다. 프로젝트 식별자와 동의 상태를 담을 `config/llm-policy.local.json`은 Git에서 제외한다.
 
 [Responses 검증 증거](../tests/evidence/2026-11-07-responses.json)와 `outputs/responses-verification-20261107/`에 명령·환경·소스/입출력 hash·JUnit·모의 D01 trace를 남긴다. 앞선 증거 파일은 당시 코드의 역사적 기록으로 유지한다.
 
@@ -159,35 +159,74 @@ LLM 연결 전 결정: [DEC-07](decisions.md)의 모델 후보·계정 권한, S
 - 비용은 요청 전 예약하고 정산 실패·통신 단절·재시작 뒤에도 미정산액과 요청 횟수를 보존했다. 같은 run/report는 새 공급자 인스턴스로도 세 번째 예약을 할 수 없다. 원장 동시 연결·저장 오류·기존 파일 오인 방지도 검사했다.
 - 검토 중 실제 발견해 수정한 문제: provider와 ledger의 프로젝트 불일치 허용, 누락 usage의 일반 오류 처리, 429 지출 제한의 rate-limit 오분류, 메모리 초기화에 따른 세 번째 생성 가능성, 느린 예약 이후 deadline을 다시 검사하지 않던 경로. 기록된 재현 명령에도 `--extra llm`과 공백 포함 경로의 shell quoting을 반영했다. 최종 검사에 남은 실패는 없다.
 
-### 실제 계정 상태와 사용자 결정
+### 실제 계정 상태와 승인 범위
 
-로컬 preflight에서 API 키·프로젝트 설정 없음, paid 승인 false를 확인했다. `--check-access`도 자격 증명 누락으로 GET을 시작하지 않았다. 모델 metadata 조회·token-count·generation의 실제 계정 요청은 **각각 0회**다. 공식 지원 문서와 SDK signature를 확인했지만 실제 계정의 모델 권한·잔액·쿼터·rate limit을 확인했다고 기록하지 않는다.
+사용자는 Luna·generation 예산·토큰·시간 제한과 합성 D01 전송을 승인하고, **설정과 확인이 끝난 뒤 D01 실행 1회**를 요청했다. `config/llm-policy.local.json`에 같은 상한·입력 hash를 복사하고 `approved_for_paid_calls=true`로 기록했다. 파일 권한은 0600이고 Git 제외다. 프로젝트 ID는 아직 null이며 키는 만들거나 읽지 않았다. 공용 템플릿의 false는 다른 사용자의 승인을 대신하지 않기 위해 유지한다.
 
-| 결정할 항목 | 준비된 제안 | 남은 확인 |
+현재 로컬 preflight에서는 키·프로젝트 없음이다. 모델 metadata·token-count·generation 실제 계정 요청은 **각각 0회**, 실제 D01 실행도 **0회**다. 기존 291개 검증은 앞선 구현 커밋의 결과이며 이번 문서·설정 작업에서 다시 실행한 것으로 기록하지 않는다.
+
+| 항목 | 승인된 값 또는 현재 상태 | 남은 확인 |
 | --- | --- | --- |
-| 모델·시험 범위 | Luna/none/Standard, 합성 D01 3개 보고 1회 | 실제 프로젝트·API 키의 권한과 잔액. 자동 다른 모델 대체 없음 |
-| generation 예산 | 보고 $0.005 / 실행 $0.05 / 같은 프로젝트 누적 $0.10 | 사용자의 금액 승인, 플랫폼 hard limit 설정·전파 조건, count의 별도 청구 조건 |
-| 토큰·대기 | 요청 입력 12k / 출력 1k, 생성 2회·조회 1회/보고, count≤2회; HTTP15초/보고45초/실행180초 | 값 승인. 로컬 대기 제한이 서버 취소·과금 0 보장은 아님 |
-| 외부 전송 | hash로 고정한 합성 보고·현재 ID·조회 근거만, 원본/현장 자료 제외 | OpenAI API 전송 동의. count에도 같은 입력이 전송됨 |
-| 보관 | 생성 store=false·캐시 비사용, 로컬 실행 기록은 Git 제외 폴더에 보존 | 공급자 abuse logs 가능성 수용/ZDR 필요 여부, 로컬 기록의 보관·삭제 기간 |
+| 모델·시험 범위 | Luna/none/Standard, 합성 D01 3개 보고, 실행 1회 | 실제 프로젝트·API 키·모델 접근과 잔액. 자동 모델 대체 없음 |
+| generation 예산 | 보고 $0.005 / 실행 $0.05 / 같은 원장의 프로젝트 누적 $0.10 | 플랫폼 지출 설정, count의 별도 청구. 원장 삭제/초기화 금지 |
+| 토큰·대기 | 입력 12k / 출력 1k, 생성 2회·조회 1회/보고; HTTP15초/보고45초/실행180초 | 로컬 timeout은 서버 취소·과금 취소 보장이 아님 |
+| 외부 전송 | hash로 고정한 합성 보고·현재 ID·조회 근거 | count도 같은 입력을 받음. 현장/원본 자료는 승인 범위 밖 |
+| 보관 | 생성 store=false·캐시 비사용, 로컬 기록은 기존 Git 제외 폴더에 보존 | count 전용 application-state 보관/ZDR은 미확인. 로컬 삭제 기간은 미정 |
 
-계정 전체 청구 한도와 이 프로그램의 generation 추정 원장을 구별한다. count 단가/무료 여부가 공식 자료에서 확인되지 않았으므로, 사용자가 총 청구 절대 상한을 요구하면 플랫폼 설정과 count 청구를 먼저 확인해야 한다. 키는 채팅/문서/저장소에 붙이지 않고 실행 환경의 `OPENAI_API_KEY`로 설정한다. 모델 read 권한 검사만으로 Responses 생성 권한이나 비용 승인을 대신하지 않는다([DEC-07](decisions.md)).
+D01 한 번은 모델 요청 한 번과 다르다. **최대 generation 6회 + 사전 count 6회**이며 모델 metadata 조회는 별도다. 실패·timeout·부분 처리 후 새 출력 경로로 재실행하는 것도 두 번째 파일럿이므로 이번 승인에 포함하지 않는다. 기존 CLI가 전 세계의 실행 횟수 1회를 강제하는 기능을 가진 것은 아니며 이 작업에서 1회 범위를 지킨다.
 
-### 재현과 다음 실행
+### 토큰 사전 계산 조건 재확인
+
+2026-11-07 OpenAI Docs로 [계산 가이드](https://developers.openai.com/api/docs/guides/token-counting), [count API](https://developers.openai.com/api/reference/resources/responses/subresources/input_tokens/methods/count), [가격표](https://developers.openai.com/api/docs/pricing), [데이터 제어](https://developers.openai.com/api/docs/guides/your-data)를 검색하고 열었다.
+
+- **확인:** count는 입력·도구 schema를 전송하는 API다. 일반 API 데이터는 명시적 opt-in 없이 학습에 사용되지 않는다. 모든 API 기능의 abuse 로그는 기본 최대 30일 보관될 수 있으며 법률·위해 방지 예외가 있다.
+- **미확인:** count 전용 요금/무료 조건, application-state 보관 기간, ZDR 적격성. 가격표의 일반 Responses 요금 설명이나 `/v1/responses`의 보관 행으로 `/v1/responses/input_tokens` 조건을 추정하지 않는다.
+- **실행 조건:** 키 설정만으로 미확인 사항이 해결되지는 않는다. 공급자의 명시적 답변을 확보하거나 이 불확실성을 어떻게 처리할지 사용자가 정할 때까지 count/generation을 보내지 않는다. 승인된 모델·숫자·합성 전송 동의를 다시 요구하는 것은 아니다.
+
+공급자에게 확인할 구체 질문: “`POST /v1/responses/input_tokens`는 별도 청구되거나 계산한 input_tokens가 모델 입력 단가로 청구되는가? application state를 저장하는가, 보관 기간은 얼마인가? 일반 abuse 로그 외의 저장이 있는가, ZDR 적용 가능 여부는 무엇인가?” 이 작업에서 지원팀에 메시지를 보내지는 않았다.
+
+### API 프로젝트·키 설정과 승인된 1회 실행
+
+1. [OpenAI API Platform](https://platform.openai.com/)에서 이 연구용 프로젝트를 만들거나 선택한다. 이름 예시는 `shipyard-welding-automation-dev`다. 프로젝트 설정의 **Project ID**를 복사한다. GitHub 저장소 이름·ChatGPT 채팅 ID와 다르다. Billing에서 해당 API 조직의 사용 가능한 크레딧/결제를 확인한다. 계정별 결제 상태는 이 작업에서 조회하지 않았다.
+2. 선택한 프로젝트의 API Keys에서 본인 개발용 프로젝트 키를 만든다. Admin key는 필요 없다. `List models` 읽기와 Responses/model request 권한이 필요하며, 키와 사용자 역할 모두 해당 권한이 있어야 한다. Files·웹 검색·Code Interpreter 권한은 이 앱에 필요 없다. [키 종류](https://developers.openai.com/api/docs/guides/api-keys), [권한](https://developers.openai.com/api/docs/guides/rbac).
+3. 프로젝트 Limits의 지출 설정을 확인한다. 알림과 hard limit는 다르며 hard limit도 반영 지연으로 소폭 초과할 수 있다. 승인된 $0.10을 적용할 수 있는지 확인하고 UI 최소값 때문에 더 큰 값이 필요하면 임의로 올리지 않는다. API 잔액 충전액과 프로그램 사용 예산도 다르다. [지출 한도 설정](https://developers.openai.com/api/docs/guides/spend-limits).
+4. 로컬 `config/llm-policy.local.json`의 `"project_id": null`만 `"project_id": "proj_실제값"`으로 바꾼다. 나머지 승인 값·입력 hash는 유지한다. 다른 checkout에서는 공용 템플릿을 복사하고 이번 승인 범위에 맞는 로컬 정책을 만든다.
+5. 키는 채팅에 보내지 않는다. 아래 코드를 **사용자 터미널**에서 실행해 화면에 표시되지 않는 입력으로 `.env.local`에 저장한다. 이 파일은 Git에서 제외되고 소유자만 읽고 쓸 수 있도록 0600으로 생성한다. 기존 파일이 있으면 덮어쓰지 않는다.
 
 ```sh
-uv sync --locked --extra llm
-uv run --locked --extra llm pytest -q
-uv run --locked --extra llm python -m shipyard llm-preflight
+cd '/Users/yumsj/Documents/ChatGPT/산업공학종합설계'
+.venv/bin/python - <<'PYKEY'
+import getpass
+import os
+key = getpass.getpass('OpenAI API key (hidden): ').strip()
+if not key or any(c.isspace() for c in key):
+    raise SystemExit('Key is empty or contains whitespace; nothing saved.')
+fd = os.open('.env.local', os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+with os.fdopen(fd, 'w') as target:
+    target.write('OPENAI_API_KEY=' + key + '\n')
+print('Saved .env.local; key value is not displayed.')
+PYKEY
 ```
 
-마지막 명령은 로컬 진단이다. 프로젝트와 키를 준비한 뒤 `--check-access`를 붙이는 명령은 모델 metadata GET만 한다. 유료 생성은 다음 명령 형식이지만, 이번 작업에서 실행하지 않았다. **사용자 결정 이후에만** 로컬 정책에 프로젝트와 승인 상태를 반영한다.
+별도 터미널의 `export`는 이미 실행 중인 Codex 프로세스에 전달되지 않는다. 앱 자체는 `.env.local`을 자동 로드하지 않으므로 **uv의 `--env-file .env.local`**로 명시적으로 읽는다. `OPENAI_PROJECT_ID` 환경 변수만 설정해도 이 앱의 로컬 정책 `project_id`는 채워지지 않는다. [uv dotenv 안내](https://docs.astral.sh/uv/concepts/configuration-files/).
+
+설정 여부만 검사하는 명령이며 count/generation은 보내지 않는다.
 
 ```sh
-uv run --locked --extra llm python -m shipyard run --case D01 --report-mode responses --llm-policy config/llm-policy.local.json --allow-paid --output outputs/live-D01
+uv run --locked --extra llm --env-file .env.local python -m shipyard llm-preflight --llm-policy config/llm-policy.local.json
 ```
 
-이후 같은 독립 평가 명령을 사용한다. 실제 파일럿에서는 사용량·비용·요청 ID·거절/불완전·무개입 정답완결을 기록하고 실패한 언어 해석을 가짜 응답으로 대체하지 않는다. 현 구현은 공급자에 임의 파일·shell·SQL·코드 실행 도구를 제공하지 않는다. 단일/역할 분리 비교·본 비교실험·OCR·UI·3D·클라우드·물리 제어는 후속 범위로 남긴다.
+이 Mac의 Codex 셸에서는 `uv`가 PATH에 없고 `/private/tmp/shipyard-tech-probe/bin/uv` 0.13.7을 확인했다. 여기서는 위 `uv`를 해당 절대 경로로 바꿔 실행할 수 있다. 임시 경로는 배포 환경 규격이 아니며 다른 컴퓨터에서는 [uv 설치](https://docs.astral.sh/uv/getting-started/installation/) 후 사용한다.
+
+프로젝트와 키를 준비한 뒤 `--check-access`를 추가하면 모델 metadata GET을 수행한다. 이 성공도 생성 권한·잔액을 증명하지 않는다. 키 값·원문 인증 오류를 문서/로그에 복사하지 않는다. **키·프로젝트 준비와 count 조건의 해결이 완료되면** Codex가 아래 파일럿을 1회 실행한다. 현재는 미실행 명령이다.
+
+```sh
+uv run --locked --extra llm --env-file .env.local python -m shipyard run --case D01 --report-mode responses --llm-policy config/llm-policy.local.json --allow-paid --output outputs/live-D01-approved-20261107
+uv run --locked python -m shipyard inspect --run-dir outputs/live-D01-approved-20261107
+uv run --locked python evaluation/score.py --run-dir outputs/live-D01-approved-20261107 --oracle evaluation/dev/D01/oracle.json --truth evaluation/dev/D01/truth.jsonl
+```
+
+실행 전 위 출력 폴더가 이미 있는지와 비용 원장을 확인한다. 기존 결과/원장을 삭제하거나 다른 경로로 재시도하지 않는다. 실패한 언어 해석을 fake로 대체하지 않고 실제 usage·비용 추정·미정산 예약·요청 ID·오류·독립 평가를 기록한다. 계정 청구와 로컬 generation 추정을 구분한다. 로컬 결과 폴더는 분석을 위해 보존하며 자동 삭제 기간은 설정하지 않았다.
 
 ## 최소 흐름 이후
 
@@ -199,10 +238,11 @@ uv run --locked --extra llm python -m shipyard run --case D01 --report-mode resp
 
 ```text
 Responses API 어댑터와 기존 정형/fake 경로를 유지하고, DEC-07 및
-config/llm-policy.json의 미승인 파일럿 조건을 확인해 주세요.
-모델·실제 API 프로젝트·generation 예산·count 청구·토큰/시간·외부 전송·보관 정책에
-대한 내 결정과 키 환경 설정을 먼저 확인하세요. 키 값을 채팅/로그에 출력하지 마세요.
-승인되지 않은 조건이 남아 있으면 실제 count/generation을 실행하지 마세요.
+승인된 Luna·상한·합성 D01 전송과 실행 1회 범위를 유지해 주세요.
+프로젝트는 config/llm-policy.local.json, 키는 .env.local을 uv --env-file로 읽으세요.
+키 값을 채팅/로그에 출력하지 말고 설정 여부만 확인하세요.
+count 전용 청구·보관 조건의 확인 또는 불확실성 처리 결정이 남아 있으면
+실제 count/generation을 실행하지 마세요. 이미 승인한 조건은 다시 묻지 마세요.
 모든 조건이 합의되면 기존 원장을 유지하며 합성 D01 1회만 실행하세요.
 모델 metadata 조회와 실제 생성 권한·잔액을 구별하고, 자동 모델 변경/추가 재시도는 금지합니다.
 독립 평가 결과·실제 usage·generation 추정/확인된 과금·미정산 예약·오류·남은 불확실성을
