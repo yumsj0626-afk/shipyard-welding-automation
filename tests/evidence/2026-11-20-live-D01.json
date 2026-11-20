@@ -1,0 +1,511 @@
+{
+  "date": "2026-11-20",
+  "scope": "One real Responses API D01 development pilot; no retry or main comparison experiment",
+  "base_commit": "6f5b36995faf6d316e64bc83b01064893413937d",
+  "run_id": "d75619df-d474-43fb-a8f6-eea5fe009b62",
+  "run_dir": "outputs/live-D01-approved-20261120",
+  "authorization": {
+    "model_budgets_tokens_time_synthetic_transfer": "Approved earlier by user",
+    "latest_instruction": "api 키 연결 완료 했어. 한번 실험 진행 해봐.",
+    "count_specific_terms": "Previously disclosed as unresolved; latest user instruction authorized proceeding with one experiment, not a claim the terms were verified.",
+    "authorized_run_count": 1,
+    "actual_run_count": 1,
+    "automatic_reruns": 0,
+    "local_paid_flag_after_run": false
+  },
+  "started_at_kst": "2026-11-20T15:30:59.838781+09:00",
+  "finished_at_kst": "2026-11-20T15:31:26.910597+09:00",
+  "wall_seconds": 27.071816,
+  "time_caveat": "Single end-to-end run elapsed time, not a latency benchmark.",
+  "source_sha256": "e6551e8f3923d1b848c205be7bc0edee4f7aa6112a9f270683947efb450b5c58",
+  "evaluator_sha256": "8e24d718eb6b0d07a9a32d437df9e6a68e7d2754469f64ad1c50b42706c2e120",
+  "lock_sha256": "d62e46f3fd06ee63327a9a234cdbf0783ff2f97aa716108cec34280d9e4dc46d",
+  "used_policy_sha256": "4db7720f7f5a7cf9ad6fef95b7eb15fea239964f03bff8c9d19ad5592b5aeee1",
+  "inputs_sha256": {
+    "config/dev-policy.json": "96c1a07b1bb39df8be79b145a43c3278c5baa74b422492eb00d0a0ccefd19fd6",
+    "data/dev/D01/initial.json": "0bfd7b2ff6b0639d2ffed2744641e757eccda086388d4b06722be3cc44fc9077",
+    "data/dev/D01/evidence.json": "d4203f91701e05520154a8aa343255124ad4285ad20d1bd561b360787cdf7887",
+    "simulation/dev/D01/events.jsonl": "925574e6e9f55a0224ce0bc70157ff8deccff438ea04593e11f0c72170e150b8",
+    "simulation/reports/D01.jsonl": "a1f0a972e9c5404e6040920ae6e4394971974f7cd990823b41e694297c7b68dc"
+  },
+  "environment": {
+    "python": "3.13.18",
+    "platform": "macOS-26.6.2-arm64-arm-64bit-Mach-O",
+    "sqlite": "3.53.1",
+    "uv": "0.13.7",
+    "packages": {
+      "openai": "3.46.0",
+      "httpx2": "2.16.0",
+      "pydantic": "2.14.3",
+      "ortools": "9.15.6755",
+      "pytest": "9.2.0"
+    },
+    "restored_from_lock": true,
+    "restoration_note": "Previous /private/tmp uv and managed Python had disappeared. Broken .venv preserved in artifacts/venv-before-live-20261120; restored tools and Python under artifacts/. No application changes."
+  },
+  "preflight": {
+    "api_key_present": true,
+    "project_configured": true,
+    "model": "gpt-6-luna",
+    "paid_calls_approved": true,
+    "data_policy": "SYNTHETIC_DEV_ONLY",
+    "model_access": "METADATA_VISIBLE",
+    "responses_permission": "NOT_PROVEN",
+    "billing_quota": "NOT_PROVEN",
+    "sdk_version": "3.46.0",
+    "generation_requests": 0,
+    "generation_limits": {
+      "schema_version": "1.0",
+      "model": "gpt-6-luna",
+      "approved_for_paid_calls": true,
+      "data_policy": "SYNTHETIC_DEV_ONLY",
+      "max_input_tokens": 12000,
+      "max_output_tokens": 1000,
+      "request_timeout_seconds": 15,
+      "report_deadline_seconds": 45,
+      "run_deadline_seconds": 180,
+      "report_budget_micro_usd": 5000,
+      "run_budget_micro_usd": 50000,
+      "project_budget_micro_usd": 100000
+    }
+  },
+  "requests": {
+    "model_metadata_get_successes": 1,
+    "input_token_count_successes": 6,
+    "completed_generations": 6,
+    "sdk_auto_retries": 0,
+    "basis": "Metadata preflight and six recorded successful count/response pairs; each generation runs a count first and SDK retries are disabled."
+  },
+  "usage": {
+    "input_tokens": 5851,
+    "output_tokens": 366,
+    "generation_budget": {
+      "run": {
+        "reserved_micro_usd": 0,
+        "settled_micro_usd": 771,
+        "committed_micro_usd": 771,
+        "request_count": 6
+      },
+      "project": {
+        "reserved_micro_usd": 0,
+        "settled_micro_usd": 771,
+        "committed_micro_usd": 771,
+        "request_count": 6
+      }
+    },
+    "estimated_generation_usd": 0.000771,
+    "unit_prices_usd_per_million": {
+      "input": 0.1,
+      "output": 0.5
+    },
+    "price_source": "https://developers.openai.com/api/docs/models/gpt-6-luna",
+    "price_checked": "2026-11-20",
+    "rounding": "Each request rounded upward to integer micro USD. Unrounded aggregate estimate: $0.0007681.",
+    "billing_statement_verified": false,
+    "count_api_pricing_verified": false
+  },
+  "reports": [
+    {
+      "report_id": "E-fitup-W17",
+      "status": "READY",
+      "model_calls": 2,
+      "lookup_count": 1,
+      "reason_codes": []
+    },
+    {
+      "report_id": "E-repair-W17",
+      "status": "READY",
+      "model_calls": 2,
+      "lookup_count": 1,
+      "reason_codes": []
+    },
+    {
+      "report_id": "E-recheck-W17",
+      "status": "READY",
+      "model_calls": 2,
+      "lookup_count": 1,
+      "reason_codes": []
+    }
+  ],
+  "provider_calls": [
+    {
+      "report_id": "E-fitup-W17",
+      "counted_input_tokens": 932,
+      "estimated_generation_micro_usd": 119,
+      "generation_attempt": 1,
+      "input_tokens": 932,
+      "network_stage": "GENERATION",
+      "output_tokens": 51,
+      "provider": "openai",
+      "request_id": "req_4985094bffed445cba8fc695097d38d8",
+      "requested_model": "gpt-6-luna",
+      "reservation_id": "reservation:02641eabf41f464c960d6867f93bdc5f",
+      "reserved_micro_usd": 1700,
+      "response_id": "resp_073ae92e1b178b07016affe927bfd087d08b79bfc16c0bd613",
+      "response_status": "completed",
+      "returned_model": "gpt-6-luna",
+      "sdk_version": "3.46.0",
+      "usage_status": "GENERATION_ESTIMATE_SETTLED",
+      "wire_version": "responses-v1"
+    },
+    {
+      "report_id": "E-fitup-W17",
+      "counted_input_tokens": 922,
+      "estimated_generation_micro_usd": 124,
+      "generation_attempt": 2,
+      "input_tokens": 922,
+      "network_stage": "GENERATION",
+      "output_tokens": 62,
+      "provider": "openai",
+      "request_id": "req_d9081bb490e04e329986e0af5aede7b3",
+      "requested_model": "gpt-6-luna",
+      "reservation_id": "reservation:66288562ca974f52a45376abcd8ae1e8",
+      "reserved_micro_usd": 1700,
+      "response_id": "resp_073ae92e1b178b07016affe92b7ebc87d0b039716ba087d98b",
+      "response_status": "completed",
+      "returned_model": "gpt-6-luna",
+      "sdk_version": "3.46.0",
+      "usage_status": "GENERATION_ESTIMATE_SETTLED",
+      "wire_version": "responses-v1"
+    },
+    {
+      "report_id": "E-repair-W17",
+      "counted_input_tokens": 935,
+      "estimated_generation_micro_usd": 120,
+      "generation_attempt": 1,
+      "input_tokens": 935,
+      "network_stage": "GENERATION",
+      "output_tokens": 52,
+      "provider": "openai",
+      "request_id": "req_955ccd3ce0bf48258a1d91a15e8c1e3f",
+      "requested_model": "gpt-6-luna",
+      "reservation_id": "reservation:aa7f7ef7426a48329d9c40f87acc8fb4",
+      "reserved_micro_usd": 1700,
+      "response_id": "resp_0eff86cdf2131036016affe932840087d0b89cfb40ed802648",
+      "response_status": "completed",
+      "returned_model": "gpt-6-luna",
+      "sdk_version": "3.46.0",
+      "usage_status": "GENERATION_ESTIMATE_SETTLED",
+      "wire_version": "responses-v1"
+    },
+    {
+      "report_id": "E-repair-W17",
+      "counted_input_tokens": 1067,
+      "estimated_generation_micro_usd": 145,
+      "generation_attempt": 2,
+      "input_tokens": 1067,
+      "network_stage": "GENERATION",
+      "output_tokens": 75,
+      "provider": "openai",
+      "request_id": "req_e7b8dde40c944634b59c3fa50c55f890",
+      "requested_model": "gpt-6-luna",
+      "reservation_id": "reservation:001f512fa792482ab29bd0cdb277e16c",
+      "reserved_micro_usd": 1700,
+      "response_id": "resp_0eff86cdf2131036016affe935f17087d0a89cfee0a21eae44",
+      "response_status": "completed",
+      "returned_model": "gpt-6-luna",
+      "sdk_version": "3.46.0",
+      "usage_status": "GENERATION_ESTIMATE_SETTLED",
+      "wire_version": "responses-v1"
+    },
+    {
+      "report_id": "E-recheck-W17",
+      "counted_input_tokens": 930,
+      "estimated_generation_micro_usd": 119,
+      "generation_attempt": 1,
+      "input_tokens": 930,
+      "network_stage": "GENERATION",
+      "output_tokens": 51,
+      "provider": "openai",
+      "request_id": "req_6c9f30ff3c1d456f8f6baf3bfd94f43c",
+      "requested_model": "gpt-6-luna",
+      "reservation_id": "reservation:0c8633e89c8a4d80ac7f1ffde6f068f4",
+      "reserved_micro_usd": 1700,
+      "response_id": "resp_065834b2be1b04aa016affe939a63087d0b14e40d06d035dc1",
+      "response_status": "completed",
+      "returned_model": "gpt-6-luna",
+      "sdk_version": "3.46.0",
+      "usage_status": "GENERATION_ESTIMATE_SETTLED",
+      "wire_version": "responses-v1"
+    },
+    {
+      "report_id": "E-recheck-W17",
+      "counted_input_tokens": 1065,
+      "estimated_generation_micro_usd": 144,
+      "generation_attempt": 2,
+      "input_tokens": 1065,
+      "network_stage": "GENERATION",
+      "output_tokens": 75,
+      "provider": "openai",
+      "request_id": "req_37bc23192ebb4009b60d2bd585a94098",
+      "requested_model": "gpt-6-luna",
+      "reservation_id": "reservation:3f3305154dce43a8a8c0ae5a4b5a046a",
+      "reserved_micro_usd": 1700,
+      "response_id": "resp_065834b2be1b04aa016affe93caf6887d09f719a652ba2f186",
+      "response_status": "completed",
+      "returned_model": "gpt-6-luna",
+      "sdk_version": "3.46.0",
+      "usage_status": "GENERATION_ESTIMATE_SETTLED",
+      "wire_version": "responses-v1"
+    }
+  ],
+  "execution": [
+    {
+      "job_id": "W19",
+      "robot_id": "R1",
+      "phase": "MOVE",
+      "start_tick": 0,
+      "end_tick": 1
+    },
+    {
+      "job_id": "W18",
+      "robot_id": "R2",
+      "phase": "WELD",
+      "start_tick": -2,
+      "end_tick": 2
+    },
+    {
+      "job_id": "W19",
+      "robot_id": "R1",
+      "phase": "SETUP",
+      "start_tick": 1,
+      "end_tick": 2
+    },
+    {
+      "job_id": "W21",
+      "robot_id": "R2",
+      "phase": "MOVE",
+      "start_tick": 2,
+      "end_tick": 2
+    },
+    {
+      "job_id": "W21",
+      "robot_id": "R2",
+      "phase": "SETUP",
+      "start_tick": 2,
+      "end_tick": 3
+    },
+    {
+      "job_id": "W19",
+      "robot_id": "R1",
+      "phase": "WELD",
+      "start_tick": 2,
+      "end_tick": 5
+    },
+    {
+      "job_id": "W21",
+      "robot_id": "R2",
+      "phase": "WELD",
+      "start_tick": 3,
+      "end_tick": 5
+    },
+    {
+      "job_id": "W17",
+      "robot_id": "R1",
+      "phase": "MOVE",
+      "start_tick": 6,
+      "end_tick": 7
+    },
+    {
+      "job_id": "W17",
+      "robot_id": "R1",
+      "phase": "SETUP",
+      "start_tick": 7,
+      "end_tick": 8
+    },
+    {
+      "job_id": "W17",
+      "robot_id": "R1",
+      "phase": "WELD",
+      "start_tick": 8,
+      "end_tick": 12
+    },
+    {
+      "job_id": "W20",
+      "robot_id": "R1",
+      "phase": "MOVE",
+      "start_tick": 12,
+      "end_tick": 12
+    },
+    {
+      "job_id": "W20",
+      "robot_id": "R1",
+      "phase": "SETUP",
+      "start_tick": 12,
+      "end_tick": 13
+    },
+    {
+      "job_id": "W20",
+      "robot_id": "R1",
+      "phase": "WELD",
+      "start_tick": 13,
+      "end_tick": 15
+    }
+  ],
+  "restrictions": [
+    {
+      "seq": 4,
+      "tick": 0,
+      "outcome": "ACTIVE",
+      "restriction": {
+        "incident_id": "INC-W17-1",
+        "kind": "FITUP_HOLD",
+        "opened_event_id": "E-fitup-W17",
+        "opened_evidence_ids": [
+          "EV-fitup-W17"
+        ],
+        "opened_tick": 0,
+        "release_rule_id": "rules-v1:release:FITUP_HOLD",
+        "released_event_id": null,
+        "released_evidence_ids": [],
+        "released_tick": null,
+        "restriction_id": "restriction:E-fitup-W17:FITUP_HOLD",
+        "rule_id": "rules-v1:FITUP_HOLD",
+        "status": "ACTIVE",
+        "target": {
+          "job_id": "W17",
+          "robot_id": null,
+          "scope": "JOB",
+          "zone_id": null
+        }
+      }
+    },
+    {
+      "seq": 49,
+      "tick": 6,
+      "outcome": "RELEASED",
+      "restriction": {
+        "incident_id": "INC-W17-1",
+        "kind": "FITUP_HOLD",
+        "opened_event_id": "E-fitup-W17",
+        "opened_evidence_ids": [
+          "EV-fitup-W17"
+        ],
+        "opened_tick": 0,
+        "release_rule_id": "rules-v1:release:FITUP_HOLD",
+        "released_event_id": "E-recheck-W17",
+        "released_evidence_ids": [
+          "EV-repair-W17",
+          "EV-recheck-W17"
+        ],
+        "released_tick": 6,
+        "restriction_id": "restriction:E-fitup-W17:FITUP_HOLD",
+        "rule_id": "rules-v1:FITUP_HOLD",
+        "status": "RELEASED",
+        "target": {
+          "job_id": "W17",
+          "robot_id": null,
+          "scope": "JOB",
+          "zone_id": null
+        }
+      }
+    }
+  ],
+  "summary": {
+    "schema_version": "1.0",
+    "run_id": "d75619df-d474-43fb-a8f6-eea5fe009b62",
+    "termination": "COMPLETED",
+    "now_tick": 15,
+    "state_version": 50,
+    "active_plan_version": 13,
+    "completed_jobs": [
+      "W17",
+      "W18",
+      "W19",
+      "W20",
+      "W21"
+    ],
+    "unfinished_jobs": [],
+    "active_restrictions": [],
+    "deferred_jobs": [],
+    "additional_human_requests": 0,
+    "failures": [],
+    "completed_phases": 13,
+    "evaluation": "NOT_SCORED_BY_RUNTIME",
+    "reports": {
+      "count": 3,
+      "statuses": {
+        "READY": 3
+      },
+      "model_calls": 6,
+      "lookups": 3
+    }
+  },
+  "independent_evaluation": {
+    "evaluation_scope": "development_acceptance",
+    "main_experiment": false,
+    "oracle_review_status": "INDEPENDENT_AGENT_DRAFT_HUMAN_TEAM_REVIEW_PENDING",
+    "acceptance_passed": true,
+    "completed_without_additional_human": true,
+    "hold_correct": true,
+    "reentry_correct": true,
+    "evaluated_event_count": 3,
+    "autonomous_correct_count": 3,
+    "additional_human_requests": 0,
+    "proposed_violation_count": 0,
+    "blocked_violation_count": 0,
+    "executed_violation_count": 0,
+    "completed_job_ids": [
+      "W17",
+      "W18",
+      "W19",
+      "W20",
+      "W21"
+    ],
+    "issues": []
+  },
+  "evaluation_inputs_sha256": {
+    "execution": "9b44121e19833b4b2cf77252304e7cf2886e32f829a34bbd2077fc115d05bdc5",
+    "trace": "7c90b433718fffc9382ab7e3a72bba9a168a561286d587a8a1b385c56da4229b",
+    "oracle": "c968220bb2c0acf1bbb4508feb2bcc30ed44b763b33424c74e7450a94c0b1c73",
+    "truth": "78a8630a74d18f45fc09adb2c991ae555e954dc1acc603b7f1cf2bcf8e476a86"
+  },
+  "tests": {
+    "command": ".venv/bin/python -m pytest -q --junitxml=outputs/live-verification-20261120/pytest.xml",
+    "exit_code": 0,
+    "passed": 291,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "elapsed_seconds_reported": 102.18,
+    "baseline_186_test_files_unchanged_from": "6bd8af38b2b44ab630e77fe46bed93a4f1520267",
+    "junit_sha256": "53801bb39f32a91adcb1d4cf3a84f21278e0eaeca78801584e9b167b5954b315",
+    "note": "Long first OR-Tools native module import after environment restoration; suite completed without failure."
+  },
+  "commands": [
+    {
+      "command": "UV_CACHE_DIR=\"$PWD/artifacts/uv-cache\" UV_PYTHON_INSTALL_DIR=\"$PWD/artifacts/python\" artifacts/uv-bootstrap/bin/uv sync --locked --extra llm",
+      "exit_code": 0
+    },
+    {
+      "command": "UV_CACHE_DIR=\"$PWD/artifacts/uv-cache\" UV_PYTHON_INSTALL_DIR=\"$PWD/artifacts/python\" artifacts/uv-bootstrap/bin/uv run --locked --offline --extra llm --env-file .env.local python -m shipyard llm-preflight --llm-policy config/llm-policy.local.json --check-access",
+      "exit_code": 0
+    },
+    {
+      "command": "UV_CACHE_DIR=\"$PWD/artifacts/uv-cache\" UV_PYTHON_INSTALL_DIR=\"$PWD/artifacts/python\" artifacts/uv-bootstrap/bin/uv run --locked --offline --extra llm --env-file .env.local python -m shipyard run --case D01 --report-mode responses --llm-policy config/llm-policy.local.json --allow-paid --output outputs/live-D01-approved-20261120",
+      "exit_code": 0
+    },
+    {
+      "command": ".venv/bin/python evaluation/score.py --run-dir outputs/live-D01-approved-20261120 --oracle evaluation/dev/D01/oracle.json --truth evaluation/dev/D01/truth.jsonl",
+      "exit_code": 0
+    }
+  ],
+  "artifacts_sha256": {
+    "evaluation.csv": "d5366b6323267dd59bd5e4e6d98bdb8e768d2edf795df9c0ba229721d7abed64",
+    "evaluation.json": "4eddeefe51171a5a756d49d1dbc658222f7b0bc6dfbeb124c10b323adb561f87",
+    "execution.csv": "9b44121e19833b4b2cf77252304e7cf2886e32f829a34bbd2077fc115d05bdc5",
+    "manifest.json": "68ae5f49e64f9a1cec6a88cb7fe57ba40f42deb21ddfad3dcb002be4467ec12a",
+    "policy-used.local.json": "4db7720f7f5a7cf9ad6fef95b7eb15fea239964f03bff8c9d19ad5592b5aeee1",
+    "run.sqlite3": "431603612a8e4f3ba04ca7f2424466b4c4ad45f7f3481d0d6ce7d5816276e588",
+    "summary.json": "8d9943fd812e762adef3a162c119324175d85a7f322d4d7acf17420f50ff58ff",
+    "trace.jsonl": "7c90b433718fffc9382ab7e3a72bba9a168a561286d587a8a1b385c56da4229b"
+  },
+  "remaining_failures": [],
+  "limitations": [
+    "One synthetic D01 run does not establish general Korean report accuracy, field performance, repeatability distribution or superiority of agent roles.",
+    "Oracle remains an independent-agent draft awaiting human/team review.",
+    "Count-specific pricing/application-state retention and final account bill are unverified.",
+    "Provider/model alias behavior is not frozen by uv.lock.",
+    "No additional paid runs are authorized by this completed one-run request."
+  ]
+}

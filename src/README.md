@@ -1,6 +1,6 @@
 # 구현 코드 위치와 경계
 
-**정형 사건 기반 최소 애플리케이션, 가짜 모델 보고 어댑터와 OpenAI Responses 공급자 어댑터가 `src/shipyard/`에 구현되어 있다.** Python 3.13.18에서 CP-SAT·Pydantic을 런타임 의존성으로, pytest를 개발 의존성으로 사용한다. SQLite·heapq·argparse는 표준 라이브러리다. `pyproject.toml`, `uv.lock`, `.python-version`으로 실행 환경을 고정한다. OpenAI SDK 3.46.0은 선택적 `llm` extra로 설치·고정했으며 정형/fake 실행에서는 필요하지 않다. **실제 계정 API·토큰 count·모델 생성은 호출하지 않았고 유료 파일럿은 미승인이다.**
+**정형 사건 기반 최소 애플리케이션, 가짜 모델 보고 어댑터와 OpenAI Responses 공급자 어댑터가 `src/shipyard/`에 구현되어 있다.** Python 3.13.18에서 CP-SAT·Pydantic을 런타임 의존성으로, pytest를 개발 의존성으로 사용한다. SQLite·heapq·argparse는 표준 라이브러리다. `pyproject.toml`, `uv.lock`, `.python-version`으로 실행 환경을 고정한다. OpenAI SDK 3.46.0은 선택적 `llm` extra로 설치·고정했으며 정형/fake 실행에서는 필요하지 않다. **2026-11-20 런타임 변경 없이 실제 Luna 합성 D01 1회를 실행해 보고 3건·작업 5개 무개입 완결과 독립 평가 통과를 확인했다.** [실행 증거](../tests/evidence/2026-11-20-live-D01.json)에 기록하며 일반 언어 품질로 확대하지 않는다.
 
 실제 모듈 API·입출력·권한과 파일 배치는 [아키텍처](../docs/architecture.md)에, 필드·상태 전이·실패 처리는 [데이터 계약](../docs/data-contracts.md)에 모았다. 이 파일에서 같은 명세를 중복 정의하지 않는다.
 
@@ -16,10 +16,10 @@
 
 문장형 경로는 `uv run --locked python -m shipyard run --case D01 --output outputs/D01-fake --report-mode fake`로 실행한다. 기본 모드는 `structured`다. `simulation/reports/D01.jsonl`부터 D04까지의 보고·응답 대본은 CLI 드라이버만 읽으며 도착한 보고의 응답만 fake 모델에 전달한다. 보고당 최대 모델 호출 2회·근거 조회 1회이며 중복 수신, 오래된 해석 문맥, 거절·timeout·형식 오류는 별도로 기록한다. 세부 정책은 [DEC-07](../docs/decisions.md#dec-07-문장형-보고-어댑터와-이후-llm-연결)을 따른다.
 
-선택적 연결 준비는 `uv sync --locked --extra llm` 후 `uv run --locked --extra llm python -m shipyard llm-preflight --llm-policy config/llm-policy.json`로 확인한다. 기본 preflight는 네트워크 없이 설정·SDK·키 존재 여부만 표시한다. `--check-access`를 명시하면 모델 metadata GET을 시도하지만 생성 권한·잔액·쿼터는 입증하지 않는다. 현재 정책은 `approved_for_paid_calls=false`, `project_id=null`이며 실제 계정 접근을 확인하지 않았다.
+선택적 연결 준비는 `uv sync --locked --extra llm` 후 `uv run --locked --extra llm python -m shipyard llm-preflight --llm-policy config/llm-policy.json`로 확인한다. 기본 preflight는 네트워크 없이 설정·SDK·키 존재 여부만 표시한다. `--check-access`를 명시하면 모델 metadata GET을 시도하지만 생성 권한·잔액·쿼터는 입증하지 않는다. 공용 정책은 `approved_for_paid_calls=false`, `project_id=null`로 유지하며 실제 D01은 별도 승인된 로컬 정책을 사용했다.
 
-승인 후의 `--report-mode responses` 실행에는 `--llm-policy <승인된 정책 파일>`과 `--allow-paid`가 모두 필요하다. 합성 D01의 다섯 입력 파일 해시를 동결하고 최대 3개 보고로 제한한다. 실제 공급자는 가짜 응답 대본을 받지 않으며 보고 본문·대상 힌트·현재 ID/tick·허용 사건과 실제 조회 결과만 전송한다. 생성 전 count도 외부 전송이며, 생성의 `store=false`·`background=false`·`stream=false` 설정이 count에도 적용되거나 count가 무료라고 가정하지 않는다. 구체 금액·시간·보관 조건과 남은 결정은 DEC-07을 따른다.
+승인 후의 `--report-mode responses` 실행에는 `--llm-policy <승인된 정책 파일>`과 `--allow-paid`가 모두 필요하다. 승인된 1회는 완료했으며 추가 유료 실행을 자동으로 시작하지 않는다. 합성 D01의 다섯 입력 파일 해시를 동결하고 최대 3개 보고로 제한한다. 실제 공급자는 가짜 응답 대본을 받지 않으며 보고 본문·대상 힌트·현재 ID/tick·허용 사건과 실제 조회 결과만 전송한다. 생성 전 count도 외부 전송이며, 생성의 `store=false`·`background=false`·`stream=false` 설정이 count에도 적용되거나 count가 무료라고 가정하지 않는다. count의 별도 과금·보관 조건과 실제 청구액은 미확인이다. 구체 금액·시간·보관 조건과 남은 결정은 DEC-07을 따른다.
 
 정형 사건은 LLM 없이 처리한다. 미래 외부 큐는 드라이버/시뮬레이터에만 있고 controller에는 현재 도착 사건·보고만 전달한다. 어댑터는 공개 snapshot과 현재 도착 근거에서 필요한 값만 모델 요청으로 구성한다. 공개 로더·금지 의존관계·누출과 모델 출력 경계를 테스트하며 단일 프로세스가 OS 보안 격리를 제공한다고 주장하지 않는다. 진행 단계·실제 증거는 [다음 작업과 검증 기록](../docs/next-steps.md)에서 확인한다.
 
-실제 LLM 호출·한국어 품질 검증, 단일/역할 분리 에이전트 비교, API 서버·웹 UI·OCR·3D·클라우드·실제 로봇 제어와 본 비교실험은 수행하지 않았다. 공급자 모의 검사는 실제 서비스 동작이나 과금/요청 취소의 증거가 아니다. 후속 모델·에이전트도 `ReportModel.respond`와 현재의 공통 검증·처리 경로를 사용해야 한다.
+실제 LLM 검증 범위는 합성 D01 1회뿐이다. 일반 한국어 품질, 단일/역할 분리 에이전트 비교, API 서버·웹 UI·OCR·3D·클라우드·실제 로봇 제어와 본 비교실험은 수행하지 않았다. 공급자 모의 검사는 실제 서비스 동작이나 과금/요청 취소의 증거가 아니다. 후속 모델·에이전트도 `ReportModel.respond`와 현재의 공통 검증·처리 경로를 사용해야 한다.
