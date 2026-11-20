@@ -118,3 +118,13 @@ def test_application_runs_without_optional_pytest_distribution(tmp_path, monkeyp
     output = tmp_path / "without-dev-dependencies"
     assert run_case("D01", output)["termination"] == "COMPLETED"
     assert (output / "manifest.json").exists()
+
+
+def test_unreadable_input_leaves_no_output_directory(tmp_path):
+    """A failed start must not block a retry with the same output path."""
+    from shipyard.cli import run_case
+
+    output = tmp_path / "output"
+    with pytest.raises(FileNotFoundError):
+        run_case("D01", output, tmp_path / "empty-root")
+    assert not output.exists()

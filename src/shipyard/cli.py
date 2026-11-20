@@ -12,7 +12,7 @@ from uuid import uuid4
 
 from .contracts import (
     EvidenceData, InitialData, Instruction, Observation, PlanningSnapshot, Policy,
-    canonical, parse_json, utc_now,
+    parse_json, utc_now,
 )
 from .controller import Controller
 from .repository import Repository
@@ -93,12 +93,13 @@ def run_case(case: str, output: Path, root: Path=ROOT, *, report_mode: str="stru
             if record.report_id in report_records:
                 raise ValueError("duplicate fake report ID")
             report_records[record.report_id] = record
-    output=Path(output)
-    output.mkdir(parents=True,exist_ok=False)
     run_id=str(uuid4())
     policy=Policy.model_validate(parse_json((root/'config/dev-policy.json').read_text(encoding='utf-8')))
     snapshot=load_public_case(root,case,run_id)
     simulator=Simulator.load(root/'simulation'/'dev'/case/'events.jsonl',run_id)
+    # Created only after the inputs load, so a bad input leaves no directory to block a retry.
+    output=Path(output)
+    output.mkdir(parents=True,exist_ok=False)
     repository=Repository(output/'run.sqlite3')
     repository.initialize(snapshot)
     controller=Controller(repository,policy)

@@ -73,8 +73,6 @@ class Repository:
             raise ValueError("run database is not initialized")
         return PlanningSnapshot.model_validate_json(row[0])
 
-    snapshot = read_snapshot
-
     def _current(self, expected_version: int) -> PlanningSnapshot:
         current = self.read_snapshot()
         if current.state_version != expected_version:

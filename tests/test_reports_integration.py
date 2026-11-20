@@ -225,6 +225,21 @@ def test_duplicate_report_reuses_receipt_without_model_solver_or_state_change(re
     assert repository.audit_records()[-1]["outcome"] == "DUPLICATE"
 
 
+def test_rejected_first_report_still_gets_an_initial_plan(report_controller):
+    """A rejected report must not leave unrelated work unplanned at the first tick."""
+    controller = report_controller
+    repository = controller.repository
+    item, _ = arrived_report(repository.read_snapshot().run_id)
+    item.report.source_id = "unregistered-source"
+    model = FakeReportModel({})
+    assert controller.handle_report_batch(0, [], [item], model) == "OPTIMAL"
+    assert not model.requests
+    assert repository.report_receipts()[item.report.report_id]["status"] == "INVALID_REPORT"
+    snapshot = repository.read_snapshot()
+    assert snapshot.active_plan_version == 1 and not snapshot.active_restrictions
+    assert any(i.status == "PENDING" and i.action == "MOVE" for i in snapshot.current_instructions)
+
+
 @pytest.mark.parametrize("previously_committed", [False, True])
 def test_conflicting_report_id_is_quarantined_without_new_event_or_state(report_controller, monkeypatch, previously_committed):
     controller = report_controller
@@ -233,6 +248,8 @@ def test_conflicting_report_id_is_quarantined_without_new_event_or_state(report_
     model = FakeReportModel({item.report.report_id: responses})
     if previously_committed:
         controller.handle_report_batch(0, [], [item], model)
+    else:
+        controller.plan_and_apply()  # without an active plan a rejected report still plans
     before = repository.read_snapshot()
     original_receipts = repository.report_receipts()
     original_events = repository._conn.execute("SELECT count(*) FROM events").fetchone()[0]

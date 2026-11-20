@@ -1,10 +1,10 @@
 """Public workflow; the controller never receives a simulator or private path."""
 from . import checker, constraints, events, scheduler
 from .contracts import (
-    ArrivalBatch, BaselineAssignment, BaselinePlan, ExecutionProgress, Instruction,
+    ArrivalBatch, ExecutionProgress, Instruction,
     Observation, PhaseRecord, Policy, new_id,
 )
-from .repository import Repository
+from .repository import Repository, StaleStateError
 from .reports import (AdapterResult, ReportDelivery, ReportModel, fallback_delivery,
                       interpret_report, report_fingerprint)
 
@@ -82,7 +82,10 @@ class Controller:
             updated, event_results = events.apply_deliveries(current, fresh)
             self.repository.commit_event_batch(updated, deliveries, prior + event_results,
                                                current.state_version, report_results=results)
-        if reports and not deliveries and before.state_version == current.state_version:
+        # Nothing changed, so the active plan stays valid. With no active plan yet
+        # we still plan: a rejected report must not hold back unrelated work.
+        if (reports and not deliveries and before.state_version == current.state_version
+                and current.active_plan_version):
             return "REPORT_REJECTED" if results or rejected else "DUPLICATE"
         self._cancel_blocked_preparation()
         return self.plan_and_apply()
@@ -130,9 +133,7 @@ class Controller:
             instructions = self._instructions(snapshot, plan)
             try:
                 self.repository.apply_plan(plan, result, instructions)
-            except (ValueError, RuntimeError) as error:
-                if "STALE" not in str(error):
-                    raise
+            except StaleStateError:
                 self.repository.audit("APPLY", "STALE_PLAN", {"plan_id": plan.plan_id, "retry": retry})
                 continue
             for instruction in instructions:
