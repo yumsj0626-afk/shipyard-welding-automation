@@ -332,6 +332,24 @@ def test_report_result_event_and_state_rollback_together_and_retry_is_possible(r
     assert len(repository.read_snapshot().active_restrictions) == 1
 
 
+def test_cli_fake_mode_accepts_the_same_report_delivered_again_later(tmp_path):
+    root = tmp_path / "project"
+    root.mkdir()
+    for folder in ("data", "simulation", "config", "src"):
+        shutil.copytree(ROOT / folder, root / folder, ignore=shutil.ignore_patterns("__pycache__"))
+    for name in ("pyproject.toml", "uv.lock"):
+        shutil.copy2(ROOT / name, root / name)
+    events = root / "simulation/dev/D01/events.jsonl"
+    again = read_jsonl(events)[0]
+    again["delivery_tick"] = again["event"]["received_tick"] = 20
+    events.write_text(events.read_text().rstrip("\n") + "\n" + json.dumps(again, ensure_ascii=False) + "\n")
+    summary = cli.run_case("D01", tmp_path / "output", root, report_mode="fake")
+    assert summary["termination"] == "COMPLETED"
+    assert summary["reports"]["count"] == 3 and summary["reports"]["model_calls"] == 6
+    receipts = [row for row in read_jsonl(tmp_path / "output/trace.jsonl") if row["stage"] == "REPORT_RECEIPT"]
+    assert [(row["tick"], row["outcome"]) for row in receipts] == [(20, "DUPLICATE")]
+
+
 def test_cli_fake_mode_records_reproduction_inputs_and_default_remains_structured(tmp_path, capsys):
     fake = tmp_path / "fake-cli"
     assert cli.main(["run", "--case", "D01", "--output", str(fake), "--report-mode", "fake"]) == 0

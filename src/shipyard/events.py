@@ -262,10 +262,15 @@ def apply_deliveries(snapshot: PlanningSnapshot, deliveries: list[Delivery]):
             _request(updated, event, result, "CURRENT_EVIDENCE_REQUIRED")
             continue
         value = evidence[0].value
+        target = event.target
+        # A pair fact is about one job on one robot: a robot busy welding another
+        # job must not make "this robot cannot reach that job" disappear.
         affected_running = any(
             j.lifecycle == "RUNNING" and (
-                event.target.job_id == j.job_id or event.target.robot_id == j.assigned_robot_id
-                or event.target.zone_id == j.zone_id
+                (target.job_id == j.job_id and target.robot_id == j.assigned_robot_id)
+                if target.scope == "JOB_ROBOT" else
+                target.job_id == j.job_id or target.robot_id == j.assigned_robot_id
+                or target.zone_id == j.zone_id
             ) for j in updated.jobs
         )
         if affected_running and value in {"FAIL", "FALSE", "UNAVAILABLE"}:

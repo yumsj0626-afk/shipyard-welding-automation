@@ -134,7 +134,7 @@ raw_report|null, supersedes_event_id|null
 - `target.scope`는 JOB/JOB_ROBOT/ROBOT/ZONE/UNRESOLVED. FITUP은 JOB, PAIR는 JOB_ROBOT이며 필요한 ID가 반드시 있어야 한다. 범위가 미확정이면 자동으로 R1전체나 구역전체를 정지시키지 않는다.
 - 일치한 대상에서 실행 여부가 미확정이면 그 대상의 새로운 착수를 `EVIDENCE_PENDING` 제한으로 차단하고 조회/확인을 진행한다. 대상 자체를 특정할 수 없으면 사건을 격리하고 식별 질문을 남기며 알려진 무관한 작업은 유지한다.
 - 수신 tick은 드라이버가 부여한다. `received_tick>=observed_tick`이어야 하며 현재 tick보다 미래인 사건은 입력에서 거부한다. 늦게 도착한 외부 관측은 현재 상태와 대조하여 반영하고 과거를 되감지 않는다.
-- `observed_state_version`이 오래됐으면 최신 정보로 재검사한다. 오래됐다는 이유만으로 실제 불가 보고를 버리지 않는다. 이미 진행 용접을 침해하는 사건은 `OUT_OF_SCOPE_RUNNING`으로 기록하고 시나리오 오류로 처리하며 용접을 소급 취소하지 않는다.
+- `observed_state_version`이 오래됐으면 최신 정보로 재검사한다. 오래됐다는 이유만으로 실제 불가 보고를 버리지 않는다. 이미 진행 용접을 침해하는 사건은 `OUT_OF_SCOPE_RUNNING`으로 기록하고 시나리오 오류로 처리하며 용접을 소급 취소하지 않는다. `JOB_ROBOT` 사건은 작업과 로봇이 모두 그 용접과 같을 때만 여기에 해당한다. 다른 작업을 용접 중인 로봇에 대한 조합 불가는 정상 적용한다.
 
 ### 중복과 충돌
 

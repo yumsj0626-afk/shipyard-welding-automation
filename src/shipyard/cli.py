@@ -121,8 +121,10 @@ def run_case(case: str, output: Path, root: Path=ROOT, *, report_mode: str="stru
         for delivery in batch.deliveries:
             event = delivery.event
             record = report_records.get(event.event_id)
-            if record is None or record.delivery_tick != batch.tick:
-                raise ValueError("missing fake report or delivery tick mismatch")
+            # No tick comparison: the same report may be delivered again later,
+            # and the controller records that as a duplicate receipt.
+            if record is None:
+                raise ValueError("missing fake report")
             reports.append(ReportDelivery(report=ReportInput(run_id=run_id,report_id=record.report_id,
                 incident_id=event.incident_id,source_id=event.source_id,observed_tick=event.observed_tick,
                 received_tick=batch.tick,text=record.text,target_hint=record.target_hint),

@@ -132,6 +132,18 @@ def test_running_weld_is_not_stopped_by_out_of_scope_event(snapshot):
     assert next(j for j in updated.jobs if j.job_id == "W18").lifecycle == "RUNNING"
 
 
+def test_pair_ban_for_another_job_applies_while_that_robot_is_welding(snapshot):
+    # R2 is welding W18; "R2 cannot reach W17" concerns W17, not the running weld.
+    item = deliveries(snapshot, "D03")[0]
+    item.event.target.robot_id = "R2"
+    item.published_evidence[0].target.robot_id = "R2"
+    updated, results = apply_deliveries(snapshot, [item])
+    assert results[0]["outcome"] == "APPLIED"
+    restriction, = updated.active_restrictions
+    assert (restriction.kind, restriction.target.job_id, restriction.target.robot_id) == ("PAIR_BAN", "W17", "R2")
+    assert next(j for j in updated.jobs if j.job_id == "W18").lifecycle == "RUNNING"
+
+
 def test_superseded_repair_true_cannot_release_with_old_link(snapshot):
     inputs = deliveries(snapshot)
     held, _ = apply_deliveries(snapshot, inputs[:1])
