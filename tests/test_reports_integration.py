@@ -321,7 +321,7 @@ def test_cli_fake_mode_records_reproduction_inputs_and_default_remains_structure
     assert json.loads(capsys.readouterr().out)["termination"] == "COMPLETED"
     manifest = json.loads((fake / "manifest.json").read_text())
     assert manifest["report_mode"] == "fake"
-    assert manifest["report_adapter"] == {"prompt_version": "report-v1", "max_model_calls": 2, "max_lookups": 1}
+    assert manifest["report_adapter"] == {"prompt_version": "report-v2", "max_model_calls": 2, "max_lookups": 1}
     relative = "simulation/reports/D01.jsonl"
     assert manifest["inputs"][relative] == hashlib.sha256((ROOT / relative).read_bytes()).hexdigest()
     assert "--report-mode fake" in manifest["command"]

@@ -10,6 +10,7 @@ import pytest
 
 from evaluation.score import score_run
 from shipyard import cli, responses
+from shipyard.case_files import case_input_files
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -39,6 +40,9 @@ def project(tmp_path):
 
 def policy_file(root, **changes):
     policy = json.loads((root / "config/llm-policy.json").read_text())
+    assert policy["input_sha256"] == {}, "the shared template must not freeze any one case"
+    policy["input_sha256"] = {name: hashlib.sha256((root / name).read_bytes()).hexdigest()
+                              for name in case_input_files("D01", include_reports=True)}
     policy.update(project_id="proj_mock_integration", approved_for_paid_calls=True)
     policy.update(changes)
     path = root / "test llm-policy.json"
@@ -49,7 +53,7 @@ def policy_file(root, **changes):
 def forbid_sdk(monkeypatch):
     calls = []
 
-    def forbidden(policy):
+    def forbidden(policy, *, dotenv_path=None):
         calls.append(policy.model)
         raise AssertionError("a rejected or offline path attempted to construct an API client")
 
@@ -62,7 +66,7 @@ def mock_sdk(monkeypatch, handler):
     openai = pytest.importorskip("openai")
     clients = []
 
-    def factory(policy):
+    def factory(policy, *, dotenv_path=None):
         transport = httpx2.MockTransport(handler)
         http = httpx2.AsyncClient(transport=transport, trust_env=False, follow_redirects=False)
         clients.append(http)
@@ -115,7 +119,8 @@ def test_mocked_responses_d01_matches_fake_execution_and_never_sends_private_inp
             oracle["private_test_marker"] = marker
             path.write_text(json.dumps(oracle))
     approved = policy_file(project, input_sha256={
-        name: hashlib.sha256((project / name).read_bytes()).hexdigest() for name in responses.DEV_INPUTS
+        name: hashlib.sha256((project / name).read_bytes()).hexdigest()
+        for name in case_input_files("D01", include_reports=True)
     })
     packets, generations = [], []
 
@@ -252,8 +257,10 @@ def test_only_frozen_approved_d01_inputs_can_reach_responses(project, tmp_path, 
 
 
 def test_local_preflight_needs_no_key_and_makes_no_requests(project, monkeypatch, capsys):
+    monkeypatch.setattr(cli, "ROOT", project)
     calls = forbid_sdk(monkeypatch)
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("OPENAI_PROJECT_ID", raising=False)
     policy = policy_file(project, project_id=None, approved_for_paid_calls=False)
     assert cli.main(["llm-preflight", "--llm-policy", str(policy)]) == 0
     result = json.loads(capsys.readouterr().out)

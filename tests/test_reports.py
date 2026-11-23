@@ -12,6 +12,7 @@ from shipyard.reports import (
     FakeReportModel, ReportDelivery, ReportInput, interpret_report,
     report_fingerprint,
 )
+from shipyard.rule_knowledge import RuleKnowledge
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -55,6 +56,96 @@ def propose(**changes):
 
 def model_for(report, *responses):
     return FakeReportModel({report.report.report_id: list(responses)})
+
+
+FITUP_IDS = ("KR-2026-2-2-304-BODY", "KR-2026-2-2-402-BODY", "KR-2026-2-2-407-JOINT")
+
+
+def write_rules(tmp_path):
+    path = tmp_path / "rules.jsonl"
+    entries = [
+        {"id": ref, "clause": clause, "title": title, "keywords": keywords, "text": title}
+        for ref, clause, title, keywords in zip(
+            (*FITUP_IDS, "KR-2026-2-2-303-BODY", "KR-2026-2-2-303-TABLE-A"),
+            ("304", "402", "407", "303", "303"),
+            ("용접준비", "용접절차 시방서", "이음의 형태", "용접용재료", "표 2.2.3"),
+            ("핏업 fitup", "WPS 핏업", "루트 간격 fitup", "용접재료", "AH36"),
+        )
+    ]
+    path.write_text("\n".join(json.dumps(row, ensure_ascii=False) for row in entries), encoding="utf-8")
+    topics = tmp_path / "topics.json"
+    topics.write_text(json.dumps({"topics": [
+        {"topic_id": "FITUP", "observation_kinds": ["FITUP_RESULT"], "patterns": ["핏업"],
+         "query": "fitup 루트 간격 WPS"},
+    ]}, ensure_ascii=False), encoding="utf-8")
+    return path, topics
+
+
+def test_rule_lookup_and_citations_require_returned_excerpts(tmp_path, snapshot, report):
+    path, topics = write_rules(tmp_path)
+    knowledge = RuleKnowledge(path, topics)
+    assert [row["clause"] for row in knowledge.search("402조")] == ["402"]
+    # A matched table pulls in its clause body without naming any clause in code.
+    assert [row["id"] for row in knowledge.search("AH36")] == [
+        "KR-2026-2-2-303-TABLE-A", "KR-2026-2-2-303-BODY",
+    ]
+    assert knowledge.search("XYZ999") == []
+
+    valid = FITUP_IDS[0]
+    model = model_for(report, lookup(), propose(rule_refs=[valid]))
+    result = interpret_report(report, snapshot, model, rule_knowledge=knowledge)
+    assert result.status == "READY"
+    # The agent looked up FITUP_RESULT, so the FITUP topic query selects the excerpts.
+    assert sorted(row["id"] for row in model.requests[1]["lookup_result"]["rule_excerpts"]) == sorted(FITUP_IDS)
+    assert result.trace[-1] == {"step": "RULE_CITATIONS", "rule_refs": [valid]}
+    assert result.delivery.event.evidence_ids == ["EV-fitup-W17"]
+
+    model = model_for(report, lookup(), propose(rule_refs=["KR-2026-2-2-303-BODY"]))
+    result = interpret_report(report, snapshot, model, rule_knowledge=knowledge)
+    assert result.reason_codes == ["UNGROUNDED_RULE_REFERENCE"]
+    assert result.delivery.event.kind == "IDENTITY_UNCERTAIN"
+
+
+def test_lookup_hides_internal_rule_labels_and_rule_refs_stay_excerpt_only(tmp_path, snapshot, report):
+    """D04 live regression: the model cited rules-v1:release:FITUP_HOLD as a rule_ref."""
+    path, topics = write_rules(tmp_path)
+    knowledge = RuleKnowledge(path, topics)
+    opened = interpret_report(report, snapshot, model_for(report, lookup(), propose()))
+    held, _ = apply_deliveries(snapshot, [opened.delivery])
+    hold = held.active_restrictions[0]
+    assert (hold.rule_id, hold.release_rule_id) == ("rules-v1:FITUP_HOLD", "rules-v1:release:FITUP_HOLD")
+
+    follow_up = report.model_copy(deep=True)
+    follow_up.report.report_id = "REPORT-W17-2"
+    model = model_for(follow_up, lookup(), propose(restriction_ids=[hold.restriction_id],
+                                                   rule_refs=[hold.release_rule_id]))
+    result = interpret_report(follow_up, held, model, rule_knowledge=knowledge)
+    returned = model.requests[1]["lookup_result"]["restrictions"]
+    assert [r["restriction_id"] for r in returned] == [hold.restriction_id]
+    assert not reports.INTERNAL_RESTRICTION_FIELDS & set(returned[0])
+    assert "rules-v1:" not in canonical(model.requests)
+    assert "lookup_result.rule_excerpts" in model.requests[0]["system"]
+    # Citing a non-excerpt ID is still rejected rather than silently dropped.
+    assert result.reason_codes == ["UNGROUNDED_RULE_REFERENCE"]
+
+
+def test_rule_knowledge_accepts_any_clause_set_and_validates_topics(tmp_path):
+    path = tmp_path / "other.jsonl"
+    rows = [{"id": "X-101", "clause": "101", "title": "도장", "keywords": "도장 페인트", "text": "도장 규정"},
+            {"id": "X-999", "clause": "999", "title": "검사", "keywords": "검사 시험", "text": "검사 규정"}]
+    path.write_text("\n".join(json.dumps(row, ensure_ascii=False) for row in rows), encoding="utf-8")
+    knowledge = RuleKnowledge(path)
+    assert [row["id"] for row in knowledge.search("999조")] == ["X-999"]
+    assert [row["id"] for row in knowledge.for_report("도장 벗겨짐", "FITUP_RESULT")] == ["X-101"]
+    topics = tmp_path / "topics.json"
+    topics.write_text(json.dumps({"topics": [{"topic_id": "FITUP", "query": "핏업 루트"}]}), encoding="utf-8")
+    with pytest.raises(ValueError, match="matches no excerpt"):
+        RuleKnowledge(path, topics)
+    topics.write_text(json.dumps({"topics": [{"topic_id": "PAINT", "query": "도장", "patterns": ["페인트"]}]},
+                                 ensure_ascii=False), encoding="utf-8")
+    with_topics = RuleKnowledge(path, topics)
+    assert with_topics.sha256 != knowledge.sha256
+    assert [row["id"] for row in with_topics.for_analysis("페인트가 들떴다")] == ["X-101"]
 
 
 def test_lookup_then_proposal_preserves_host_metadata_and_public_inputs(snapshot, report):

@@ -1,0 +1,8 @@
+# Preserve the exact bytes hashed by case API policies.
+/config/dev-policy.json text eol=lf
+/data/dev/*/initial.json text eol=lf
+/data/dev/*/evidence.json text eol=lf
+/simulation/dev/*/events.jsonl text eol=lf
+/simulation/reports/*.jsonl text eol=lf
+/config/rule-topics.json text eol=lf
+/references-local/*.jsonl text eol=lf

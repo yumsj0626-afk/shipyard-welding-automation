@@ -7,6 +7,8 @@ from .contracts import (
 from .repository import Repository
 from .reports import (AdapterResult, ReportDelivery, ReportModel, fallback_delivery,
                       interpret_report, report_fingerprint)
+from .rule_knowledge import RuleKnowledge
+from .reports import SimilarOutcomeSearch
 
 
 class Controller:
@@ -35,7 +37,9 @@ class Controller:
         return self.plan_and_apply()
 
     def handle_report_batch(self, tick: int, observations: list[Observation],
-                            reports: list[ReportDelivery], model: ReportModel):
+                            reports: list[ReportDelivery], model: ReportModel,
+                            *, rule_knowledge: RuleKnowledge | None = None,
+                            history: SimilarOutcomeSearch | None = None):
         """Interpret all arrivals before one shared event update and replan."""
         before = self.repository.read_snapshot()
         self._accept_observations(ArrivalBatch(tick=tick, observations=observations))
@@ -67,7 +71,8 @@ class Controller:
                     based_on_state_version=snapshot.state_version, received_report=item.model_copy(deep=True),
                     trace=[{"step": "CONFLICT", "fingerprints": sorted(fingerprints)}])
             else:
-                result = interpret_report(item, snapshot, model)
+                result = interpret_report(item, snapshot, model, rule_knowledge=rule_knowledge,
+                                          history=history)
             results.append(result)
             accepted[report_id] = item
         current = self.repository.read_snapshot()

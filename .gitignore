@@ -35,3 +35,4 @@ coverage/
 
 # Local approved LLM policy (project identifier and consent state)
 /config/llm-policy.local.json
+/config/llm-policy.*.local.json

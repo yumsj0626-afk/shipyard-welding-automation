@@ -26,6 +26,14 @@ class Simulator:
             deliveries.append(delivery)
         return cls(deliveries)
 
+    def validate_report_schedule(self, report_ticks: dict[str, int]) -> None:
+        first_ticks = {}
+        for tick, _, delivery in self._future:
+            event_id = delivery.event.event_id
+            first_ticks[event_id] = min(tick, first_ticks.get(event_id, tick))
+        if report_ticks != first_ticks:
+            raise ValueError("Report IDs and first delivery ticks must match the event schedule")
+
     def register_completion(self, observation: Observation, end_tick: int):
         if observation.execution_id in self._accepted:
             return

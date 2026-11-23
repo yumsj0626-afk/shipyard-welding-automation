@@ -1,6 +1,8 @@
 # 개발 검증
 
-정형/fake 경로와 Responses 공급자·비용·승인 경계 검사를 구현했다. 현재 SDK extra 포함 전체 **291 passed**이며, 이전 186개 테스트는 변경하지 않았다. [Responses 증거](evidence/2026-11-07-responses.json)에 별도 기록한다. **2026-11-07 현재 186 passed(기존 117 + 추가 69), 실패·오류·skip 0**이며 [문장 어댑터 증거](evidence/2026-11-07-reports.json)에 기록했다. 2026-11-06 새 uv 환경에서 **117 passed, 실패 0, 오류 0, skip 0**을 확인했다. 실제 실행 기록과 환경/코드 해시는 [검증 증거 JSON](evidence/2026-11-06.json), M01–M10 연결은 [다음 작업](../docs/next-steps.md)에 있다.
+2026-11-07 SDK 포함 전체 검증에서 **291개 통과**를 기록했다. 앞선 정형 검증 117개와 문장 어댑터 추가 이후 186개 역시 당시 코드의 결과다. [정형 검증](evidence/2026-11-06.json) · [문장 어댑터 검증](evidence/2026-11-07-reports.json) · [Responses 검증](evidence/2026-11-07-responses.json)
+
+2026-11-23 Windows에서 RAG·보고·정보 경계 관련 **63개 테스트가 통과**했다. 임시 `.env`를 읽는 경로, 유사 사례 조회, 선급 조항 인용, 조회되지 않은 조항 거부, D01 승인 해시를 확인했다. D01의 실행 범위는 [검증 기록](../docs/next-steps.md#2026-11-23-rag-검증)에 있다.
 
 ```sh
 uv sync --locked
@@ -25,6 +27,7 @@ uv run --locked --extra llm pytest -q
 | `test_llm_budget.py` | 요청 전 원자 예약, 보고/실행/프로젝트 한도, 영속 요청 횟수, 재시작·경쟁·정산 오류·다른 DB 보존 |
 | `test_responses.py` | 실제 SDK의 모의 HTTP 직렬화, native function 연결, privacy·오류/usage·비동기 deadline·숨은 retry 방지 |
 | `test_responses_integration.py` | 모의 Responses D01과 fake/독립 평가 동등성, 미래/정답 wire 차단, 사전 승인/자격/hash 차단·preflight |
+| `test_report_retrieval.py` | 실행 후 공용 결과 DB 기록, 기준 시각·같은 사례 제외와 벡터 캐시, 결과 DB를 읽는 단독 분석, 과거 결과 전송 승인과 모의 Responses 요청 |
 | `test_evaluation.py` | 수작업 허용 실행과 잘못된 실행·복구·검사기 판정 등을 주입하여 독립 채점·추적·해시 검사 |
 
 `pytest` console entry와 `python -m pytest`의 경로 차이를 해결하기 위해 pytest 설정에서 프로젝트 루트를 추가했다. 평가 모듈을 테스트가 import하기 위한 설정이며 운영 패키지가 평가 자료를 읽도록 만든 것이 아니다.

@@ -44,3 +44,22 @@ t=6은 **시뮬레이터만 아는 미래 외부 입력**이다. 초기 상태·
 실제 경로는 `data/dev/D01/{initial.json,evidence.json}`, `simulation/dev/D01/events.jsonl`, `evaluation/dev/D01/{oracle.json,truth.jsonl}`이다. D02–D04도 같은 구조를 쓴다. 해당 파일이 존재하며 데이터의 개발용 가정과 사람 팀 검토 대기 상태를 명시했다. 이 문서에서 미래 시각을 설명하는 것과 런타임 입력 경계를 구별한다. [아키텍처](../docs/architecture.md)의 allowlist DTO·별도 로더·금지 의존관계·sentinel 검사를 구현하고 실행했다. 본 평가 사례는 개발용과 별도 집합으로 만들며 평가 정답/미래 사건에 대한 시스템 접근을 로더·권한·입출력 검사로 차단한다. 폴더를 나눈 것만으로 분리가 보장되었다고 간주하지 않는다.
 
 문장형 개발 입력은 `simulation/reports/D01–D04.jsonl`에 둔다. 현재 공개 초기 데이터에 미래 보고나 가짜 응답 대본을 추가하지 않는다. 대본·대상 힌트는 합성 개발 가정이며 자연어 해석 정답 평가셋이 아니다. 구체적인 접수/조회 계약은 [데이터 계약](../docs/data-contracts.md)을 따른다.
+
+## 리포트 검색 자료
+
+유사 사례 검색에는 고정된 과거 리포트 파일을 쓰지 않는다. 실행이 끝날 때마다 리포트별 판정 사건·인용 조항·보류 기간·완료 여부를 공용 결과 DB(`artifacts/report-history.sqlite3`, Git 제외)에 쌓고, 이후 실행이 그 결과를 검색한다. 검색은 현재 실행보다 먼저 끝난 실행만 보며 기본으로 같은 사례 ID를 제외한다. 평가 정답과 미래 사건은 기록 대상이 아니다. [결과 DB와 검색 범위](../docs/report-rag.md)
+
+용접 판단에 적용할 한국선급 조항과 원본 페이지는 [규칙 추출본 안내](../docs/welding-rule-retrieval.md)를 따른다. W17의 작업별 WPS·치수·검사 기록은 해당 작업의 별도 자료에서 확인한다.
+
+## 새 사례 추가
+
+D01–D04는 기본 사례다. 새 합성 사례도 같은 구조로 추가한다. 사례 ID는 영문자나 숫자로 시작하며 영문자·숫자·하이픈·밑줄을 사용할 수 있다.
+
+| 경로 | 내용 |
+| --- | --- |
+| `data/dev/<사례 ID>/initial.json`과 `evidence.json` | 초깃값과 공개 근거. `case_id`와 데이터 개정 정보를 맞춘다. |
+| `simulation/dev/<사례 ID>/events.jsonl` | 외부 사건 및 도착 시점. |
+| `simulation/reports/<사례 ID>.jsonl` | 문장형 보고. `report_id`와 첫 `delivery_tick`을 사건과 맞춘다. fake 모드에는 `responses` 대본을 제공한다. |
+| `evaluation/dev/<사례 ID>/oracle.json`과 `truth.jsonl` | 선택적 독립 채점 자료. 두 파일이 있으면 `run-live`가 실행 뒤 채점한다. |
+
+정형·fake 모드에는 `run --case <사례 ID>`를 사용한다. 실제 Responses 실행은 [사례별 정책과 실행](../docs/report-rag.md#실행)을 따른다.

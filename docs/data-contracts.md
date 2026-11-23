@@ -1,6 +1,6 @@
 # 최소 자동 처리 흐름의 데이터 계약
 
-2026-11-07, 계약 `schema_version="1.0"`, 개발 정책 `dev-v1`. **정형/fake 경로와 선택적 Responses API 어댑터의 현재 계약이다. 실제 유료 호출은 미실행이다.** DTO·저장·사건 처리·계획·검사·시뮬레이션 코드와 개발 데이터·테스트를 작성했다. 실제 실행 범위와 M01–M10의 최종 증거는 [구현 작업과 검증 기록](next-steps.md)에서 관리한다. 기술 결정은 [DEC-01–06](decisions.md), 모듈과 파일은 [아키텍처](architecture.md)를 따른다. R §4.2 표7·§4.3·4.5와 B §2–6의 요구를 구현 필드·처리 조건으로 구체화했다.
+2026-11-23 갱신. 정형·fake 시뮬레이션, Responses 어댑터 및 한국선급 조항을 사용하는 보고 분석의 데이터 계약이다. 운영 DTO의 `schema_version="1.0"`과 개발 정책 `dev-v1`을 사용한다. 확인한 실행 범위는 [검증 기록](next-steps.md), 모듈 경계는 [아키텍처](architecture.md)에 있다.
 
 ## 공통 표현과 ID
 
@@ -35,7 +35,7 @@
 
 현재 조회 가능한 근거는 `available_tick <= now_tick`, `observed_tick <= available_tick`이고 출처가 대상/종류에 권한을 가져야 한다. 같은 출처·대상·종류·발생 회차의 개정은 증가해야 하며 이전 개정은 보존한다. `supersedes_evidence_id`는 같은 출처·대상·종류·회차의 앞선 개정만 가리킬 수 있고 관측 시각도 역행하지 않는다. 서로 다른 출처의 최신 근거가 충돌하면 마지막 수신값으로 덮지 않고 EVIDENCE_CONFLICT로 남긴다. 신선도는 회차·개정·관측 순서·반증 근거로 확인하며 근거 없는 시간 만료 규칙을 만들지 않는다. 오래된 PASS가 새 FAIL을 자동 해제하지 않는다.
 
-## 문장형 보고 어댑터 (가짜 모델 구현)
+## 문장형 보고 어댑터
 
 정형 `ArrivalBatch`는 변경하지 않는다. `Controller.handle_report_batch(tick, observations, reports, model)`가 같은 tick의 실제 완료 관측을 먼저 반영하고, 도착한 보고들을 해석한 뒤 기존 `events.apply_deliveries`에 한 batch로 전달한다. 수리·재확인을 따로 적용해 중간 재계획하지 않는다. `READY`는 **사건 제안을 만들었다는 뜻**이며 근거 승인·제한 해제·실제 실행 성공과 다르다.
 
@@ -44,7 +44,7 @@
 | `ReportInput` | `schema_version=1.0`, `run_id`, `report_id`, `incident_id`, `source_id`, `observed_tick`, `received_tick`, `text`, `target_hint|null`. ID·출처·시각·회차·선택된 대상은 접수 프로그램이 부여하고 모델이 덮어쓸 수 없다. UTF-8 본문 1–4,000자, 공백만 있는 본문 거부, 관측≤수신≤현재 tick |
 | `ReportDelivery` | `report`, `published_evidence[]`. 근거는 현재 도착한 외부 관측의 별도 입력이다. 모델 응답 필드가 아니며 보고 문장을 검사 사실로 승격하지 않는다 |
 | 조회 요청 | `action=lookup_evidence`, `target`, `observation_kind`. 허용된 한 종류의 현재 근거와 같은 회차·대상의 활성 제한만 반환. 일반 파일·SQL·shell·코드 실행 도구 없음 |
-| 사건 제안 | `action=propose`, `kind`, `target`, `evidence_ids[]`, `restriction_ids[]`. 모델이 사건 ID·출처·시각·버전·새 근거·수식·실행 관측을 생성하는 필드는 없음 |
+| 사건 제안 | `action=propose`, `kind`, `target`, `evidence_ids[]`, `restriction_ids[]`. 선급 규칙 경로는 적용 조항의 `rule_refs[]`도 받는다. 규칙을 사용하는 Responses 제안에는 이 인용이 필요하며 실제 조회 결과에 대조한다. |
 | 확인/거절 | `action=clarify`와 `reason` enum 또는 `action=refuse`. 임의 도구명·추가 필드·잘린 JSON·중복 key·잘못된 enum/타입은 거부 |
 | `AdapterResult` | `status`, `reason_codes`, `report_id`, `report_fingerprint`, `based_on_state_version`, `received_report`, `model_calls`, `lookup_count`, `delivery|null`, `trace[]`, `prompt_version=report-v1`. received_report는 접수 입력을 보존하며 모델 응답이 아니다. trace의 MODEL은 요청/응답·응답 hash, LOOKUP은 조회와 반환 ID를 보존 |
 
@@ -68,17 +68,17 @@
 
 해석 실패가 만든 `EVIDENCE_PENDING:IDENTITY_MATCH`는 정상 FITUP/수리 보고만으로 해제되지 않는다. 같은 대상·회차의 명시적 `IDENTITY_MATCH=PASS` 확인 근거와 새 `IDENTITY_UNCERTAIN` 보고가 필요하며, 해당 정보 보류만 해제한다. 기존 FITUP_HOLD 등 물리적 시작 제한은 각각의 복구 근거를 계속 요구한다. 새 보고의 제안은 조회에서 받은 해당 제한 ID를 인용한다. 이는 보수적으로 확인을 요청하는 개발 정책이며 본문 자동 재해석으로 보류를 해제하는 기능은 없다.
 
-보고당 모델 2회·읽기 전용 조회 1회, 응답 16,384 UTF-8 bytes·요청 문맥 32,768 bytes를 개발 상한으로 둔다. 자동 재시도는 없다. 가짜 모델의 `TimeoutError` 주입은 오류 분기 검사이며 벽시계 deadline이나 실제 API 취소가 구현됐다는 뜻이 아니다. 과금 토큰·실제 금액·SDK timeout·전체 deadline은 유료 연결 전에 별도로 정한다([DEC-07](decisions.md)).
+보고 어댑터는 모델 호출 최대 2회, 조회 최대 1회, 출력 최대 16,384 UTF-8 바이트를 적용한다. 기본 문맥 한도는 32,768바이트이며 과거 실행 결과가 붙는 경우 확장 한도(결과 1건당 본문 최대 4,000자와 결과 요약 2,048바이트)를 적용한다. Responses 시뮬레이션은 별도로 토큰 사전 계산, 기한, 생성 원장 검사를 거친다.
 
 `simulation/reports/D01–D04.jsonl`은 보고 본문·접수 대상·가짜 응답 대본을 가진 드라이버 전용 replay fixture다. 미래 대본을 모델 문맥으로 넘기지 않고 현재 도착한 보고의 대본만 `FakeReportModel`에 준다. 가짜 모델은 대본을 반환할 뿐 문장을 이해하거나 정답을 추론하지 않는다. 모델에 전달된 요청을 관측하는 sentinel 테스트로 미래 보고·복구 근거·oracle·truth 누출을 확인한다. 이 경계는 단일 프로세스 데이터 흐름이며 OS 격리가 아니다.
 
-## Responses API 공급자 계약 (미승인 파일럿)
+## Responses API 공급자 계약
 
 `responses.ResponsesReportModel.respond(request)`는 기존 `ReportModel` 인터페이스를 구현한다. SDK는 이 공급자 경계에서만 지연 import하며 운영 상태 저장소를 받지 않는다. 기존 `interpret_report`가 조회 결과를 만들고 최종 사건을 검사한다. 기준 상태·제약·솔버·checker·evaluator는 그대로 사용한다. 새로운 `ModelCallFailure(status, reason, metadata)`는 공급자별 실패를 기존 대상별 확인 대기/식별 요청 경로에 연결하며 원문 HTTP 오류를 복사하지 않는다.
 
 ### 실제 전송과 응답
 
-첫 요청에는 고정 system instruction, 보고 본문과 접수 대상, 현재 엔터티 ID, 사건 종류 목록·현재 tick만 보낸다. run/report/source ID·전체 snapshot·파일 경로·미래 대본·정답·API 키를 프롬프트에 합치지 않는다. 조회 후에는 해당 보고의 첫 function call과 `call_id`를 가진 `function_call_output`으로 현재 조회 결과를 보낸다. SDK의 서버 대화 저장이나 `previous_response_id`를 사용하지 않는다. 첫 응답의 유효한 output items를 그대로 연결하고 새 보고는 새 대화로 시작한다.
+첫 요청에는 시스템 지침, 보고 본문과 접수 대상, 현재 엔터티 ID, 허용 사건 종류와 현재 tick을 보낸다. 과거 결과 검색을 켜면 `similar_reports`가 추가된다. 각 항목은 `id`, `score`, `text`와 `outcome`(대상, 해석 상태, 판정 사건과 검사 결과, 인용 조항, 제한별 `kind`·`opened_tick`·`released_tick`·`hold_ticks`·`status_at_run_end`, 작업 완료 여부, 실행 종료 상태)이다. 조회 후에는 이전 function call과 같은 `call_id`의 `function_call_output`으로 현재 관측과 활성 제한을 전달한다. 활성 제한에서는 시스템 내부 규칙 이름표 `rule_id`·`release_rule_id`(`rules-v1:…`)를 빼고 보내며, 모델은 제한을 `restriction_id`로만 가리킨다. 선급 규칙을 사용하면 `rule_excerpts`도 이 조회 결과에 담는다. `rule_refs`에는 `rule_excerpts[].id`만 넣을 수 있고 그 밖의 ID가 하나라도 있으면 제안 전체를 `UNGROUNDED_RULE_REFERENCE`로 거부한다(프롬프트 `report-v2`, 2026-11-23 D04 실행에서 모델이 `rules-v1:release:FITUP_HOLD`를 인용한 사례 대응). 전체 상태·미래 대본·평가 정답·API 키는 외부 입력에서 제외한다.
 
 허용 function은 `lookup_evidence`, `propose`, `clarify`이며 모두 기존 Pydantic 계약으로 만든 strict schema를 사용한다. 각 객체는 모든 필드를 required로 표시하고 nullable 필드로 선택값을 나타내며 extra 필드를 금지한다. `parallel_tool_calls=false`, 한 응답의 허용 function call 정확히 1개를 요구한다. 조회 이후에는 lookup tool을 제거한다. `propose`도 실행 도구가 아니라 사건 제안의 전달 형식이다. 알 수 없는 도구·복수 호출·함수명/action 불일치·추가 코드 필드는 거부한다.
 
@@ -86,9 +86,9 @@
 
 ### 승인·범위·시간과 비용
 
-`config/llm-policy.json`은 검토용 제안이며 `approved_for_paid_calls=false`, `project_id=null`이다. 생성과 count를 시작하려면 승인된 로컬 설정과 `--allow-paid`가 모두 있어야 한다. `OPENAI_API_KEY`는 실행 환경에서만 읽고 파일/프롬프트/trace에 기록하지 않는다. SDK API URL은 `https://api.openai.com/v1`로 명시하며 환경 프록시·redirect로 다른 곳에 전송하지 않는다. 조직·프로젝트·모델의 실제 권한은 계정 설정의 책임이며 모델 metadata 조회만으로 생성 권한·잔액·쿼터를 확인했다고 쓰지 않는다.
+공용 정책은 기본 호출 승인이 꺼져 있다. 실제 D01의 토큰 사전 계산과 생성은 승인된 로컬 정책과 `--allow-paid`를 요구한다. API 키는 환경 변수 또는 루트 `.env`에서 읽는다. 프로젝트 ID는 정책 값이 우선하며 비어 있으면 환경 변수 또는 `.env`에서 읽는다. 프롬프트와 추적 기록에 키를 넣지 않는다.
 
-첫 구현의 외부 전송은 **합성 D01, 최대 3개 보고**로 제한한다. 승인 설정에는 공개 초기값·근거·드라이버 입력·보고 대본·개발 정책의 SHA-256을 고정한다. 파일 내용이 달라지거나 다른 사례를 지정하면 네트워크 전에 거부한다. 이것은 승인한 fixture의 바이트 경계이며 민감정보를 자동 탐지하는 기능이 아니다. 원본 보고서와 실제 현장 자료는 전송 대상에 포함하지 않는다.
+Responses 시뮬레이션의 로컬 정책은 선택한 합성 사례의 입력 경로 5개, 각 SHA-256 및 허용 보고 수 `max_reports_per_run`을 기록한다. 이 값을 생략한 기존 정책에는 3건 상한을 적용한다. 과거 결과 전송은 `history_retrieval_approved`로, 선급 추출본과 주제 설정은 둘을 합친 해시 `rule_knowledge_sha256`으로 확인한다. 공용 템플릿 `config/llm-policy.json`의 `input_sha256`은 비어 있다. 생성 원장의 비용 범위는 생성 요청이다.
 
 제안 기본값은 입력 12,000/출력 1,000토큰(요청당), 보고당 생성 2회·조회 1회, HTTP 작업 15초·보고 전체 45초·실행 전체 180초다. count는 생성 전 최대 1회다. 출력 상한은 reasoning/formatting을 포함하는 API max_output_tokens로 전달하고, 입력은 count 결과가 상한 이내일 때만 생성한다. UTF-8 바이트/본문 길이의 기존 제한도 유지한다. AsyncOpenAI 요청은 `asyncio.timeout`으로 감싸고 남은 보고/실행 시간을 다시 계산하며 deadline 이후 결과는 적용하지 않는다. 로컬 취소는 서버 생성·과금 취소 보장이 아니다.
 
@@ -109,6 +109,12 @@
 | `MODEL_SESSION_STOPPED` | 앞선 전송/정산 오류 뒤 남은 보고에서 추가 요청하지 않음 |
 
 `REPORT_RESULT.trace[].provider`에는 모델/SDK/wire 버전, 호출 단계, response/request ID, 토큰 사용량, 예약 ID·예약액·generation 추정액·정산 상태를 기록한다. `manifest.llm`에는 키/프로젝트 ID를 제외한 정책·정책 hash·SDK 버전·원장의 실행/프로젝트 집계를 남긴다. 보고의 `model_calls`는 기존 어댑터 호출 횟수이며 실제 성공한 generation 수와 같다고 가정하지 않는다. 사전 차단과 token-count 단계 실패는 provider metadata의 단계로 구별한다. local trace는 기존처럼 Git 제외 실행 폴더에 보존하며 자동 삭제 기간은 아직 정하지 않았다.
+
+## 단독 보고 분석과 참고 자료 계약
+
+`analyze-report`는 현재 리포트, 공용 결과 DB에서 코사인 유사도가 높은 앞선 실행 결과와 로컬에서 조회한 선급 발췌를 GPT에 전달한다. 과거 결과는 참고 자료이며 선급 조항은 판단 기준이다. `similar_report_ids`는 결과 ID(`<run_id>:<report_id>`)다. 출력의 `analysis`에는 `decision`, `assessment`, `checks_needed`, `similar_report_ids`, `rule_basis`가 있다. `rule_basis` 각 항목에 `rule_id`와 적용 설명 `application`을 담는다. `rule_sources`에는 조회한 발췌의 ID·문서·판본·조항·제목·인쇄/PDF 페이지를 제공한다.
+
+조회 결과에 없는 사례·조항이나 중복 인용은 코드가 거부한다. `CRITERIA_IDENTIFIED`에는 하나 이상의 조항 인용이 필요하다. 조회된 조항이 없으면 코드가 `INSUFFICIENT_BASIS`를 반환한다. 조항이 있을 때 적용 WPS나 검사 기록의 충분성은 GPT가 판단하고, 근거가 부족하면 `INSUFFICIENT_BASIS`와 확인 항목을 반환하도록 지시한다. 이 분석 결과는 작업 상태를 갱신하지 않는다. [실행 방법](report-rag.md)
 
 ## 사건과 활성 제한
 

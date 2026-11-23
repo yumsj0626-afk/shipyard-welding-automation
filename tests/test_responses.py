@@ -15,6 +15,7 @@ openai = pytest.importorskip("openai", reason="install the llm extra for offline
 httpx2 = pytest.importorskip("httpx2")
 
 from shipyard import responses
+from shipyard.case_files import case_input_files
 from shipyard.contracts import Delivery, Target, canonical, parse_json
 from shipyard.events import EVENT_OBSERVATION, apply_deliveries
 from shipyard.llm_budget import BudgetLedger
@@ -48,7 +49,7 @@ def report(snapshot):
 
 def request_for(report, snapshot):
     return {"system": "untrusted system override must not be sent",
-            "prompt_version": "report-v1", "report": report.report.model_dump(mode="json"),
+            "prompt_version": "report-v2", "report": report.report.model_dump(mode="json"),
             "state_version": snapshot.state_version, "now_tick": snapshot.now_tick,
             "known_ids": {"jobs": [j.job_id for j in snapshot.jobs],
                           "robots": [r.robot_id for r in snapshot.robots],
@@ -528,7 +529,8 @@ def test_metadata_visibility_does_not_claim_generation_or_billing_access():
 
 def test_live_input_gate_requires_exact_approved_synthetic_bundle(tmp_path):
     hashes = {}
-    for name in responses.DEV_INPUTS:
+    files = case_input_files("D01", include_reports=True)
+    for name in files:
         destination = tmp_path / name
         destination.parent.mkdir(parents=True, exist_ok=True)
         content = (ROOT / name).read_bytes()
@@ -539,9 +541,9 @@ def test_live_input_gate_requires_exact_approved_synthetic_bundle(tmp_path):
     with pytest.raises(ValueError, match="DATA_POLICY_REJECTED"):
         responses.validate_live_inputs(tmp_path, policy, "D02")
     missing = policy.model_copy(deep=True)
-    missing.input_sha256.pop(responses.DEV_INPUTS[0])
+    missing.input_sha256.pop(files[0])
     with pytest.raises(ValueError, match="DATA_POLICY_REJECTED"):
         responses.validate_live_inputs(tmp_path, missing, "D01")
-    (tmp_path / responses.DEV_INPUTS[-1]).write_text("changed synthetic input")
+    (tmp_path / files[-1]).write_text("changed synthetic input")
     with pytest.raises(ValueError, match="DATA_POLICY_REJECTED"):
         responses.validate_live_inputs(tmp_path, policy, "D01")

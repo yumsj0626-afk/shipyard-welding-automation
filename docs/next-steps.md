@@ -1,8 +1,37 @@
 # 구현 상태·검증 증거와 다음 작업
 
-**현재 단계: 정형/fake 경로와 Responses API 공급자·비용 원장 구현, 유료 호출 미실행.** 기존 186개 테스트 파일을 유지하고 선택 SDK를 사용하는 오프라인 검증을 추가했다. 아래에 이전 I01–I09·M01–M10 기록과 새 공급자 검증을 구별해 보존한다. 실제 계정 생성 권한·과금·언어 이해 성능은 아직 확인하지 않았다.
+**현재 단계.** D01–D04는 기본 개발 사례다. 같은 폴더 구조의 합성 사례에 공통 실행 명령과 사례별 API 승인 정책을 적용할 수 있다. [새 사례 추가](../data/README.md#새-사례-추가)
 
 이번 구현은 **하나의 프로그램에서 로봇 2대·작업 5개의 정형 사건을 근거 확인 → 보류 → 대체 또는 대기 → 재계획 → 독립 검사 → 적용 → 시뮬레이션 → 복구와 재편입까지 연결**했다. 정형 경로에는 LLM·API 서버·웹 UI가 필요하지 않다.
+
+## 2026-11-23 RAG 검증
+
+- **D01 모의 통합과 로컬 테스트.** Windows Python 3.13.15에서 RAG·보고·정보 경계 관련 63개 테스트가 통과했다. 승인 해시 검사, 승인된 선급 발췌와 유사 사례 전송 구성, 현재 관측 검사 및 조항 인용 검증을 확인했다. 이후 과거 사례는 공용 결과 DB로 바뀌었고 실제 API 실행은 [D04 실제 API 실행](#2026-11-23-d04-실제-api-실행)에 기록했다.
+- **현재 설정.** 루트 `.env`에 `OPENAI_PROJECT_ID`와 `OPENAI_API_KEY`를 설정한다. 환경 변수가 우선한다. 기본 `llm-preflight`로 설정 존재 여부를 확인한다. 결과 DB·선급 규칙 추출본과 실행 옵션은 [리포트 처리 사용법](report-rag.md)에 정리했다.
+
+이하 2026-11-06과 2026-11-07 절에는 당시 코드의 검증 이력을 보존한다.
+
+## 2026-11-23 D04 실제 API 실행
+
+`gpt-6-luna`로 D04를 두 번 실행했다. 결과 DB에 다른 사례의 결과가 없어 두 실행 모두 유사 사례 없이 진행했다(`eligible_outcomes: 0`). 실행 명령은 `run-live --case D04 --allow-paid`다.
+
+| 실행 | 프롬프트 | t=0 핏업 리포트 | t=6 보수 리포트 | 채점 |
+| --- | --- | --- | --- | --- |
+| `outputs/D04-live` | `report-v1` | `FITUP_RESULT` 조회 → `FITUP_FAILED`, 조항 304·402·407 인용. 보류 적용 | `REPAIR_COMPLETED` 조회 → `REPAIR_REPORTED` 제안. `rule_refs`에 `rules-v1:release:FITUP_HOLD`가 섞여 `UNGROUNDED_RULE_REFERENCE`로 거부. `IDENTITY_UNCERTAIN`과 `CURRENT_EVIDENCE_REQUIRED` 확인 요청으로 대체 | 불합격. `EXPECTED_EVENT_NOT_RECORDED`, `NECESSARY_RECHECK_REQUEST_MISSING`, `UNEXPECTED_EVENT` |
+| `outputs/D04-live-v2` | `report-v2` | 같음 | 같은 제안, `rule_refs`는 402·304만. 사건 검사가 `RECHECK_REQUIRED`로 보류 유지와 재검사 확인 요청 | **통과**. 이슈 0, 계획·실행 위반 0 |
+
+두 실행 모두 보류는 유지됐다. W19(R1, 0–5)와 W21(R2, 2–5)이 대체 실행으로 완료됐고 W17·W20은 시작하지 않았다. 종료는 t=6 `WAITING`이다. 생성 요청은 각 4회, 생성 비용 추정은 각 약 $0.0011이다.
+
+1차의 원인은 조회 결과로 보낸 활성 제한에 시스템 내부 규칙 이름표 `rule_id`·`release_rule_id`(`rules-v1:…`)가 들어 있던 것이다. 모델이 이를 인용할 규칙으로 보았다. `report-v2`에서 이 두 필드를 모델 입력에서 빼고, 지시문과 `propose` 도구 스키마에 "`rule_refs`에는 `lookup_result.rule_excerpts[].id`만"을 명시했다. 검증기는 그대로 엄격해서 다른 ID가 섞이면 제안 전체를 거부한다. 회귀 테스트는 `tests/test_reports.py::test_lookup_hides_internal_rule_labels_and_rule_refs_stay_excerpt_only`다.
+
+남은 관찰이 두 가지 있다. 첫째, 2차 통과는 1회 결과라서 반복 안정성은 확인하지 않았다. 둘째, t=6에 R1·R2가 모두 비어 있는데도 W17의 보류 사유에 `FITUP_HOLD`와 함께 `NO_AVAILABLE_ROBOT`이 붙는다. 동작에는 영향이 없지만 사유 표시를 확인할 필요가 있다.
+
+## 2026-11-23 공용 결과 DB 검증
+
+- `tests/test_report_retrieval.py`: D01 fake 실행이 리포트 3건의 결과(FITUP_FAILED의 FITUP_HOLD 0→6, 보류 6 tick, W17 완료, FITUP 주제 조항)를 기록하는지, 검색이 기준 시각 이후·같은 실행·같은 사례·다른 자료 정책의 행을 제외하고 벡터를 재사용하는지 확인한다. D01과 새 사례 ID에서 모의 Responses 실행이 다른 사례의 앞선 결과만 받고 끝난 뒤 자기 결과 3건을 추가하는지 확인한다.
+- `tests/test_reports.py`: 주제 설정이 Agent가 고른 관측 종류로 조항을 고르는지, 임의 조항 집합을 불러오는지, 아무 항목도 찾지 못하는 주제를 거부하는지 확인한다.
+- 실제 API 호출은 하지 않았다. 기존 `config/llm-policy.local.json`은 제거한 `report_index_sha256` 필드 때문에 읽히지 않으므로 `prepare-case-policy --case D01 --approve`로 다시 만든다.
+- Windows에서 `tests/test_responses.py` 50건은 이번 변경 전에도 실패한다. asyncio Proactor 이벤트 루프가 만드는 내부 localhost 소켓을 테스트의 네트워크 차단 가드가 막는다. 나머지 테스트는 통과한다.
 
 ## 구현 순서
 
@@ -74,7 +103,7 @@ M01–M05가 핵심 시연이다. M06–M10은 이를 신뢰할 수 있게 만�
 | M09 | `test_events.py`, `test_scheduler.py`, `test_application.py`, `test_review_regressions.py` | 공개 snapshot 1회 조회로 보완/없으면 요청. 실제 작은 INFEASIBLE 모델과 오류 주입 UNKNOWN·FEASIBLE_NOT_PROVEN·MODEL_INVALID·INTERNAL_ERROR 분기 |
 | M10 | `test_information_boundary.py`, `test_evaluation.py`, `test_integration.py`; trace·평가 해시 | 공개 파일 접근 allowlist, 금지 import, 미정의 필드, 미래/oracle/truth sentinel 차단; 실제 관측·독립 정답·근거 연결 비교 |
 
-M06–M10 오류 주입은 정상 4개 사례만으로 결론내리지 않도록 추가한 검증이다. UNKNOWN/FEASIBLE 분기 테스트는 실제 시간 초과 측정과 구별한다. 현재 알려진 미해결 테스트 실패는 없다.
+M06–M10 오류 주입은 정상 4개 사례만으로 결론내리지 않도록 추가한 검증이다. UNKNOWN/FEASIBLE 분기 테스트는 실제 시간 초과 측정과 구별한다. 당시 검증에서 미해결 테스트 실패는 관측되지 않았다.
 
 ### 재현 명령
 
@@ -159,11 +188,11 @@ LLM 연결 전 결정: [DEC-07](decisions.md)의 모델 후보·계정 권한, S
 - 비용은 요청 전 예약하고 정산 실패·통신 단절·재시작 뒤에도 미정산액과 요청 횟수를 보존했다. 같은 run/report는 새 공급자 인스턴스로도 세 번째 예약을 할 수 없다. 원장 동시 연결·저장 오류·기존 파일 오인 방지도 검사했다.
 - 검토 중 실제 발견해 수정한 문제: provider와 ledger의 프로젝트 불일치 허용, 누락 usage의 일반 오류 처리, 429 지출 제한의 rate-limit 오분류, 메모리 초기화에 따른 세 번째 생성 가능성, 느린 예약 이후 deadline을 다시 검사하지 않던 경로. 기록된 재현 명령에도 `--extra llm`과 공백 포함 경로의 shell quoting을 반영했다. 최종 검사에 남은 실패는 없다.
 
-### 실제 계정 상태와 승인 범위
+### 2026-11-07 당시 계정 상태와 승인 범위
 
 사용자는 Luna·generation 예산·토큰·시간 제한과 합성 D01 전송을 승인하고, **설정과 확인이 끝난 뒤 D01 실행 1회**를 요청했다. `config/llm-policy.local.json`에 같은 상한·입력 hash를 복사하고 `approved_for_paid_calls=true`로 기록했다. 파일 권한은 0600이고 Git 제외다. 프로젝트 ID는 아직 null이며 키는 만들거나 읽지 않았다. 공용 템플릿의 false는 다른 사용자의 승인을 대신하지 않기 위해 유지한다.
 
-현재 로컬 preflight에서는 키·프로젝트 없음이다. 모델 metadata·token-count·generation 실제 계정 요청은 **각각 0회**, 실제 D01 실행도 **0회**다. 기존 291개 검증은 앞선 구현 커밋의 결과이며 이번 문서·설정 작업에서 다시 실행한 것으로 기록하지 않는다.
+2026-11-07 당시 로컬 preflight에서는 키·프로젝트 설정이 없었다. 당시 모델 메타데이터·토큰 사전 계산·실제 생성 요청은 각각 0회였고, D01 실 API 실행도 0회였다. 위의 291개는 당시 구현의 테스트 결과다.
 
 | 항목 | 승인된 값 또는 현재 상태 | 남은 확인 |
 | --- | --- | --- |
@@ -185,48 +214,16 @@ D01 한 번은 모델 요청 한 번과 다르다. **최대 generation 6회 + �
 
 공급자에게 확인할 구체 질문: “`POST /v1/responses/input_tokens`는 별도 청구되거나 계산한 input_tokens가 모델 입력 단가로 청구되는가? application state를 저장하는가, 보관 기간은 얼마인가? 일반 abuse 로그 외의 저장이 있는가, ZDR 적용 가능 여부는 무엇인가?” 이 작업에서 지원팀에 메시지를 보내지는 않았다.
 
-### API 프로젝트·키 설정과 승인된 1회 실행
+### 현재 API 프로젝트와 키 설정
 
-1. [OpenAI API Platform](https://platform.openai.com/)에서 이 연구용 프로젝트를 만들거나 선택한다. 이름 예시는 `shipyard-welding-automation-dev`다. 프로젝트 설정의 **Project ID**를 복사한다. GitHub 저장소 이름·ChatGPT 채팅 ID와 다르다. Billing에서 해당 API 조직의 사용 가능한 크레딧/결제를 확인한다. 계정별 결제 상태는 이 작업에서 조회하지 않았다.
-2. 선택한 프로젝트의 API Keys에서 본인 개발용 프로젝트 키를 만든다. Admin key는 필요 없다. `List models` 읽기와 Responses/model request 권한이 필요하며, 키와 사용자 역할 모두 해당 권한이 있어야 한다. Files·웹 검색·Code Interpreter 권한은 이 앱에 필요 없다. [키 종류](https://developers.openai.com/api/docs/guides/api-keys), [권한](https://developers.openai.com/api/docs/guides/rbac).
-3. 프로젝트 Limits의 지출 설정을 확인한다. 알림과 hard limit는 다르며 hard limit도 반영 지연으로 소폭 초과할 수 있다. 승인된 $0.10을 적용할 수 있는지 확인하고 UI 최소값 때문에 더 큰 값이 필요하면 임의로 올리지 않는다. API 잔액 충전액과 프로그램 사용 예산도 다르다. [지출 한도 설정](https://developers.openai.com/api/docs/guides/spend-limits).
-4. 로컬 `config/llm-policy.local.json`의 `"project_id": null`만 `"project_id": "proj_실제값"`으로 바꾼다. 나머지 승인 값·입력 hash는 유지한다. 다른 checkout에서는 공용 템플릿을 복사하고 이번 승인 범위에 맞는 로컬 정책을 만든다.
-5. 키는 채팅에 보내지 않는다. 아래 코드를 **사용자 터미널**에서 실행해 화면에 표시되지 않는 입력으로 `.env.local`에 저장한다. 이 파일은 Git에서 제외되고 소유자만 읽고 쓸 수 있도록 0600으로 생성한다. 기존 파일이 있으면 덮어쓰지 않는다.
+저장소 루트에 `.env`를 만들고 `OPENAI_PROJECT_ID`와 `OPENAI_API_KEY`를 채운다. 앱이 `.env`를 자동으로 읽는다. 프로젝트 ID를 D01 로컬 정책에 지정한 경우에는 해당 값을 우선한다. 키는 `.env` 또는 실행 환경을 통해 제공한다.
 
 ```sh
-cd '/Users/yumsj/Documents/ChatGPT/산업공학종합설계'
-.venv/bin/python - <<'PYKEY'
-import getpass
-import os
-key = getpass.getpass('OpenAI API key (hidden): ').strip()
-if not key or any(c.isspace() for c in key):
-    raise SystemExit('Key is empty or contains whitespace; nothing saved.')
-fd = os.open('.env.local', os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
-with os.fdopen(fd, 'w') as target:
-    target.write('OPENAI_API_KEY=' + key + '\n')
-print('Saved .env.local; key value is not displayed.')
-PYKEY
+uv sync --locked --extra llm
+uv run --locked --extra llm python -m shipyard llm-preflight
 ```
 
-별도 터미널의 `export`는 이미 실행 중인 Codex 프로세스에 전달되지 않는다. 앱 자체는 `.env.local`을 자동 로드하지 않으므로 **uv의 `--env-file .env.local`**로 명시적으로 읽는다. `OPENAI_PROJECT_ID` 환경 변수만 설정해도 이 앱의 로컬 정책 `project_id`는 채워지지 않는다. [uv dotenv 안내](https://docs.astral.sh/uv/concepts/configuration-files/).
-
-설정 여부만 검사하는 명령이며 count/generation은 보내지 않는다.
-
-```sh
-uv run --locked --extra llm --env-file .env.local python -m shipyard llm-preflight --llm-policy config/llm-policy.local.json
-```
-
-이 Mac의 Codex 셸에서는 `uv`가 PATH에 없고 `/private/tmp/shipyard-tech-probe/bin/uv` 0.13.7을 확인했다. 여기서는 위 `uv`를 해당 절대 경로로 바꿔 실행할 수 있다. 임시 경로는 배포 환경 규격이 아니며 다른 컴퓨터에서는 [uv 설치](https://docs.astral.sh/uv/getting-started/installation/) 후 사용한다.
-
-프로젝트와 키를 준비한 뒤 `--check-access`를 추가하면 모델 metadata GET을 수행한다. 이 성공도 생성 권한·잔액을 증명하지 않는다. 키 값·원문 인증 오류를 문서/로그에 복사하지 않는다. **키·프로젝트 준비와 count 조건의 해결이 완료되면** Codex가 아래 파일럿을 1회 실행한다. 현재는 미실행 명령이다.
-
-```sh
-uv run --locked --extra llm --env-file .env.local python -m shipyard run --case D01 --report-mode responses --llm-policy config/llm-policy.local.json --allow-paid --output outputs/live-D01-approved-20261107
-uv run --locked python -m shipyard inspect --run-dir outputs/live-D01-approved-20261107
-uv run --locked python evaluation/score.py --run-dir outputs/live-D01-approved-20261107 --oracle evaluation/dev/D01/oracle.json --truth evaluation/dev/D01/truth.jsonl
-```
-
-실행 전 위 출력 폴더가 이미 있는지와 비용 원장을 확인한다. 기존 결과/원장을 삭제하거나 다른 경로로 재시도하지 않는다. 실패한 언어 해석을 fake로 대체하지 않고 실제 usage·비용 추정·미정산 예약·요청 ID·오류·독립 평가를 기록한다. 계정 청구와 로컬 generation 추정을 구분한다. 로컬 결과 폴더는 분석을 위해 보존하며 자동 삭제 기간은 설정하지 않았다.
+단독 분석과 승인된 D01 시뮬레이션의 최신 명령은 [리포트 RAG 사용법](report-rag.md)에 있다. D01은 승인된 로컬 정책, 고정 입력 해시, 선택한 과거 사례 인덱스·선급 발췌 해시를 확인한 뒤 실행한다. 결과를 보존할 새 출력 경로를 지정한다.
 
 ## 최소 흐름 이후
 
@@ -234,18 +231,8 @@ uv run --locked python evaluation/score.py --run-dir outputs/live-D01-approved-2
 
 본 평가의 사례 수·반복 수·시간 제한·수치 통과 기준은 예비실험 후 결정한다. 개발용 시간 제한이나 D01–D04의 값으로 본 평가 조건을 확정하지 않는다. 주 성과는 전체 평가 사건의 무개입 정답완결이며 생산 지연은 보조 지표다. 납기 우선 규칙 비교는 필요할 때 보조 실험으로 수행한다. OCR·3D·클라우드는 핵심 흐름에서 필요한 이유가 생겼을 때 검토한다.
 
-## 다음 Codex 작업에 그대로 넣을 요청
+## 남은 검증
 
-```text
-Responses API 어댑터와 기존 정형/fake 경로를 유지하고, DEC-07 및
-승인된 Luna·상한·합성 D01 전송과 실행 1회 범위를 유지해 주세요.
-프로젝트는 config/llm-policy.local.json, 키는 .env.local을 uv --env-file로 읽으세요.
-키 값을 채팅/로그에 출력하지 말고 설정 여부만 확인하세요.
-count 전용 청구·보관 조건의 확인 또는 불확실성 처리 결정이 남아 있으면
-실제 count/generation을 실행하지 마세요. 이미 승인한 조건은 다시 묻지 마세요.
-모든 조건이 합의되면 기존 원장을 유지하며 합성 D01 1회만 실행하세요.
-모델 metadata 조회와 실제 생성 권한·잔액을 구별하고, 자동 모델 변경/추가 재시도는 금지합니다.
-독립 평가 결과·실제 usage·generation 추정/확인된 과금·미정산 예약·오류·남은 불확실성을
-기록하세요. 실제 모델이 실패한 결과를 가짜 응답으로 바꿔 성공 처리하지 마세요.
-원본/현장 자료 업로드와 에이전트 비교·본 비교실험으로 범위를 확대하지 마세요.
-```
+1. D01–D04 실제 Responses 실행을 반복해 판정 안정성을 확인한다. 다른 사례의 결과를 결과 DB에 쌓은 뒤 유사 사례가 붙었을 때 판단과 채점이 달라지는지 비교한다.
+2. 근거 보류, 재확인 후 복귀, 용접용재료 규칙 적용 사례를 확장하고 적용 WPS·검사 기록과 조항 인용을 구분해 검증한다.
+3. 동일한 자료·도구·금액 제한으로 단일 에이전트와 역할 분리 구성의 비교 조건을 확정한다.

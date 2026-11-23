@@ -4,17 +4,19 @@ from __future__ import annotations
 import asyncio
 import hashlib
 import importlib.metadata
-import os
 import time
 from pathlib import Path
 from typing import Annotated, Literal
 
 from pydantic import Field
 
+from .case_files import case_input_files
 from .contracts import DTO, canonical, digest, parse_json
-from .reports import (ClarifyReply, LookupReply, ProposalReply, REPLY, ReportInput,
-                      ModelCallFailure, SYSTEM_INSTRUCTION, MAX_RESPONSE_BYTES)
+from .reports import (ClarifyReply, LookupReply, ProposalReply, REPLY, RULE_REPLY, ReportInput, RuleProposalReply,
+                      HISTORY_INSTRUCTIONS, RULE_INSTRUCTIONS, ModelCallFailure, SYSTEM_INSTRUCTION,
+                      MAX_RESPONSE_BYTES)
 from .llm_budget import BudgetLedger, BudgetExceeded
+from .openai_settings import read_openai_settings
 
 SDK_VERSION = "3.46.0"
 API_BASE = "https://api.openai.com/v1"
@@ -32,26 +34,32 @@ class LLMPolicy(DTO):
     request_timeout_seconds: Annotated[int, Field(ge=1, le=15)] = 15
     report_deadline_seconds: Annotated[int, Field(ge=1, le=45)] = 45
     run_deadline_seconds: Annotated[int, Field(ge=1, le=180)] = 180
+    max_reports_per_run: Annotated[int, Field(ge=1)] = 3
     report_budget_micro_usd: Annotated[int, Field(ge=1)] = 5000
     run_budget_micro_usd: Annotated[int, Field(ge=1)] = 50000
     project_budget_micro_usd: Annotated[int, Field(ge=1)] = 100000
     input_sha256: dict[str, str] = Field(default_factory=dict)
+    # Approves sending earlier runs' synthetic report outcomes as similar examples.
+    history_retrieval_approved: bool = False
+    rule_knowledge_sha256: Annotated[str, Field(pattern=r"^[0-9a-f]{64}$")] | None = None
 
 
-def load_policy(path: Path) -> LLMPolicy:
-    return LLMPolicy.model_validate(parse_json(path.read_text(encoding="utf-8")))
-
-
-DEV_INPUTS = ("data/dev/D01/initial.json", "data/dev/D01/evidence.json",
-              "simulation/dev/D01/events.jsonl", "simulation/reports/D01.jsonl", "config/dev-policy.json")
+def load_policy(path: Path, *, dotenv_path: Path | None = None) -> LLMPolicy:
+    policy = LLMPolicy.model_validate(parse_json(path.read_text(encoding="utf-8")))
+    if dotenv_path is not None and not (policy.project_id or "").strip():
+        project_id = read_openai_settings(dotenv_path)["OPENAI_PROJECT_ID"]
+        if project_id:
+            policy.project_id = project_id
+    return policy
 
 
 def validate_live_inputs(root: Path, policy: LLMPolicy, case: str):
-    if case != "D01" or set(policy.input_sha256) != set(DEV_INPUTS):
-        raise ValueError("DATA_POLICY_REJECTED: only the approved synthetic D01 bundle is supported")
-    for name in DEV_INPUTS:
+    inputs = case_input_files(case, include_reports=True)
+    if set(policy.input_sha256) != set(inputs):
+        raise ValueError("DATA_POLICY_REJECTED: the approved input paths do not match this case")
+    for name in inputs:
         if hashlib.sha256((root/name).read_bytes()).hexdigest() != policy.input_sha256[name]:
-            raise ValueError("DATA_POLICY_REJECTED: approved input hash changed")
+            raise ValueError(f"DATA_POLICY_REJECTED: approved input hash changed: {name}")
 
 
 def generation_cost_micro_usd(input_tokens: int, output_tokens: int) -> int:
@@ -59,7 +67,7 @@ def generation_cost_micro_usd(input_tokens: int, output_tokens: int) -> int:
     return (input_tokens + 5 * output_tokens + 9) // 10
 
 
-def function_tools(after_lookup: bool = False) -> list[dict]:
+def function_tools(after_lookup: bool = False, *, with_rules: bool = False) -> list[dict]:
     def strict(node):
         if isinstance(node, dict):
             node.pop("default", None)
@@ -72,7 +80,8 @@ def function_tools(after_lookup: bool = False) -> list[dict]:
         elif isinstance(node, list):
             for value in node:
                 strict(value)
-    models = [("lookup_evidence", LookupReply), ("propose", ProposalReply), ("clarify", ClarifyReply)]
+    proposal = RuleProposalReply if with_rules else ProposalReply
+    models = [("lookup_evidence", LookupReply), ("propose", proposal), ("clarify", ClarifyReply)]
     result = []
     for name, model in models:
         if after_lookup and name == "lookup_evidence":
@@ -86,16 +95,16 @@ def function_tools(after_lookup: bool = False) -> list[dict]:
     return result
 
 
-def credential_status(policy: LLMPolicy) -> dict:
-    return {"api_key_present":bool(os.environ.get("OPENAI_API_KEY")),
+def credential_status(policy: LLMPolicy, *, dotenv_path: Path | None = None) -> dict:
+    return {"api_key_present":bool(read_openai_settings(dotenv_path)["OPENAI_API_KEY"]),
             "project_configured":bool(policy.project_id and policy.project_id.strip()),
             "model":policy.model, "paid_calls_approved":policy.approved_for_paid_calls,
             "data_policy":policy.data_policy, "model_access":"NOT_CHECKED",
             "responses_permission":"NOT_CHECKED", "billing_quota":"NOT_CHECKED"}
 
 
-def preflight(policy: LLMPolicy, *, check_access: bool = False) -> dict:
-    result = credential_status(policy)
+def preflight(policy: LLMPolicy, *, check_access: bool = False, dotenv_path: Path | None = None) -> dict:
+    result = credential_status(policy, dotenv_path=dotenv_path)
     try:
         result["sdk_version"] = importlib.metadata.version("openai")
     except importlib.metadata.PackageNotFoundError:
@@ -107,7 +116,7 @@ def preflight(policy: LLMPolicy, *, check_access: bool = False) -> dict:
             result["model_access"] = "CREDENTIALS_OR_SDK_MISSING"
         else:
             async def check():
-                client = sdk_client(policy)
+                client = sdk_client(policy, dotenv_path=dotenv_path)
                 try:
                     return await check_model_access(policy,client)
                 finally:
@@ -116,12 +125,12 @@ def preflight(policy: LLMPolicy, *, check_access: bool = False) -> dict:
     return result
 
 
-def sdk_client(policy: LLMPolicy):
+def sdk_client(policy: LLMPolicy, *, dotenv_path: Path | None = None):
     from openai import AsyncOpenAI
     import httpx2
-    key = os.environ.get("OPENAI_API_KEY")
+    key = read_openai_settings(dotenv_path)["OPENAI_API_KEY"]
     if not key or not policy.project_id or not policy.project_id.strip():
-        raise ValueError("LLM_CREDENTIALS_MISSING: set API key in environment and project_id in local policy")
+        raise ValueError("LLM_CREDENTIALS_MISSING: set the API key and project ID in .env or the environment")
     # Explicit host and disabled environment proxies avoid accidental credential routing.
     return AsyncOpenAI(api_key=key,project=policy.project_id,base_url=API_BASE,
         max_retries=0,timeout=policy.request_timeout_seconds,
@@ -165,7 +174,7 @@ async def check_model_access(policy: LLMPolicy, client) -> dict:
 
 class ResponsesReportModel:
     def __init__(self, policy: LLMPolicy, ledger: BudgetLedger, *, allow_paid: bool = False,
-                 client_factory=None, clock=time.monotonic):
+                 client_factory=None, clock=time.monotonic, dotenv_path: Path | None = None):
         self.policy = policy.model_copy(deep=True)
         if not allow_paid or not policy.approved_for_paid_calls:
             raise ValueError("PAID_CALLS_NOT_APPROVED")
@@ -174,7 +183,7 @@ class ResponsesReportModel:
         if policy.project_id != ledger.project_id:
             raise ValueError("LLM_LEDGER_PROJECT_MISMATCH")
         self.ledger, self.clock = ledger, clock
-        self._client_factory = client_factory or (lambda: sdk_client(self.policy))
+        self._client_factory = client_factory or (lambda: sdk_client(self.policy, dotenv_path=dotenv_path))
         self._client = None
         self._runner = asyncio.Runner()
         self._started = clock()
@@ -192,32 +201,51 @@ class ResponsesReportModel:
         if self._halted:
             self._fail("MODEL_SESSION_STOPPED","PREVIOUS_PROVIDER_FAILURE")
         report = ReportInput.model_validate(request["report"])
+        similar_reports = request.get("similar_reports")
+        if similar_reports is not None and not self.policy.history_retrieval_approved:
+            self._fail("INVALID_MODEL_REQUEST", "HISTORY_RETRIEVAL_NOT_APPROVED")
+        with_rules = request.get("use_kr_rules") is True
+        lookup = request.get("lookup_result")
+        if (with_rules and self.policy.rule_knowledge_sha256 is None
+                or not with_rules and lookup and "rule_excerpts" in lookup):
+            self._fail("INVALID_MODEL_REQUEST", "RULE_KNOWLEDGE_NOT_APPROVED")
+        context = {key: request[key] for key in ("known_ids", "allowed_event_kinds", "state_version", "now_tick")}
+        if similar_reports is not None:
+            context["similar_reports"] = similar_reports
+        if with_rules:
+            context["use_kr_rules"] = True
+        context_hash = digest(context)
         if self._run_id is not None and self._run_id != report.run_id:
             self._fail("INVALID_MODEL_REQUEST","MODEL_INSTANCE_RUN_MISMATCH")
         self._run_id = report.run_id
         state = self._reports.get(report.report_id)
         if state is None:
-            if request.get("lookup_result") is not None or len(self._reports) >= 3:
+            if request.get("lookup_result") is not None or len(self._reports) >= self.policy.max_reports_per_run:
                 self._fail("MODEL_CALL_LIMIT","REPORT_SESSION_LIMIT")
             state = {"started":self.clock(), "calls":0, "history":None,
-                     "report_hash":digest(report),"context_hash":digest({k:request[k] for k in ("known_ids","allowed_event_kinds","state_version","now_tick")})}
+                     "report_hash":digest(report),"context_hash":context_hash, "with_rules":with_rules}
             self._reports[report.report_id] = state
-        if (state["report_hash"] != digest(report) or state["context_hash"] != digest({k:request[k] for k in ("known_ids","allowed_event_kinds","state_version","now_tick")})):
+        if state["report_hash"] != digest(report) or state["context_hash"] != context_hash:
             self._fail("INVALID_MODEL_REQUEST","REPORT_CONTEXT_CHANGED")
         if state["calls"] >= 2:
             self._fail("MODEL_CALL_LIMIT","GENERATION_CALL_LIMIT")
         after_lookup = state["calls"] > 0
-        if after_lookup and (not state["history"] or request.get("lookup_result") is None):
+        if after_lookup and (not state["history"] or lookup is None):
             self._fail("INVALID_MODEL_REQUEST","MISSING_TOOL_RESULT")
         if not after_lookup:
             public = {"report":{"text":report.text,"target_hint":report.target_hint.model_dump() if report.target_hint else None},
                       "known_ids":request["known_ids"],"allowed_event_kinds":request["allowed_event_kinds"],"now_tick":request["now_tick"]}
+            if similar_reports is not None:
+                public["similar_reports"] = similar_reports
             inputs = [{"role":"user","content":canonical(public)}]
         else:
             inputs = [*state["history"], {"type":"function_call_output", "call_id":state["call_id"],
-                                         "output":canonical(request["lookup_result"])}]
-        payload = {"model":self.policy.model, "instructions":SYSTEM_INSTRUCTION,
-                   "input":inputs,"tools":function_tools(after_lookup), "tool_choice":"required",
+                                         "output":canonical(lookup)}]
+        instructions = SYSTEM_INSTRUCTION + HISTORY_INSTRUCTIONS if similar_reports is not None else SYSTEM_INSTRUCTION
+        if with_rules:
+            instructions += RULE_INSTRUCTIONS
+        payload = {"model":self.policy.model, "instructions":instructions,
+                   "input":inputs,"tools":function_tools(after_lookup, with_rules=with_rules), "tool_choice":"required",
                    "parallel_tool_calls":False,"reasoning":{"effort":"none"},"truncation":"disabled"}
         state["calls"] += 1
         self.last_call_metadata["generation_attempt"] = state["calls"]
@@ -294,11 +322,14 @@ class ResponsesReportModel:
         try:
             if len(raw.encode("utf-8"))>MAX_RESPONSE_BYTES:
                 self._fail("RESPONSE_LIMIT","RESPONSE_BYTES_EXCEEDED")
-            reply=REPLY.validate_python(parse_json(raw))
+            schema = RULE_REPLY if state["with_rules"] else REPLY
+            reply=schema.validate_python(parse_json(raw))
         except (ValueError,UnicodeError,RecursionError):
             self._fail("INVALID_MODEL_RESPONSE","INVALID_FUNCTION_ARGUMENTS")
         if reply.action!=call["name"]:
             self._fail("INVALID_MODEL_RESPONSE","FUNCTION_ACTION_MISMATCH")
+        if isinstance(reply, RuleProposalReply) and not reply.rule_refs:
+            self._fail("INVALID_MODEL_RESPONSE", "MISSING_RULE_CITATION")
         if reply.action=="lookup_evidence":
             state["history"]=[*payload["input"],*output]
             state["call_id"]=call["call_id"]
