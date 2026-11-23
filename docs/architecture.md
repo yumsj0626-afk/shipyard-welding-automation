@@ -30,9 +30,9 @@ Docker는 팀원의 구체적인 OS 호환 문제나 서버 배포 요구가 생
 
 유사 사례는 고정 말뭉치가 아니라 **공용 결과 DB**(`history.py`, 기본 `artifacts/report-history.sqlite3`)에서 온다. 실행이 끝나면 CLI가 내보낸 `trace.jsonl`과 최종 snapshot을 읽어 리포트별 판정 사건·인용 조항·열고 해제한 제한과 보류 기간·대상 작업 완료 여부를 한 행으로 추가한다. 검색은 임베딩 코사인 유사도이며 현재 실행이 시작되기 전에 끝난 실행의 결과만, 기본으로 다른 사례 ID의 결과만 반환한다. 벡터는 처음 검색될 때 계산해 모델별로 캐시한다.
 
-`analyze-report`는 현재 텍스트로 결과 DB를 검색하고, 선급 조항은 로컬 발췌에서 조회한다. GPT에 현재 보고·유사 결과·조항을 전달한다. 반환한 결과 ID와 조항 ID는 조회 집합에 대조한다. 결과는 분석 응답으로 출력되며 solver로 넘어가지 않는다.
+`analyze-report`는 현재 텍스트로 결과 DB를 검색하고, 선급 조항은 제2편 전체 추출본(991개 조각)에서 하이브리드 검색으로 찾는다. GPT에 현재 보고·유사 결과·조항을 전달한다. 반환한 결과 ID와 조항 ID는 조회 집합에 대조한다. 결과는 분석 응답으로 출력되며 solver로 넘어가지 않는다.
 
-`run --report-mode responses`는 같은 검색을 선택적으로 받는다. 첫 생성 요청에 유사 결과를 담고, 근거 조회 후 같은 `call_id`의 응답에 현재 관측과 선급 발췌를 담는다. 선급 발췌는 Agent가 고른 관측 종류를 `config/rule-topics.json`의 주제 검색어로 바꿔 조회한다. 모델이 조항을 사용하는 사건을 제안하면 `rule_refs`를 검사한다. 현장 검사 기록에 대한 기존 출처·회차·최신성 검증은 사건 처리기가 수행한다. [공통 설정 및 실행](report-rag.md)
+`run --report-mode responses`는 같은 검색을 선택적으로 받는다. 첫 생성 요청에 유사 결과를 담고, 근거 조회 후 같은 `call_id`의 응답에 현재 관측과 선급 발췌를 담는다. 선급 발췌는 Agent가 고른 관측 종류를 `config/rule-topics.json`의 주제(검색어와 장·절 범위)로 바꿔 조회한다. 후보 범위 안에서 FTS5 키워드 순위와 임베딩 순위를 RRF로 합치고, 한 조에서 최대 2개 조각을 고른다. API를 쓰지 않는 fake 실행은 키워드 순위만 쓴다. [검색 방식](welding-rule-retrieval.md#검색-방식) 모델이 조항을 사용하는 사건을 제안하면 `rule_refs`를 검사한다. 현장 검사 기록에 대한 기존 출처·회차·최신성 검증은 사건 처리기가 수행한다. [공통 설정 및 실행](report-rag.md)
 
 ## 핵심 처리 흐름
 
@@ -78,7 +78,7 @@ flowchart TD
 | `responses.py`: `LLMPolicy`, `ResponsesReportModel.respond`, `preflight`, `validate_live_inputs` | 검사된 보고 요청·미승인/승인 정책·비용 원장 → 공통 모델 응답 또는 `ModelCallFailure` | 기준 DB·미래 큐·평가자료를 받지 않음. SDK는 필요할 때만 import. 입력 토큰 count, strict function calling, 공급자 응답/오류 검사와 호출 제한을 담당. `preflight`의 기본값은 네트워크 없이 설정을 조회 |
 | `history.py`: `OutcomeStore.record_run`, `HistoryRetriever.search` | 끝난 실행의 trace·최종 snapshot → 결과 행; 현재 보고·기준 시각 → 앞선 유사 결과 | 기준 DB와 별도 SQLite에만 쓰기. 실행 DB는 읽기 전용으로 연다. 기준 시각 이후·같은 실행·같은 사례(기본)·다른 자료 정책의 행은 반환하지 않음 |
 | `report_retrieval.py` | 현재 리포트·유사 결과·선급 발췌 → 단독 GPT 분석 | 임베딩과 분석 API를 호출하고 인용 ID를 검증. 일정 DB 쓰기 없음 |
-| `rule_knowledge.py` | 선급 발췌·주제 설정·관측 종류 또는 현재 보고 → 관련 조항과 원본 위치 | 조항 번호·주제 검색어·전문 검색으로 후보 조항 제공. 고정 조항 목록 없음 |
+| `rule_knowledge.py`: `RuleKnowledge.for_report`, `search`, `SemanticIndex` | 선급 추출본·주제 설정·관측 종류 또는 현재 보고 → 관련 조항과 원본 위치 | 장·절 범위와 조 번호로 후보를 좁히고 키워드·임베딩 순위를 RRF로 합침. 임베딩은 `artifacts/rule-embeddings.sqlite3`에 캐시. 고정 조항 목록 없음 |
 | `openai_settings.py` | 루트 `.env`와 환경 변수 → OpenAI 프로젝트 ID·API 키 | 두 설정만 읽고 읽은 값을 출력하지 않음 |
 | `llm_budget.py`: `BudgetLedger.reserve`, `settle`, `summary` | 프로젝트/실행/보고 ID·생성 비용 예약/사용량 기반 추정액 → 예산 허용/거부·원장 요약 | 기준 DB와 별도 SQLite에만 쓰기. 원자적 사전 예약과 누적 상한 검사, 결과 미확정 예약 유지. operational 상태·지시 변경 권한 없음 |
 | `events.py`: `apply_deliveries(snapshot, deliveries)` | 공개 상태·현재 도착 근거/사건 → 갱신 제안 snapshot과 사건별 처리 결과 | DB 쓰기 없음. 공개 DTO의 사본에서 출처·대상·유효 범위를 재검사하고 제한·근거 변경을 제안. 저장과 중복 ID 처리는 repository 담당 |
@@ -205,9 +205,15 @@ SQLite 한 파일을 실행별 기준 저장소로 사용한다. 현재 DDL은 `
 │   ├── llm-policy.<사례>.local.json      # prepare-case-policy가 만드는 사례별 승인 정책, Git 제외
 │   ├── rule-topics.json                 # 관측 종류 → 선급 조항 검색어·장절 범위(제2편 전체용)
 │   └── rule-topics.curated.json         # 이전 18개 발췌본용 주제
-├── data/dev/D01/
-│   ├── initial.json                     # 시스템 공개 초기 상태
-│   └── evidence.json                    # 현재까지 공개된 근거
+├── data/
+│   ├── extract_kr_part2_rules.py        # 제2편 PDF 전체 → 조·항 단위 추출본
+│   ├── extract_kr_welding_rules.py      # 이전 18개 발췌본 추출(비교용)
+│   └── dev/D01/
+│       ├── initial.json                 # 시스템 공개 초기 상태
+│       └── evidence.json                # 현재까지 공개된 근거
+├── references-local/
+│   ├── kr-2026-part2-rules.jsonl        # 기본 선급 추출본(991개 조각)
+│   └── kr-2026-welding-rules.jsonl      # 이전 18개 발췌본(비교용)
 ├── simulation/
 │   ├── dev/D01/events.jsonl             # 드라이버만 읽는 외부 사건 흐름
 │   └── reports/D01.jsonl                # 문장과 fake 응답; D02–D04도 존재
@@ -235,11 +241,14 @@ SQLite 한 파일을 실행별 기준 저장소로 사용한다. 현재 DDL은 `
 ├── tests/                               # 계약·모듈·실패 주입·통합 검증
 ├── evaluation/
 │   ├── score.py
+│   ├── rule_retrieval.py                # 선급 조항 검색 구성 비교
+│   ├── rule-retrieval/gold.json         # 손으로 정한 질의별 관련 조항
 │   └── dev/D01/
 │       ├── oracle.json                  # 독립 작성한 허용·금지 행동
 │       └── truth.jsonl                  # 평가자 전용 환경 사실
 ├── artifacts/                           # 여러 실행이 공유, Git 제외
 │   ├── report-history.sqlite3           # 공용 결과 DB: 리포트별 판정·조항·보류 기간·완료
+│   ├── rule-embeddings.sqlite3          # 선급 조각·질의 임베딩 캐시
 │   └── llm-budget.sqlite3               # 생성 비용 원장
 └── outputs/D01/                         # 실행 1회의 생성물, Git 제외
     ├── run.sqlite3                      # 이 실행 전용 기준 상태와 추적 기록(매번 새로 생성)

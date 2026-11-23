@@ -4,6 +4,8 @@
 
 2026-11-23 Windows에서 RAG·보고·정보 경계 관련 **63개 테스트가 통과**했다. 임시 `.env`를 읽는 경로, 유사 사례 조회, 선급 조항 인용, 조회되지 않은 조항 거부, D01 승인 해시를 확인했다. D01의 실행 범위는 [검증 기록](../docs/next-steps.md#2026-11-23-rag-검증)에 있다.
 
+2026-11-24 Windows에서 **255개가 통과**했다(`test_responses.py` 제외). 제2편 전체 추출기와 하이브리드 선급 검색의 테스트를 추가했다. [검증 기록](../docs/next-steps.md#2026-11-24-제2편-전체-추출과-하이브리드-검색)
+
 ```sh
 uv sync --locked
 uv run --locked pytest -q
@@ -28,6 +30,8 @@ uv run --locked --extra llm pytest -q
 | `test_responses.py` | 실제 SDK의 모의 HTTP 직렬화, native function 연결, privacy·오류/usage·비동기 deadline·숨은 retry 방지 |
 | `test_responses_integration.py` | 모의 Responses D01과 fake/독립 평가 동등성, 미래/정답 wire 차단, 사전 승인/자격/hash 차단·preflight |
 | `test_report_retrieval.py` | 실행 후 공용 결과 DB 기록, 기준 시각·같은 사례 제외와 벡터 캐시, 결과 DB를 읽는 단독 분석, 과거 결과 전송 승인과 모의 Responses 요청 |
+| `test_extract_part2_rules.py` | 추출기의 항·호 분할, 연속 번호만 항으로 인정, 긴 항 자르기, 수식 글리프 변환, 전체 추출본(있을 때)의 범위와 로드 |
+| `test_rule_hybrid.py` | 키워드가 놓친 표현을 임베딩이 찾는지, 장 접두어로 같은 조 번호 분리, 조당 2개 상한, 벡터 캐시 재사용과 API 없는 주제 검사, 임베딩 실패 |
 | `test_evaluation.py` | 수작업 허용 실행과 잘못된 실행·복구·검사기 판정 등을 주입하여 독립 채점·추적·해시 검사 |
 
 `pytest` console entry와 `python -m pytest`의 경로 차이를 해결하기 위해 pytest 설정에서 프로젝트 루트를 추가했다. 평가 모듈을 테스트가 import하기 위한 설정이며 운영 패키지가 평가 자료를 읽도록 만든 것이 아니다.

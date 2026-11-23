@@ -102,6 +102,7 @@ findstr SIMILAR_REPORTS outputs\D02-live\trace.jsonl
 
 - **판정이 맞았는지.** `evaluation.json`의 `acceptance_passed`, 사건별 `correct_action`, `issues`를 본다. D04처럼 사람 확인이 정답인 사례는 `completed_without_additional_human: false`가 정상이다.
 - **Agent가 어떻게 판단했는지.** `trace.jsonl`에서 `"REPORT_RESULT"`를 검색한다. 리포트별로 `MODEL` 단계의 `request`·`response`, `LOOKUP`에서 돌려준 근거·제한·조항 ID, `RULE_CITATIONS`(인용 조항)가 있다. 바로 앞의 `"EVENT"` 줄에 사건 검사 결과(`APPLIED`, `INSUFFICIENT_EVIDENCE` 등)가 있다.
+- **어떤 조항이 검색됐는지.** `LOOKUP` 단계의 `rule_refs`가 검색된 조항, `RULE_CITATIONS`가 인용한 조항이다. `manifest.json`의 `rule_knowledge.retrieval`에 검색 방식(`hybrid`/`keyword`)과 임베딩 모델이, `embedded_texts`에 이번에 새로 임베딩한 문장 수가 있다.
 - **유사 사례가 붙었는지.** `SIMILAR_REPORTS` 단계의 `matches`에 결과 ID(`<run_id>:<report_id>`)와 점수가 있다. `manifest.json`의 `history.retrieval.eligible_outcomes`가 검색 대상 행 수이고, 0이면 붙을 결과가 없었다는 뜻이다. `history.recorded_outcomes`는 이번에 기록한 건수다.
 
 ### 상태 코드
@@ -112,6 +113,8 @@ findstr SIMILAR_REPORTS outputs\D02-live\trace.jsonl
 | `NEEDS_CLARIFICATION` | Agent가 `clarify`로 확인을 요청했다 |
 | `INVALID_PROPOSAL` | 제안이 검증에 실패했다. `reason_codes`에 원인이 있다. 대상이 확실하면 `IDENTITY_UNCERTAIN` 사건과 사람 확인 요청으로 바뀌고 보류는 유지된다 |
 | `MODEL_ERROR`, `MODEL_TIMEOUT`, `MODEL_REFUSAL` | 공급자 오류·시간 초과·거절. 같은 확인 필요 경로로 간다 |
+| `MODEL_SESSION_STOPPED` | 같은 실행에서 앞선 공급자 오류가 있어 남은 보고는 모델에 보내지 않았다 |
+| `RETRIEVAL_ERROR` | 과거 결과 검색(`REPORT_RETRIEVAL_FAILED`)이나 선급 조항 검색(`RULE_RETRIEVAL_FAILED`)의 임베딩 호출이 실패했다 |
 
 `INVALID_PROPOSAL`의 대표 원인은 다음과 같다.
 

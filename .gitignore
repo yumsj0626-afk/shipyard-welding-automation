@@ -8,7 +8,6 @@ gurobi.lic
 *.lic
 
 # Local source originals and generated experiment artifacts
-/references-local/
 /artifacts/
 /outputs/
 /logs/

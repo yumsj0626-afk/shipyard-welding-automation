@@ -110,7 +110,7 @@ uv run --locked --extra llm python -m shipyard analyze-report --allow-paid --tex
 | `execution.csv` | 실제 실행 일정. 로봇·작업·단계(MOVE/SETUP/WELD)·시작/종료 tick |
 | `evaluation.json`, `evaluation.csv` | 독립 채점. `acceptance_passed`, 사건별 `correct_action`, 이슈 목록 |
 | `trace.jsonl` | 모든 처리 기록. `"REPORT_RESULT"`를 검색하면 GPT 요청·응답·조회·인용 조항이, 그 앞의 `"EVENT"`에 코드가 제안을 받아들였는지가 나온다 |
-| `manifest.json` | 코드·환경·정책·입력 해시, 프롬프트 버전, 결과 DB 검색 범위(`history.retrieval`)와 기록 건수, 비용 요약 |
+| `manifest.json` | 코드·환경·정책·입력 해시, 프롬프트 버전, 선급 검색 방식(`rule_knowledge.retrieval`), 결과 DB 검색 범위(`history.retrieval`)와 기록 건수, 비용 요약 |
 | `run.sqlite3` | 이 실행의 기준 기록. 위 파일은 모두 여기서 만든다 |
 
 평가는 검사기의 PASS나 운영 요약을 정답으로 쓰지 않고 독립 `oracle.json`(기대 행동)·`truth.jsonl`(평가자만 아는 실제 환경 사실)과 실제 기록을 대조한다. 두 파일은 사람이 작성한 고정 파일이며 실행해도 바뀌지 않는다.
@@ -122,8 +122,9 @@ uv run --locked --extra llm python -m shipyard analyze-report --allow-paid --tex
 | `run.sqlite3` | `outputs\<실행>\` | 실행 1회 전용. 매번 초기 상태에서 새로 만든다 | 상태 snapshot, 사건, 근거, 계획, 검사, 지시, 관측, 감사 로그 |
 | `report-history.sqlite3` | `artifacts\` | 모든 사례·실행이 공유 | 리포트별 판정 사건, 인용 조항, 보류 기간, 작업 완료 여부 |
 | `llm-budget.sqlite3` | `artifacts\` | 모든 유료 실행이 공유 | 생성 비용 예약·정산 |
+| `rule-embeddings.sqlite3` | `artifacts\` | 모든 실행이 공유 | 선급 조각과 질의의 임베딩 캐시. 지우면 다음 실행에서 다시 만든다(약 $0.05) |
 
-`outputs\`와 `artifacts\`는 Git에서 제외된다. 오래된 `outputs\` 폴더는 지워도 되지만 `artifacts\`의 두 DB를 지우면 쌓인 결과와 누적 비용 기록이 사라진다. 실험 조건(프롬프트·모델)을 바꿔 결과를 섞고 싶지 않으면 `--history artifacts\history-exp2.sqlite3`처럼 새 파일을 지정한다. [결과 DB 구조와 검색 범위](docs/report-rag.md#공용-결과-db)
+`outputs\`와 `artifacts\`는 Git에서 제외된다. 오래된 `outputs\` 폴더는 지워도 되지만 `artifacts\`의 결과 DB와 비용 원장을 지우면 쌓인 결과와 누적 비용 기록이 사라진다. 실험 조건(프롬프트·모델)을 바꿔 결과를 섞고 싶지 않으면 `--history artifacts\history-exp2.sqlite3`처럼 새 파일을 지정한다. [결과 DB 구조와 검색 범위](docs/report-rag.md#공용-결과-db)
 
 미래 사건은 시뮬레이터 큐에만 저장하고 도착 시점에 공개한다. 공개 입력 로더의 파일 접근, DTO의 추가 필드 거부, 모듈 의존관계, 미래·정답 sentinel 유입을 테스트했다. 이것은 단일 프로세스의 데이터 흐름 경계이며 악의적인 Python 코드에 대한 OS 격리는 아니다.
 
@@ -140,13 +141,13 @@ Windows에서는 `tests/test_responses.py`의 50건이 asyncio 내부 소켓과 
 ```text
 config/                   개발 정책, LLM 정책 템플릿, 선급 조항 주제 설정(rule-topics.json, 18개 발췌본용 rule-topics.curated.json)
 data/dev/D01–D04/        현재 공개 초기 상태·근거
-references-local/        선급 규칙 추출본(Git 제외)
-artifacts/               공용 결과 DB·비용 원장(Git 제외)
+references-local/        선급 규칙 추출본: 제2편 전체(기본)와 이전 18개 발췌본
+artifacts/               공용 결과 DB·임베딩 캐시·비용 원장(Git 제외)
 simulation/dev/D01–D04/   드라이버 전용 미래 외부 입력(검사 기록)
 simulation/reports/      드라이버 전용 리포트 본문·fake 응답 대본
 src/shipyard/             사건·저장·제약·솔버·검사·조율·시뮬레이션·결과 DB·CLI
 tests/                   단위·경쟁 상태·오류 주입·통합·정보 경계 검증
-evaluation/              독립 평가 코드와 개발 oracle/truth
+evaluation/              독립 평가 코드와 개발 oracle/truth, 선급 검색 평가
 docs/                    설계 근거·결정·계약·검증 기록
 outputs/                 실행 생성물(Git 제외)
 ```
@@ -156,7 +157,7 @@ CPython 3.13.18, uv lockfile, Pydantic 2.14.3, OR-Tools CP-SAT 9.15.6755, 표준
 ```mermaid
 flowchart TD
     H["앞선 실행의 결과(공용 결과 DB)"] --> Q
-    K["선급 조항과 현재 검사 근거"] --> Q
+    K["선급 조항(제2편 전체, 하이브리드 검색)과 현재 검사 근거"] --> Q
     R["문장형 보고"] --> Q["Agent: 근거 조회와 사건 분류·제안"]
     Q --> A
     A["도착 사건·근거·실행 관측"] --> B["사건 검사와 상태·활성 제한 갱신"]
@@ -175,6 +176,6 @@ flowchart TD
 
 주 성과는 추가 사람 판단 없이 사건을 올바르게 종결하는 **무개입 정답완결**이고 생산 지연은 보조 지표다. 후속 단일 에이전트와 역할 분리 에이전트는 같은 솔버와 공통 처리 경로를 사용하며 역할 분리의 우수성을 전제하지 않는다. 본 평가의 모델·예산·규모·반복·수치 통과 기준은 예비실험 이후 결정한다.
 
-다음 검증은 D01–D04 실제 API 실행의 반복 안정성과, 앞선 결과가 쌓인 결과 DB를 붙였을 때의 판단 변화다. 본 비교실험, 실제 로봇 제어, 웹 UI, OCR, 3D, 클라우드 및 프로세스 장애 후 자동 재개는 후속 범위다.
+선급 규칙은 제2편 전체를 하이브리드로 검색하며, D04 실제 실행에서 독립 채점을 통과했다. 다음 검증은 D01–D04 실제 API 실행의 반복 안정성, 앞선 결과가 쌓인 결과 DB를 붙였을 때의 판단 변화, 검색 평가 질의 확대다. 본 비교실험, 실제 로봇 제어, 웹 UI, OCR, 3D, 클라우드 및 프로세스 장애 후 자동 재개는 후속 범위다.
 
 [기술 결정·학습](docs/decisions.md) → [아키텍처](docs/architecture.md) → [데이터 계약](docs/data-contracts.md) → [개발 사례](data/README.md) → [리포트 처리 사용법](docs/report-rag.md) → [검증 증거·다음 작업](docs/next-steps.md).
