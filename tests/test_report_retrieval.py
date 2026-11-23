@@ -16,6 +16,8 @@ ROOT = Path(__file__).resolve().parents[1]
 INPUT = "접합부 조립 치수가 맞지 않아 본작업을 멈췄습니다."
 FITUP_IDS = ("KR-2026-2-2-304-BODY", "KR-2026-2-2-402-BODY", "KR-2026-2-2-407-JOINT", "KR-2026-2-2-GUIDE-407-BODY")
 CONSUMABLE_ID = "KR-2026-2-2-303-BODY"
+# The fixtures mimic the 18-row excerpt, so they use its topics, not the full-Part-2 default.
+CURATED_TOPICS = ROOT / "config/rule-topics.curated.json"
 POLICY = "SYNTHETIC_DEV_ONLY"
 
 
@@ -77,12 +79,13 @@ def seed(store, run_id, case_id, finished, rows, *, data_policy=POLICY):
 def test_fake_run_records_report_outcomes(tmp_path, rule_file):
     history = tmp_path / "history.sqlite3"
     run = tmp_path / "run"
-    summary = cli.run_case("D01", run, ROOT, report_mode="fake", rules_path=rule_file, history_path=history)
+    summary = cli.run_case("D01", run, ROOT, report_mode="fake", rules_path=rule_file, history_path=history,
+                           rule_topics_path=CURATED_TOPICS)
     assert summary["termination"] == "COMPLETED"
     manifest = json.loads((run / "manifest.json").read_text(encoding="utf-8"))
     assert manifest["history"] == {"store": "history.sqlite3", "recorded_outcomes": 3, "recording_error": None,
                                    "retrieval": None}
-    assert manifest["rule_knowledge"]["topics_file"] == "rule-topics.json"
+    assert manifest["rule_knowledge"]["topics_file"] == "rule-topics.curated.json"
     store = OutcomeStore(history)
     try:
         rows = {row["outcome"]["event_kind"]: row
@@ -149,7 +152,7 @@ def test_analyze_report_reads_the_outcome_store(tmp_path, monkeypatch, capsys, r
     report.write_text(INPUT, encoding="utf-8")
     analyze = ["analyze-report", "--history", str(history), "--report-file", str(report), "--top-k", "1",
                "--allow-paid", "--project-id", "proj-explicit", "--rules", str(rule_file),
-               "--rule-topics", str(ROOT / "config/rule-topics.json")]
+               "--rule-topics", str(CURATED_TOPICS), "--rule-search", "keyword"]
     assert cli.main(analyze) == 2
     assert "No outcome store" in capsys.readouterr().err
 
@@ -247,22 +250,23 @@ def test_responses_run_receives_earlier_outcomes_and_records_its_own(tmp_path, m
     client.embeddings.create.side_effect = lambda **kwargs: embedding_result(
         [[1, i + 1] for i, _ in enumerate(kwargs["input"])])
 
-    assert cli.main(["prepare-case-policy", "--case", case, "--rules", str(rule_file)]) == 0
+    topics = ["--rules", str(rule_file), "--rule-topics", str(project / "config/rule-topics.curated.json")]
+    assert cli.main(["prepare-case-policy", "--case", case, *topics]) == 0
     policy_path = cli.case_policy_path(project, case)
     assert not responses.load_policy(policy_path).history_retrieval_approved
     run = tmp_path / "run"
     with pytest.raises(ValueError, match="PAID_CALLS_NOT_APPROVED"):
         cli.run_case(case, run, project, report_mode="responses", history_path=history, rules_path=rule_file,
-                     llm_policy_path=policy_path, allow_paid=True)
+                     llm_policy_path=policy_path, allow_paid=True, rule_topics_path=project / "config/rule-topics.curated.json")
     policy = responses.load_policy(policy_path)
     policy.approved_for_paid_calls = True
     policy_path.write_text(policy.model_dump_json(), encoding="utf-8")
     with pytest.raises(ValueError, match="past report outcomes is not approved"):
         cli.run_case(case, run, project, report_mode="responses", history_path=history, rules_path=rule_file,
-                     llm_policy_path=policy_path, allow_paid=True)
+                     llm_policy_path=policy_path, allow_paid=True, rule_topics_path=project / "config/rule-topics.curated.json")
     assert not run.exists()
     policy_path.unlink()
-    assert cli.main(["prepare-case-policy", "--case", case, "--approve", "--rules", str(rule_file)]) == 0
+    assert cli.main(["prepare-case-policy", "--case", case, "--approve", *topics]) == 0
     prepared = responses.load_policy(policy_path)
     assert prepared.history_retrieval_approved and prepared.max_reports_per_run == len(records)
     assert client.embeddings.create.call_count == 0
@@ -297,7 +301,7 @@ def test_responses_run_receives_earlier_outcomes_and_records_its_own(tmp_path, m
 
     monkeypatch.setattr(responses, "ResponsesReportModel", MockResponses)
     assert cli.main(["run-live", "--case", case, "--allow-paid", "--output", str(run),
-                     "--rules", str(rule_file), "--top-k", "2"]) == 0
+                     *topics, "--rule-search", "keyword", "--top-k", "2"]) == 0
     summary = json.loads((run / "summary.json").read_text(encoding="utf-8"))
     assert summary["termination"] == "COMPLETED"
     assert len(seen) == 6
@@ -306,6 +310,7 @@ def test_responses_run_receives_earlier_outcomes_and_records_its_own(tmp_path, m
     assert (retrieval["top_k"], retrieval["eligible_outcomes"], retrieval["excluded_case_id"]) == (2, 2, case)
     assert manifest["history"]["recorded_outcomes"] == 3
     assert manifest["rule_knowledge"]["sha256"] == prepared.rule_knowledge_sha256
+    assert manifest["rule_knowledge"]["retrieval"]["mode"] == "keyword"
     if case != "D01":
         score = json.loads((run / "evaluation.json").read_text(encoding="utf-8"))
         assert score["case_id"] == case and score["acceptance_passed"]

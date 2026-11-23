@@ -46,7 +46,7 @@ uv run --locked python evaluation\score.py --run-dir outputs\D01 --oracle evalua
 fake 실행에 `--rules`와 `--history`를 주면 선급 조항 조회를 켜고, 실행이 끝난 뒤 결과를 공용 결과 DB에 기록한다. fake 모드는 결과를 기록만 하고 검색하지는 않는다.
 
 ```cmd
-uv run --locked python -m shipyard run --case D02 --report-mode fake --rules references-local\kr-2026-welding-rules.jsonl --history artifacts\report-history.sqlite3 --output outputs\D02-fake
+uv run --locked python -m shipyard run --case D02 --report-mode fake --rules references-local\kr-2026-part2-rules.jsonl --history artifacts\report-history.sqlite3 --output outputs\D02-fake
 ```
 
 | 개발 사례 | 상황 | 정답 처리 |
@@ -74,7 +74,7 @@ uv sync --locked --extra llm
 uv run --locked --extra llm python -m shipyard llm-preflight
 ```
 
-선급 규칙 추출본 `references-local\kr-2026-welding-rules.jsonl`이 있어야 한다. 만드는 법은 [규칙 추출본 안내](docs/welding-rule-retrieval.md)에 있다.
+선급 규칙 추출본 `references-local\kr-2026-part2-rules.jsonl`(제2편 전체, 991개 조각)이 있어야 한다. 실제 API 실행은 이 추출본을 키워드와 임베딩을 합친 하이브리드 방식으로 검색한다. 만드는 법과 검색 방식은 [규칙 검색 안내](docs/welding-rule-retrieval.md)에 있다.
 
 ### 사례마다
 
@@ -90,7 +90,7 @@ uv run --locked --extra llm python -m shipyard run-live --case D02 --allow-paid 
 - `run-live`는 기본 선급 추출본과 공용 결과 DB(`artifacts\report-history.sqlite3`)를 사용한다. 리포트마다 앞선 실행의 결과를 유사 사례로 붙이고, 끝나면 자기 결과를 DB에 추가하고, `evaluation\dev\<사례>`에 정답 파일이 있으면 채점까지 한다.
 - 같은 사례의 앞선 결과는 정답 누출을 막기 위해 기본으로 검색에서 뺀다. 포함하려면 `--history-include-same-case`를 준다. 다른 결과 DB를 쓰려면 `--history <경로>`를 준다.
 
-**API 호출 수.** 리포트 1건마다 GPT 생성 요청이 2회다. 1회차에 GPT가 어떤 근거를 볼지 고르고(`lookup_evidence`), 코드가 그 근거와 선급 조항을 로컬에서 찾아 2회차에 돌려주면 GPT가 사건을 제안한다(`propose`). D01·D02는 리포트 3건이라 생성 6회, D04는 2건이라 4회다. 생성마다 토큰 수 사전 계산 요청이 1회씩 더 있고, 결과 DB 검색에 임베딩 요청이 붙는다. 공용 정책의 생성 비용 상한은 보고·실행·프로젝트당 $0.005·$0.05·$0.10이며 임베딩과 토큰 계산은 이 상한에 포함되지 않는다. D04 실행의 생성 비용 추정은 약 $0.0011이었다.
+**API 호출 수.** 리포트 1건마다 GPT 생성 요청이 2회다. 1회차에 GPT가 어떤 근거를 볼지 고르고(`lookup_evidence`), 코드가 그 근거와 선급 조항을 로컬에서 찾아 2회차에 돌려주면 GPT가 사건을 제안한다(`propose`). D01·D02는 리포트 3건이라 생성 6회, D04는 2건이라 4회다. 생성마다 토큰 수 사전 계산 요청이 1회씩 더 있고, 결과 DB 검색과 선급 조항 검색에 임베딩 요청이 붙는다. 선급 추출본 전체는 처음 한 번만 임베딩해 캐시한다. 공용 정책의 생성 비용 상한은 보고·실행·프로젝트당 $0.005·$0.05·$0.10이며 임베딩과 토큰 계산은 이 상한에 포함되지 않는다. D04 실행의 생성 비용 추정은 약 $0.0011이었다.
 
 ### 리포트 한 건만 분석
 
@@ -138,7 +138,7 @@ Windows에서는 `tests/test_responses.py`의 50건이 asyncio 내부 소켓과 
 ## 구조와 기술
 
 ```text
-config/                   개발 정책, LLM 정책 템플릿, 선급 조항 주제 설정(rule-topics.json)
+config/                   개발 정책, LLM 정책 템플릿, 선급 조항 주제 설정(rule-topics.json, 18개 발췌본용 rule-topics.curated.json)
 data/dev/D01–D04/        현재 공개 초기 상태·근거
 references-local/        선급 규칙 추출본(Git 제외)
 artifacts/               공용 결과 DB·비용 원장(Git 제외)

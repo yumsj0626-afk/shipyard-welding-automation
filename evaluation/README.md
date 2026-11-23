@@ -23,6 +23,14 @@ D01–D04 실제 결과는 [검증 기록](../docs/next-steps.md), 평가 오류
 
 `--report-mode fake` 실행도 같은 독립 평가자를 사용한다. 보고 어댑터의 `READY`나 모델의 자기 평가는 정답이 아니다. D01–D04 정형/fake의 실제 phase 기록과 독립 채점을 대조하되, 가짜 응답 대본 통과를 실제 모델의 한국어 이해 정확도로 해석하지 않는다.
 
+## 선급 조항 검색 평가
+
+`rule_retrieval.py`는 손으로 정한 질의 12개와 관련 조항(`rule-retrieval/gold.json`)으로 검색 구성을 비교한다. 정답은 규칙 본문에서 정했고 시스템 출력에서 만들지 않았다. 조 단위로 채점해 조각 나누기가 다른 추출본끼리 비교한다. 결과는 [규칙 검색 안내](../docs/welding-rule-retrieval.md#검색-평가)에 있다.
+
+```sh
+uv run --locked --extra llm python evaluation/rule_retrieval.py --allow-paid
+```
+
 ## RAG를 사용하는 D01 검증
 
 모의 Responses D01에서 검색한 조항과 과거 사례가 요청에 들어가고, 제안이 현재 관측 검증을 거치는지 확인했다. D01–D04의 공정 실행과 무개입 정답완결은 위 독립 평가 명령으로 채점한다. [2026-11-23 검증 기록](../docs/next-steps.md#2026-11-23-rag-검증)

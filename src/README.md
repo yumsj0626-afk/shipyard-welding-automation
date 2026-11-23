@@ -10,7 +10,7 @@
 - `openai_settings.read_openai_settings`는 루트 `.env`에서 프로젝트 ID와 API 키를 읽는다. 환경 변수에 설정된 값이 우선한다.
 - `history`는 실행이 끝난 뒤 리포트별 결과를 공용 결과 DB에 쌓고, 이후 실행에 앞선 결과만 임베딩으로 검색해 준다.
 - `report_retrieval`은 OpenAI 임베딩 클라이언트와 GPT 단독 분석을 담당한다.
-- `rule_knowledge`는 선급 추출본을 검색하며 보고 분류별 검색어는 `config/rule-topics.json`에서 읽는다.
+- `rule_knowledge`는 선급 추출본을 검색한다. FTS5 키워드 순위에 임베딩 순위를 RRF로 합치며(임베딩이 없으면 키워드만), 보고 분류별 검색어와 장·절 범위는 `config/rule-topics.json`에서 읽는다.
 - `rule_knowledge.RuleKnowledge`는 한국선급 발췌에서 적용 후보 조항을 조회하고 원본 페이지와 함께 반환한다.
 
 - `llm_budget.BudgetLedger`: 운영 DB와 별도인 `artifacts/llm-budget.sqlite3`에 생성 비용을 사전 예약하고 SDK usage 기반 추정액으로 정산한다. 보고·실행·프로젝트 누적 상한을 확인하며 결과 미확정 예약은 남긴다. 실제 청구서나 계정 전체 비용 한도를 대체하지 않는다.

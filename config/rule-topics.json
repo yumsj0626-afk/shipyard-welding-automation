@@ -1,23 +1,41 @@
 {
-  "schema_version": "1.0",
-  "description": "Maps the observation kind the agent looks up (or wording in a free-text report) to a rule search query. Edit this file, not code, to change which excerpts a report receives.",
+  "schema_version": "1.1",
+  "description": "Topics for the whole KR Part 2 extraction (kr-2026-part2-rules.jsonl). Maps the observation kind the agent looks up (or wording in a free-text report) to a search query and the ID prefixes (chapter/section ranges) it may draw from. Topics are tried in order for free text, so the narrower repair and re-check topics come before FITUP.",
   "topics": [
     {
+      "topic_id": "RECHECK",
+      "observation_kinds": ["RECHECK_RESULT"],
+      "patterns": ["재검사", "재확인", "다시\\s*검사"],
+      "query": "보수 후 재검사 비파괴검사 외관검사 용접부의 품질 불합격 지시 추가 검사 검사 범위",
+      "id_prefixes": ["KR-2026-2-2-3", "KR-2026-2-2-GUIDE-3", "KR-2026-2-APP-2-7-"],
+      "limit": 6
+    },
+    {
+      "topic_id": "REPAIR",
+      "observation_kinds": ["REPAIR_COMPLETED"],
+      "patterns": ["보수", "결함\\s*제거", "가우징"],
+      "query": "용접 결함 제거 보수 보수용접 가우징 그라인딩 홈 가공 결함 불합격 지시 보수 기록",
+      "id_prefixes": ["KR-2026-2-2-3", "KR-2026-2-2-GUIDE-3", "KR-2026-2-APP-2-7-"],
+      "limit": 6
+    },
+    {
       "topic_id": "FITUP",
-      "observation_kinds": ["FITUP_RESULT", "REPAIR_COMPLETED", "RECHECK_RESULT"],
+      "observation_kinds": ["FITUP_RESULT"],
       "patterns": [
         "핏업", "fit[\\s-]?up", "루트\\s*(?:간격|면)", "판\\s*사이\\s*간격",
         "(?:이음부?|조립)\\s*(?:간격|치수|단차)", "맞대기\\s*이음.{0,24}(?:간격|단차)"
       ],
-      "query": "fitup 핏업 루트 간격 이음 형태 용접준비 WPS 용접절차 시방서",
-      "limit": 5
+      "query": "fitup 핏업 맞춤 루트 간격 루트면 홈 가공 개선 허용오차 이음의 형태 맞대기이음 용접준비 용접절차 시방서 WPS",
+      "id_prefixes": ["KR-2026-2-2-3", "KR-2026-2-2-4", "KR-2026-2-2-GUIDE-3", "KR-2026-2-2-GUIDE-4"],
+      "limit": 6
     },
     {
       "topic_id": "CONSUMABLE",
       "observation_kinds": ["MATERIAL_READY"],
       "patterns": ["와이어", "용접봉", "용접\\s*재료", "용접용재료", "consumable"],
-      "query": "용접용재료 와이어 용접봉 consumable",
-      "limit": 5
+      "query": "용접용재료의 사용구분 용접봉 와이어 강재 강종 consumable",
+      "id_prefixes": ["KR-2026-2-2-3", "KR-2026-2-2-4", "KR-2026-2-2-GUIDE-3", "KR-2026-2-2-GUIDE-4"],
+      "limit": 6
     }
   ]
 }

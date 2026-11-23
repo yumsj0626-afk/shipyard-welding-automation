@@ -203,7 +203,8 @@ SQLite 한 파일을 실행별 기준 저장소로 사용한다. 현재 DDL은 `
 │   ├── dev-policy.json                  # 개발 정책·솔버 설정·계약 버전
 │   ├── llm-policy.json                  # 실행 비활성 공용 템플릿(사례 해시 없음)
 │   ├── llm-policy.<사례>.local.json      # prepare-case-policy가 만드는 사례별 승인 정책, Git 제외
-│   └── rule-topics.json                 # 관측 종류 → 선급 조항 검색어
+│   ├── rule-topics.json                 # 관측 종류 → 선급 조항 검색어·장절 범위(제2편 전체용)
+│   └── rule-topics.curated.json         # 이전 18개 발췌본용 주제
 ├── data/dev/D01/
 │   ├── initial.json                     # 시스템 공개 초기 상태
 │   └── evidence.json                    # 현재까지 공개된 근거
@@ -221,7 +222,7 @@ SQLite 한 파일을 실행별 기준 저장소로 사용한다. 현재 DDL은 `
 │   ├── openai_settings.py               # 환경 변수와 루트 .env의 OpenAI 설정
 │   ├── history.py                       # 공용 결과 DB 기록·앞선 결과 임베딩 검색
 │   ├── report_retrieval.py               # OpenAI 임베딩 클라이언트·단독 분석
-│   ├── rule_knowledge.py                 # 선급 자료 조회(주제는 config/rule-topics.json)
+│   ├── rule_knowledge.py                 # 선급 조항 검색: FTS5 키워드 + 임베딩 RRF 결합, 벡터 캐시
 │   ├── reports.py                       # 보고 DTO·읽기 전용 조회·fake 모델 경계
 │   ├── responses.py                     # 선택적 SDK 공급자·strict 도구·오류 변환
 │   ├── llm_budget.py                    # 별도 SQLite 비용 원장의 사전 예약/정산

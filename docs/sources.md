@@ -18,7 +18,7 @@ R 7d15e063451766c9573aa0bae986ac00e02b0cdf74c0de60f27811b312680cc0
 K 4e4678df1f9883026263fc93ea8704e110818d4faf286576bb67fa16861e83f1
 ```
 
-설계 원본은 로컬 `references-local/`에 보관한 당시 기록을 따른다. 제공받은 K의 PDF는 원본으로 보존하며, Git에서 제외하는 `references-local/kr-2026-welding-rules.jsonl`에 추출한 부분과 페이지·해시를 담는다.
+설계 원본은 로컬 `references-local/`에 보관한 당시 기록을 따른다. 제공받은 K의 PDF는 원본으로 보존한다. `references-local/kr-2026-part2-rules.jsonl`에 제2편 전체를, 이전 `references-local/kr-2026-welding-rules.jsonl`에 손으로 고른 18개 발췌를 담고 각 조각에 페이지와 원본 해시를 남긴다.
 
 ## 근거와 가정 구분
 

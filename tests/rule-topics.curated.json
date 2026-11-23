@@ -1,0 +1,23 @@
+{
+  "schema_version": "1.0",
+  "description": "Maps the observation kind the agent looks up (or wording in a free-text report) to a rule search query. Edit this file, not code, to change which excerpts a report receives.",
+  "topics": [
+    {
+      "topic_id": "FITUP",
+      "observation_kinds": ["FITUP_RESULT", "REPAIR_COMPLETED", "RECHECK_RESULT"],
+      "patterns": [
+        "핏업", "fit[\\s-]?up", "루트\\s*(?:간격|면)", "판\\s*사이\\s*간격",
+        "(?:이음부?|조립)\\s*(?:간격|치수|단차)", "맞대기\\s*이음.{0,24}(?:간격|단차)"
+      ],
+      "query": "fitup 핏업 루트 간격 이음 형태 용접준비 WPS 용접절차 시방서",
+      "limit": 5
+    },
+    {
+      "topic_id": "CONSUMABLE",
+      "observation_kinds": ["MATERIAL_READY"],
+      "patterns": ["와이어", "용접봉", "용접\\s*재료", "용접용재료", "consumable"],
+      "query": "용접용재료 와이어 용접봉 consumable",
+      "limit": 5
+    }
+  ]
+}

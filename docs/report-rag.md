@@ -43,7 +43,7 @@ uv sync --locked --extra llm
 uv run --locked --extra llm python -m shipyard llm-preflight
 ```
 
-선급 추출본 `references-local\kr-2026-welding-rules.jsonl`이 필요하다. [추출 방법](welding-rule-retrieval.md)
+선급 추출본 `references-local\kr-2026-part2-rules.jsonl`이 필요하다. 선급 조항은 키워드와 임베딩을 합친 하이브리드 검색으로 찾는다. [추출과 검색 방법](welding-rule-retrieval.md)
 
 ### 사례 실행
 
@@ -70,14 +70,16 @@ uv run --locked --extra llm python -m shipyard run-live --case D02 --allow-paid 
 | `--history-include-same-case` | 꺼짐 | 같은 사례의 앞선 결과도 검색 |
 | `--top-k` | 3 | 붙일 유사 결과 수(1–5) |
 | `--embed-model` | `text-embedding-3-small` | 임베딩 모델. 바꾸면 벡터를 새로 계산해 따로 캐시 |
-| `--rules`, `--rule-topics` | `references-local\kr-2026-welding-rules.jsonl`, `config\rule-topics.json` | 선급 추출본과 주제 설정 |
+| `--rules`, `--rule-topics` | `references-local\kr-2026-part2-rules.jsonl`, `config\rule-topics.json` | 선급 추출본과 주제 설정 |
+| `--rule-search` | `hybrid` | 선급 조항 검색 방식. `keyword`면 임베딩을 쓰지 않음 |
+| `--rule-embed-model` | `text-embedding-3-large` | 선급 조항 임베딩 모델. 벡터는 `artifacts\rule-embeddings.sqlite3`에 캐시 |
 | `--llm-policy` | `config\llm-policy.<사례>.local.json` | 승인 정책 |
 
 `run --report-mode responses`도 같은 처리를 하지만 `--llm-policy`, `--rules`, `--history`를 직접 지정해야 하고 채점은 별도로 실행한다.
 
 ### API 호출 수와 비용
 
-리포트 1건마다 생성 요청 2회(조회 선택, 사건 제안)다. 리포트 수는 D01·D02·D03이 3건, D04가 2건이다. 생성마다 같은 입력의 토큰 수를 먼저 확인하는 요청이 1회 더 있다. 임베딩 요청은 리포트마다 1회이고, 결과 DB에서 아직 벡터가 없는 행이 처음 검색될 때 추가된다. 검색 대상이 없으면 임베딩을 호출하지 않는다.
+리포트 1건마다 생성 요청 2회(조회 선택, 사건 제안)다. 리포트 수는 D01·D02·D03이 3건, D04가 2건이다. 생성마다 같은 입력의 토큰 수를 먼저 확인하는 요청이 1회 더 있다. 결과 DB 검색의 임베딩 요청은 리포트마다 1회이고, 아직 벡터가 없는 행이 처음 검색될 때 추가된다. 검색 대상이 없으면 호출하지 않는다. 선급 조항 검색은 근거 조회마다 질의 임베딩 1회가 붙는다. 처음 실행할 때만 추출본 991개 조각을 한 번 임베딩한다(약 $0.05).
 
 생성 비용 원장(`artifacts\llm-budget.sqlite3`)은 보고·실행·프로젝트당 $0.005·$0.05·$0.10을 상한으로 예약·정산한다. 임베딩과 토큰 계산 요청은 이 상한에 포함되지 않는다.
 
@@ -86,7 +88,7 @@ uv run --locked --extra llm python -m shipyard run-live --case D02 --allow-paid 
 fake 모드는 결과를 기록만 하고 검색하지 않는다. 다른 사례의 결과를 먼저 쌓아 두면 이후 `run-live`에서 유사 사례로 붙는다.
 
 ```cmd
-uv run --locked python -m shipyard run --case D02 --report-mode fake --rules references-local\kr-2026-welding-rules.jsonl --history artifacts\report-history.sqlite3 --output outputs\D02-fake
+uv run --locked python -m shipyard run --case D02 --report-mode fake --rules references-local\kr-2026-part2-rules.jsonl --history artifacts\report-history.sqlite3 --output outputs\D02-fake
 ```
 
 ## 결과 보기

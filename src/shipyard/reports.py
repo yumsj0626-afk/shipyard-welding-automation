@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import sqlite3
 import re
 from typing import Annotated, Literal, Protocol
 
@@ -312,7 +313,11 @@ def interpret_report(item: ReportDelivery, snapshot: PlanningSnapshot, model: Re
                 "restrictions":[r.model_dump(mode="json",exclude=INTERNAL_RESTRICTION_FIELDS) for r in restrictions]}
             result.trace.append({"step":"LOOKUP","query":reply.model_dump(),"evidence_ids":sorted(returned_evidence),"restriction_ids":sorted(returned_restrictions)})
             if rule_knowledge is not None:
-                excerpts = rule_knowledge.for_report(report.text, reply.observation_kind)
+                try:
+                    excerpts = rule_knowledge.for_report(report.text, reply.observation_kind)
+                except (OSError, ValueError, RuntimeError, sqlite3.Error):
+                    # Hybrid search embeds the query; a provider failure stops this report, not the run.
+                    return stop("RETRIEVAL_ERROR", "RULE_RETRIEVAL_FAILED")
                 context["lookup_result"]["rule_excerpts"] = excerpts
                 returned_rules = {excerpt["id"] for excerpt in excerpts}
                 result.trace[-1]["rule_refs"] = sorted(returned_rules)

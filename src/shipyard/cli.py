@@ -21,7 +21,7 @@ from .repository import Repository
 from .reporting import export_run, inspect_run
 from .history import DEFAULT_TOP_K, HistoryRetriever, OutcomeStore
 from .report_retrieval import DEFAULT_CHAT_MODEL, DEFAULT_EMBED_MODEL, OpenAIReportClient, analyze_report
-from .rule_knowledge import RuleKnowledge
+from .rule_knowledge import RuleKnowledge, open_semantic_index
 from .simulator import Simulator
 from .reports import (FakeReportModel, FakeReportRecord, ReportDelivery, ReportInput,
                       MAX_MODEL_CALLS, MAX_LOOKUPS, PROMPT_VERSION)
@@ -34,6 +34,14 @@ DEV_DATA_POLICY = "SYNTHETIC_DEV_ONLY"
 
 def default_history_path(root: Path) -> Path:
     return root / "artifacts" / "report-history.sqlite3"
+
+
+DEFAULT_RULES = Path("references-local") / "kr-2026-part2-rules.jsonl"
+DEFAULT_RULE_EMBED_MODEL = "text-embedding-3-large"
+
+
+def default_rule_embeddings(root: Path) -> Path:
+    return root / "artifacts" / "rule-embeddings.sqlite3"
 
 
 def default_rule_topics(root: Path) -> Path | None:
@@ -97,9 +105,12 @@ def run_case(case: str, output: Path, root: Path=ROOT, *, report_mode: str="stru
              llm_policy_path: Path | None=None, allow_paid: bool=False,
              rules_path: Path | None = None, history_path: Path | None = None,
              include_same_case: bool = False, rule_topics_path: Path | None = None,
-             embed_model: str = DEFAULT_EMBED_MODEL, top_k: int = DEFAULT_TOP_K) -> dict:
+             embed_model: str = DEFAULT_EMBED_MODEL, top_k: int = DEFAULT_TOP_K,
+             rule_search: str = "hybrid", rule_embed_model: str = DEFAULT_RULE_EMBED_MODEL) -> dict:
     if report_mode not in {"structured", "fake", "responses"}:
         raise ValueError("unknown report mode")
+    if rule_search not in {"keyword", "hybrid"}:
+        raise ValueError("unknown rule search mode")
     input_files = case_input_files(case, include_reports=report_mode != "structured")
     if rules_path is not None and report_mode not in {"fake", "responses"}:
         raise ValueError("--rules is available with --report-mode fake or responses")
@@ -132,8 +143,13 @@ def run_case(case: str, output: Path, root: Path=ROOT, *, report_mode: str="stru
         if history_path is not None:
             if not llm_policy.history_retrieval_approved or llm_policy.data_policy != DEV_DATA_POLICY:
                 raise ValueError("DATA_POLICY_REJECTED: sending past report outcomes is not approved")
+        if history_path is not None or (rule_knowledge is not None and rule_search == "hybrid"):
             embedding_client = OpenAIReportClient(allow_paid=allow_paid, project_id=llm_policy.project_id,
                                                   timeout=llm_policy.request_timeout_seconds, dotenv_path=root / ".env")
+        if rule_knowledge is not None and rule_search == "hybrid":
+            # The approved rule hash covers the whole extraction, which is what gets embedded.
+            rule_knowledge.semantic = open_semantic_index(embedding_client, rule_embed_model,
+                                                          default_rule_embeddings(root))
     run_id=str(uuid4())
     policy=Policy.model_validate(parse_json((root/'config/dev-policy.json').read_text(encoding='utf-8')))
     snapshot=load_public_case(root,case,run_id)
@@ -155,7 +171,7 @@ def run_case(case: str, output: Path, root: Path=ROOT, *, report_mode: str="stru
     try:
         if history_path is not None:
             store = OutcomeStore(history_path)
-            if embedding_client is not None:
+            if embedding_client is not None and llm_policy.history_retrieval_approved:
                 # Only outcomes of runs that finished before this one started.
                 retriever = HistoryRetriever(store, embedding_client, embed_model, before=started,
                     data_policy=DEV_DATA_POLICY, exclude_run_id=run_id,
@@ -170,6 +186,7 @@ def run_case(case: str, output: Path, root: Path=ROOT, *, report_mode: str="stru
             ledger.close()
         if store is not None:
             store.close()
+        close_rules(rule_knowledge)
         raise
 
     def handle_arrivals(batch):
@@ -243,6 +260,7 @@ def run_case(case: str, output: Path, root: Path=ROOT, *, report_mode: str="stru
             llm_usage = {'run':ledger.summary(run_id), 'project':ledger.summary()}
             ledger.close()
         repository.close()
+        close_rules(rule_knowledge)
         summary=export_run(output,termination)
         finished_at=utc_now()
         recorded=None
@@ -266,6 +284,8 @@ def run_case(case: str, output: Path, root: Path=ROOT, *, report_mode: str="stru
             command += ['--rules', str(rules_path)]
         if rule_topics_path is not None and rule_knowledge is not None:
             command += ['--rule-topics', str(rule_topics_path)]
+        if rule_knowledge is not None and report_mode == 'responses':
+            command += ['--rule-search', rule_search, '--rule-embed-model', rule_embed_model]
         if history_path is not None:
             command += ['--history', str(history_path), '--top-k', str(top_k), '--embed-model', embed_model]
             if include_same_case:
@@ -278,7 +298,8 @@ def run_case(case: str, output: Path, root: Path=ROOT, *, report_mode: str="stru
             'command':shlex.join(command),'argv':sys.argv,'unit':'abstract_tick'}
         if rule_knowledge is not None:
             manifest['rule_knowledge'] = {'file': rules_path.name, 'topics_file': rule_knowledge.topics_file,
-                'sha256': rule_knowledge.sha256}
+                'sha256': rule_knowledge.sha256, 'retrieval': rule_knowledge.describe(),
+                'embedded_texts': rule_knowledge.semantic.embedded_texts if rule_knowledge.semantic else 0}
         if history_path is not None:
             manifest['history'] = {'store': history_path.name, 'recorded_outcomes': recorded,
                 'recording_error': recording_error,
@@ -290,6 +311,14 @@ def run_case(case: str, output: Path, root: Path=ROOT, *, report_mode: str="stru
                 'pricing_scope':'estimated text generation only; token-count billing unverified'}
         (output/'manifest.json').write_text(json.dumps(manifest,ensure_ascii=False,indent=2)+'\n',encoding='utf-8')
     return summary
+
+
+def close_rules(rule_knowledge: RuleKnowledge | None):
+    if rule_knowledge is None:
+        return
+    if rule_knowledge.semantic is not None:
+        rule_knowledge.semantic.cache.close()
+    rule_knowledge.close()
 
 
 def case_policy_path(root: Path, case: str) -> Path:
@@ -331,7 +360,8 @@ def run_live_case(args, root: Path) -> int:
         llm_policy_path=local_policy, top_k=args.top_k, embed_model=args.embed_model,
         history_path=args.history or default_history_path(root),
         include_same_case=args.history_include_same_case, rule_topics_path=args.rule_topics,
-        rules_path=args.rules or root / "references-local" / "kr-2026-welding-rules.jsonl",
+        rules_path=args.rules or root / DEFAULT_RULES,
+        rule_search=args.rule_search, rule_embed_model=args.rule_embed_model,
     )
     print(json.dumps({"run_dir": str(output), **summary}, ensure_ascii=False, indent=2), flush=True)
     result = 1 if summary.get("termination") == "FAILED" else 0
@@ -362,6 +392,9 @@ def main(argv=None):
         case_parser.add_argument('--allow-paid', action='store_true')
         case_parser.add_argument('--rules', type=Path, help='local KR rule excerpts JSONL')
         case_parser.add_argument('--rule-topics', type=Path, help='observation kind to rule query map')
+        case_parser.add_argument('--rule-search', choices=['hybrid', 'keyword'], default='hybrid',
+                                 help='responses mode: fuse keyword and embedding ranks, or keywords only')
+        case_parser.add_argument('--rule-embed-model', default=DEFAULT_RULE_EMBED_MODEL)
         case_parser.add_argument('--history', type=Path,
                                  help='shared report-outcome store; recorded after the run, searched in responses mode')
         case_parser.add_argument('--history-include-same-case', action='store_true',
@@ -381,7 +414,12 @@ def main(argv=None):
     preflight.add_argument('--check-access',action='store_true')
     inspect=commands.add_parser('inspect');inspect.add_argument('--run-dir',type=Path,required=True)
     search = commands.add_parser('search-rules')
-    search.add_argument('--rules', type=Path, required=True)
+    search.add_argument('--rules', type=Path, default=ROOT / DEFAULT_RULES)
+    search.add_argument('--rule-topics', type=Path)
+    search.add_argument('--observation-kind', help='search through the topic mapped to this observation kind')
+    search.add_argument('--allow-paid', action='store_true', help='hybrid search with OpenAI embeddings')
+    search.add_argument('--project-id')
+    search.add_argument('--rule-embed-model', default=DEFAULT_RULE_EMBED_MODEL)
     search.add_argument('query')
     for name in ('search-reports', 'analyze-report'):
         reports_command = commands.add_parser(name)
@@ -397,16 +435,17 @@ def main(argv=None):
         reports_command.add_argument('--allow-paid', action='store_true')
         if name == 'analyze-report':
             reports_command.add_argument('--chat-model', default=DEFAULT_CHAT_MODEL)
-            reports_command.add_argument('--rules', type=Path,
-                                         default=ROOT / 'references-local/kr-2026-welding-rules.jsonl')
+            reports_command.add_argument('--rules', type=Path, default=ROOT / DEFAULT_RULES)
             reports_command.add_argument('--rule-topics', type=Path)
+            reports_command.add_argument('--rule-embed-model', default=DEFAULT_RULE_EMBED_MODEL)
+            reports_command.add_argument('--rule-search', choices=['hybrid', 'keyword'], default='hybrid')
     args=parser.parse_args(argv)
     try:
         if args.command == 'prepare-case-policy':
             result = prepare_case_policy(
                 args.case, ROOT, template=args.template or ROOT / "config" / "llm-policy.json",
                 output=args.output or case_policy_path(ROOT, args.case), approved=args.approve,
-                rules_path=args.rules or ROOT / "references-local" / "kr-2026-welding-rules.jsonl",
+                rules_path=args.rules or ROOT / DEFAULT_RULES,
                 rule_topics_path=args.rule_topics,
             )
             print(json.dumps(result, ensure_ascii=False))
@@ -424,9 +463,14 @@ def main(argv=None):
                                          data_policy=DEV_DATA_POLICY, exclude_case_id=args.exclude_case,
                                          top_k=args.top_k)
                 if args.command == 'analyze-report':
-                    rules = RuleKnowledge(args.rules, args.rule_topics or default_rule_topics(ROOT))
-                    result = analyze_report(index, client, args.chat_model, text, args.report_id,
-                                            rule_knowledge=rules)
+                    semantic = (open_semantic_index(client, args.rule_embed_model, default_rule_embeddings(ROOT))
+                                if args.rule_search == 'hybrid' else None)
+                    rules = RuleKnowledge(args.rules, args.rule_topics or default_rule_topics(ROOT), semantic=semantic)
+                    try:
+                        result = analyze_report(index, client, args.chat_model, text, args.report_id,
+                                                rule_knowledge=rules)
+                    finally:
+                        close_rules(rules)
                 else:
                     result = index.search(text, args.report_id)
             finally:
@@ -434,7 +478,17 @@ def main(argv=None):
             print(json.dumps(result, ensure_ascii=False, indent=2))
             return 0
         if args.command == 'search-rules':
-            print(json.dumps(RuleKnowledge(args.rules).search(args.query), ensure_ascii=False, indent=2))
+            semantic = None
+            if args.allow_paid:
+                client = OpenAIReportClient(allow_paid=True, project_id=args.project_id, dotenv_path=ROOT / ".env")
+                semantic = open_semantic_index(client, args.rule_embed_model, default_rule_embeddings(ROOT))
+            rules = RuleKnowledge(args.rules, args.rule_topics or default_rule_topics(ROOT), semantic=semantic)
+            try:
+                found = (rules.for_report(args.query, args.observation_kind) if args.observation_kind
+                         else rules.for_analysis(args.query))
+                print(json.dumps({"retrieval": rules.describe(), "results": found}, ensure_ascii=False, indent=2))
+            finally:
+                close_rules(rules)
             return 0
         if args.command=='llm-preflight':
             from .responses import load_policy, preflight as inspect_llm
@@ -447,7 +501,8 @@ def main(argv=None):
                          llm_policy_path=args.llm_policy,allow_paid=args.allow_paid,
                          rules_path=args.rules, history_path=args.history,
                          include_same_case=args.history_include_same_case, rule_topics_path=args.rule_topics,
-                         embed_model=args.embed_model, top_k=args.top_k) if args.command=='run' else inspect_run(args.run_dir)
+                         embed_model=args.embed_model, top_k=args.top_k, rule_search=args.rule_search,
+                         rule_embed_model=args.rule_embed_model) if args.command=='run' else inspect_run(args.run_dir)
         print(json.dumps(summary,ensure_ascii=False,indent=2))
         return 1 if summary.get('termination')=='FAILED' else 0
     except (OSError,ValueError,RuntimeError,sqlite3.Error) as error:

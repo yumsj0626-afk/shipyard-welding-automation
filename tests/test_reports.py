@@ -129,6 +129,19 @@ def test_lookup_hides_internal_rule_labels_and_rule_refs_stay_excerpt_only(tmp_p
     assert result.reason_codes == ["UNGROUNDED_RULE_REFERENCE"]
 
 
+def test_rule_embedding_failure_stops_the_report_not_the_run(tmp_path, snapshot, report):
+    class Down:
+        model = "test-embed"
+
+        def vectors(self, texts):
+            raise RuntimeError("OpenAI embeddings failed (APIConnectionError)")
+
+    path, topics = write_rules(tmp_path)
+    knowledge = RuleKnowledge(path, topics, semantic=Down())
+    result = interpret_report(report, snapshot, model_for(report, lookup(), propose()), rule_knowledge=knowledge)
+    assert (result.status, result.reason_codes) == ("RETRIEVAL_ERROR", ["RULE_RETRIEVAL_FAILED"])
+
+
 def test_rule_knowledge_accepts_any_clause_set_and_validates_topics(tmp_path):
     path = tmp_path / "other.jsonl"
     rows = [{"id": "X-101", "clause": "101", "title": "도장", "keywords": "도장 페인트", "text": "도장 규정"},
